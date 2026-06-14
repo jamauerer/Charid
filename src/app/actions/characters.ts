@@ -14,14 +14,34 @@ export type CharacterActionState = {
   success?: boolean;
 };
 
-export async function getCharacters(): Promise<Character[]> {
+export type CharactersResult = {
+  characters: Character[];
+  error?: string;
+};
+
+function formatCharactersError(message: string, code?: string): string {
+  if (
+    code === "PGRST205" ||
+    message.includes("schema cache") ||
+    message.includes("Could not find the table")
+  ) {
+    return (
+      "The characters table is not exposed to the Supabase Data API yet. " +
+      "In Supabase SQL Editor, run supabase/fix-characters-api.sql, then refresh this page."
+    );
+  }
+
+  return message;
+}
+
+export async function getCharacters(): Promise<CharactersResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return [];
+    return { characters: [] };
   }
 
   const { data, error } = await supabase
@@ -32,10 +52,13 @@ export async function getCharacters(): Promise<Character[]> {
 
   if (error) {
     console.error("Failed to fetch characters:", error.message);
-    return [];
+    return {
+      characters: [],
+      error: formatCharactersError(error.message, error.code),
+    };
   }
 
-  return data ?? [];
+  return { characters: data ?? [] };
 }
 
 export async function getCharacterPhotoUrl(
@@ -124,7 +147,9 @@ export async function createCharacter(
     if (photoPath) {
       await supabase.storage.from(BUCKET).remove([photoPath]);
     }
-    return { error: `Failed to save character: ${insertError.message}` };
+    return {
+      error: formatCharactersError(insertError.message, insertError.code),
+    };
   }
 
   revalidatePath("/dashboard");

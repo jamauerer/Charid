@@ -15,7 +15,7 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const characters = await getCharacters();
+  const { characters, error } = await getCharacters();
 
   return (
     <div className="min-h-full bg-zinc-50 dark:bg-zinc-950">
@@ -30,6 +30,12 @@ export default async function DashboardPage() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-8">
+        {error && (
+          <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+            {error}
+          </div>
+        )}
+
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-semibold">Your Characters</h2>

@@ -34,7 +34,7 @@ For instant signup during development, disable **Confirm email** under Email set
 
 Open **SQL Editor** in the Supabase Dashboard and run the contents of [`supabase/schema.sql`](supabase/schema.sql).
 
-This creates the `characters` table with row-level security policies.
+This creates the `characters` table with row-level security policies and grants that expose it to the Supabase Data API.
 
 ### Create the storage bucket
 
@@ -98,6 +98,24 @@ src/
 - **RLS** on `characters` ensures users only access their own data.
 - **Storage policies** restrict photo access to each user's folder (`{user_id}/...`).
 - Photos are served via **signed URLs** from a private bucket.
+
+## Troubleshooting
+
+### "Could not find the table 'public.characters' in the schema cache"
+
+On newer Supabase projects, tables are not automatically exposed to the Data API. The table exists in the database, but the REST API cannot see it until you grant access.
+
+In **SQL Editor**, run [`supabase/fix-characters-api.sql`](supabase/fix-characters-api.sql):
+
+```sql
+grant select on public.characters to anon;
+grant select, insert, update, delete on public.characters to authenticated;
+grant select, insert, update, delete on public.characters to service_role;
+
+notify pgrst, 'reload schema';
+```
+
+Then refresh the dashboard.
 
 ## Scripts
 

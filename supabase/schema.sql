@@ -26,6 +26,14 @@ create policy "Users delete own characters"
   on public.characters for delete
   using (auth.uid() = user_id);
 
+-- Required for Supabase Data API (new projects no longer auto-expose tables)
+grant select on public.characters to anon;
+grant select, insert, update, delete on public.characters to authenticated;
+grant select, insert, update, delete on public.characters to service_role;
+
+-- Refresh PostgREST schema cache so the API sees the new table
+notify pgrst, 'reload schema';
+
 -- Create the character-photos bucket in Storage UI first (private bucket),
 -- then run the policies below.
 
