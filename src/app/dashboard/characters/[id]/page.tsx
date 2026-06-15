@@ -48,7 +48,7 @@ export default async function CharacterDetailPage({
 
   return (
     <div className="mx-auto w-full max-w-5xl">
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="mb-7 flex items-center justify-between gap-3">
         <Link
           href="/dashboard"
           className="inline-flex items-center gap-1 text-sm text-zinc-400 transition hover:text-zinc-200"
@@ -93,30 +93,30 @@ export default async function CharacterDetailPage({
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/[0.06] bg-[#0f0f11] p-4 sm:p-5">
+        <div className="rounded-xl border border-white/[0.06] bg-[#0f0f11] p-5 sm:p-6">
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-violet-400/80">
             Character Profile
           </p>
-          <h1 className="mt-1 text-xl font-semibold tracking-tight text-zinc-100 sm:text-2xl">
+          <h1 className="mt-1.5 text-xl font-semibold tracking-tight text-zinc-100 sm:text-2xl">
             {character.name}
           </h1>
 
-          <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
+          <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3.5 sm:grid-cols-3">
             <DetailField label="Gender" value={character.gender} />
             <DetailField label="Age" value={character.age} />
             <DetailField label="Location" value={character.location} />
           </dl>
 
-          <section className="mt-5 border-t border-white/[0.06] pt-4">
-            <h2 className="text-[10px] font-semibold uppercase tracking-wider text-violet-400/80">
+          <section className="mt-6 border-t border-white/[0.06] pt-5">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-violet-400">
               Backstory
             </h2>
             {character.backstory ? (
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-zinc-300">
+              <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-zinc-300">
                 {character.backstory}
               </p>
             ) : (
-              <p className="mt-2 text-sm italic text-zinc-600">
+              <p className="mt-3 text-sm italic text-zinc-600">
                 No backstory provided yet.
               </p>
             )}

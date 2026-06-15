@@ -58,29 +58,29 @@ export function DashboardCharactersView({
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1400px]">
+    <div className="mx-auto w-full max-w-[1280px]">
       {error && (
-        <div className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+        <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-sm text-amber-200">
           {error}
         </div>
       )}
 
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold tracking-tight text-zinc-100">
+      <div className="mb-6 flex flex-col gap-4 border-b border-white/[0.04] pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex items-center gap-2.5">
+          <h1 className="text-xl font-semibold tracking-tight text-zinc-100">
             Your Characters
           </h1>
-          <span className="rounded-full border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-zinc-400">
+          <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] font-medium tabular-nums text-zinc-400">
             {characters.length}
           </span>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
           <div className="relative">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 20 20"
               fill="currentColor"
-              className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500"
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500"
               aria-hidden
             >
               <path
@@ -94,7 +94,7 @@ export function DashboardCharactersView({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search characters..."
-              className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] py-1.5 pl-8 pr-3 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none transition focus:border-violet-500/40 focus:ring-1 focus:ring-violet-500/30 sm:w-56"
+              className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] py-2 pl-9 pr-3 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none transition focus:border-violet-500/40 focus:ring-1 focus:ring-violet-500/30 sm:w-64"
             />
           </div>
           <NewCharacterModal />

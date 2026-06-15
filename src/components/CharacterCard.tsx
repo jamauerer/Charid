@@ -15,13 +15,11 @@ type CharacterCardProps = {
   onUpdated: (character: Character, photoUrl: string | null) => void;
 };
 
-function MetaLine({ label, value }: { label: string; value: string }) {
-  return (
-    <p className="truncate text-[11px] text-zinc-500">
-      <span className="text-zinc-600">{label} · </span>
-      {value}
-    </p>
-  );
+function formatMetadata(character: Character): string | null {
+  const parts = [character.gender, character.age, character.location].filter(
+    Boolean
+  ) as string[];
+  return parts.length > 0 ? parts.join(" • ") : null;
 }
 
 export function CharacterCard({
@@ -49,6 +47,8 @@ export function CharacterCard({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
+
+  const metadata = formatMetadata(character);
 
   async function handleDelete() {
     setDeleting(true);
@@ -80,7 +80,7 @@ export function CharacterCard({
               alt={character.name}
               fill
               className="object-cover transition duration-300 group-hover:scale-[1.02]"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
               unoptimized
             />
           ) : (
@@ -160,16 +160,12 @@ export function CharacterCard({
           )}
         </div>
 
-        <div className="space-y-0.5 px-2.5 py-2">
-          <h3 className="truncate text-[13px] font-semibold text-zinc-100">
+        <div className="px-3 py-2.5">
+          <h3 className="truncate text-sm font-bold tracking-tight text-zinc-100">
             {character.name}
           </h3>
-          {character.gender && (
-            <MetaLine label="Gender" value={character.gender} />
-          )}
-          {character.age && <MetaLine label="Age" value={character.age} />}
-          {character.location && (
-            <MetaLine label="Location" value={character.location} />
+          {metadata && (
+            <p className="mt-1 truncate text-xs text-zinc-500">{metadata}</p>
           )}
         </div>
       </article>

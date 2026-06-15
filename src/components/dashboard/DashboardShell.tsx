@@ -68,7 +68,7 @@ export function DashboardShell({ userEmail, children }: DashboardShellProps) {
             <span className="text-sm font-semibold text-zinc-200">CharID</span>
           </header>
 
-          <main className="relative flex-1 px-4 py-4 sm:px-5 sm:py-5">
+          <main className="relative flex-1 px-4 pb-4 pt-14 sm:px-6 sm:pb-5 sm:pt-[4.5rem] lg:pt-20">
             {children}
           </main>
         </div>
