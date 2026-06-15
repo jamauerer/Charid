@@ -8,6 +8,9 @@ import {
 
 const initialState: CharacterActionState = {};
 
+const inputClassName =
+  "w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none transition focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30";
+
 type CharacterFormProps = {
   onSuccess?: () => void;
 };
@@ -29,7 +32,10 @@ export function CharacterForm({ onSuccess }: CharacterFormProps) {
   return (
     <form ref={formRef} action={formAction} className="space-y-4">
       <div>
-        <label htmlFor="name" className="mb-1 block text-sm font-medium">
+        <label
+          htmlFor="name"
+          className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-500"
+        >
           Name
         </label>
         <input
@@ -38,14 +44,14 @@ export function CharacterForm({ onSuccess }: CharacterFormProps) {
           type="text"
           required
           placeholder="e.g. Aria Stormwind"
-          className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+          className={inputClassName}
         />
       </div>
 
       <div>
         <label
           htmlFor="physical_description"
-          className="mb-1 block text-sm font-medium"
+          className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-500"
         >
           Physical description
         </label>
@@ -55,12 +61,15 @@ export function CharacterForm({ onSuccess }: CharacterFormProps) {
           required
           rows={4}
           placeholder="Height, build, hair, eyes, distinguishing features..."
-          className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+          className={inputClassName}
         />
       </div>
 
       <div>
-        <label htmlFor="photo" className="mb-1 block text-sm font-medium">
+        <label
+          htmlFor="photo"
+          className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-500"
+        >
           Photo (optional)
         </label>
         <input
@@ -68,13 +77,15 @@ export function CharacterForm({ onSuccess }: CharacterFormProps) {
           name="photo"
           type="file"
           accept="image/jpeg,image/png,image/webp"
-          className="w-full text-sm text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-zinc-700 dark:text-zinc-400 dark:file:bg-zinc-800 dark:file:text-zinc-200"
+          className="w-full text-sm text-zinc-400 file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-violet-600/20 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-violet-300 file:transition hover:file:bg-violet-600/30"
         />
-        <p className="mt-1 text-xs text-zinc-500">JPEG, PNG, or WebP up to 5 MB</p>
+        <p className="mt-1.5 text-xs text-zinc-600">
+          JPEG, PNG, or WebP up to 5 MB
+        </p>
       </div>
 
       {state.error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
+        <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300">
           {state.error}
         </p>
       )}
@@ -82,7 +93,7 @@ export function CharacterForm({ onSuccess }: CharacterFormProps) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+        className="w-full rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-500/20 transition hover:from-violet-500 hover:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Saving..." : "Save character"}
       </button>

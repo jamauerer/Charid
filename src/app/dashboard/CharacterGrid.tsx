@@ -24,19 +24,17 @@ export function CharacterGrid({ initialCharacters }: CharacterGridProps) {
 
   if (characters.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-zinc-300 bg-white px-6 py-16 text-center dark:border-zinc-700 dark:bg-zinc-900">
-        <p className="text-lg font-medium text-zinc-700 dark:text-zinc-300">
-          No characters yet
-        </p>
-        <p className="mt-2 text-sm text-zinc-500">
-          Click &ldquo;New Character&rdquo; to create your first one.
+      <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-10 text-center">
+        <p className="font-medium text-zinc-300">No characters yet</p>
+        <p className="mt-1 text-sm text-zinc-500">
+          Create your first character profile to get started.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {characters.map(({ character, photoUrl }) => (
         <CharacterCard
           key={character.id}
