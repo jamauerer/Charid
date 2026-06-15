@@ -1,4 +1,9 @@
 -- Character galleries: multi-image support
+-- Does not require public.profiles (uses characters.is_public only)
+
+-- Visibility flag for public gallery access (harmless if already present)
+alter table public.characters
+  add column if not exists is_public boolean not null default true;
 
 create table if not exists public.character_images (
   id uuid primary key default gen_random_uuid(),
@@ -53,6 +58,7 @@ end $$;
 
 alter table public.character_images enable row level security;
 
+drop policy if exists "Users read own character images" on public.character_images;
 create policy "Users read own character images"
   on public.character_images for select
   using (
@@ -63,6 +69,7 @@ create policy "Users read own character images"
     )
   );
 
+drop policy if exists "Users insert own character images" on public.character_images;
 create policy "Users insert own character images"
   on public.character_images for insert
   with check (
@@ -73,6 +80,7 @@ create policy "Users insert own character images"
     )
   );
 
+drop policy if exists "Users update own character images" on public.character_images;
 create policy "Users update own character images"
   on public.character_images for update
   using (
@@ -83,6 +91,7 @@ create policy "Users update own character images"
     )
   );
 
+drop policy if exists "Users delete own character images" on public.character_images;
 create policy "Users delete own character images"
   on public.character_images for delete
   using (
@@ -93,20 +102,21 @@ create policy "Users delete own character images"
     )
   );
 
+-- Public read: any gallery image belonging to a public character
+drop policy if exists "Public character images are viewable" on public.character_images;
 create policy "Public character images are viewable"
   on public.character_images for select
   using (
     exists (
       select 1
       from public.characters c
-      inner join public.profiles p on p.id = c.user_id
       where c.id = character_images.character_id
         and c.is_public = true
-        and p.is_public = true
     )
   );
 
--- Public storage read for gallery images on public portfolios
+-- Public storage read for gallery images on public characters
+drop policy if exists "Public read character gallery photos" on storage.objects;
 create policy "Public read character gallery photos"
   on storage.objects for select
   to anon, authenticated
@@ -116,9 +126,7 @@ create policy "Public read character gallery photos"
       select 1
       from public.character_images ci
       inner join public.characters c on c.id = ci.character_id
-      inner join public.profiles p on p.id = c.user_id
       where c.is_public = true
-        and p.is_public = true
         and ci.image_path = storage.objects.name
     )
   );

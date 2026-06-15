@@ -262,6 +262,17 @@ export async function updateCharacter(
     .single();
 
   if (fetchError || !existing) {
+    if (fetchError) {
+      console.error("[updateCharacter] fetch error:", {
+        message: fetchError.message,
+        code: fetchError.code,
+        details: fetchError.details,
+        hint: fetchError.hint,
+      });
+      return {
+        error: `[fetch] ${fetchError.message}${fetchError.code ? ` (${fetchError.code})` : ""}`,
+      };
+    }
     return {
       error: "Character not found or you do not have permission to edit it.",
     };
@@ -286,9 +297,18 @@ export async function updateCharacter(
     .single();
 
   if (updateError || !updated) {
-    return {
-      error: formatCharactersError(updateError?.message ?? "Update failed.", updateError?.code),
-    };
+    if (updateError) {
+      console.error("[updateCharacter] update error:", {
+        message: updateError.message,
+        code: updateError.code,
+        details: updateError.details,
+        hint: updateError.hint,
+      });
+      return {
+        error: `[update] ${updateError.message}${updateError.code ? ` (${updateError.code})` : ""}`,
+      };
+    }
+    return { error: "Update failed: no row returned." };
   }
 
   const normalized = normalizeCharacter(updated as CharacterRow);
