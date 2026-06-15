@@ -22,11 +22,21 @@ export function CharacterGrid({ initialCharacters }: CharacterGridProps) {
     );
   }
 
+  function handleUpdated(updated: Character, photoUrl: string | null) {
+    setCharacters((prev) =>
+      prev.map((item) =>
+        item.character.id === updated.id
+          ? { character: updated, photoUrl }
+          : item
+      )
+    );
+  }
+
   if (characters.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-10 text-center">
-        <p className="font-medium text-zinc-300">No characters yet</p>
-        <p className="mt-1 text-sm text-zinc-500">
+      <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-5 py-8 text-center">
+        <p className="text-sm font-medium text-zinc-300">No characters yet</p>
+        <p className="mt-1 text-xs text-zinc-500">
           Create your first character profile to get started.
         </p>
       </div>
@@ -34,13 +44,14 @@ export function CharacterGrid({ initialCharacters }: CharacterGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
       {characters.map(({ character, photoUrl }) => (
         <CharacterCard
           key={character.id}
           character={character}
           photoUrl={photoUrl}
           onDeleted={handleDeleted}
+          onUpdated={handleUpdated}
         />
       ))}
     </div>

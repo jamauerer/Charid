@@ -9,6 +9,16 @@ const BUCKET = "character-photos";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
+function validatePhoto(file: File): string | null {
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return "Photo must be a JPEG, PNG, or WebP image.";
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    return "Photo must be 5 MB or smaller.";
+  }
+  return null;
+}
+
 export type CharacterActionState = {
   error?: string;
   success?: boolean;
@@ -112,12 +122,9 @@ export async function createCharacter(
   let photoPath: string | null = null;
 
   if (photo instanceof File && photo.size > 0) {
-    if (!ALLOWED_TYPES.includes(photo.type)) {
-      return { error: "Photo must be a JPEG, PNG, or WebP image." };
-    }
-
-    if (photo.size > MAX_FILE_SIZE) {
-      return { error: "Photo must be 5 MB or smaller." };
+    const photoError = validatePhoto(photo);
+    if (photoError) {
+      return { error: photoError };
     }
 
     const extension = photo.type.split("/")[1] ?? "jpg";
@@ -154,6 +161,126 @@ export async function createCharacter(
 
   revalidatePath("/dashboard");
   return { success: true };
+}
+
+export type UpdateCharacterResult = CharacterActionState & {
+  character?: Character;
+  photoUrl?: string | null;
+};
+
+export async function updateCharacter(
+  _prevState: UpdateCharacterResult,
+  formData: FormData
+): Promise<UpdateCharacterResult> {
+  const characterId = String(formData.get("character_id") ?? "").trim();
+  const name = String(formData.get("name") ?? "").trim();
+  const physicalDescription = String(
+    formData.get("physical_description") ?? ""
+  ).trim();
+  const photo = formData.get("photo");
+
+  if (!characterId) {
+    return { error: "Character ID is required." };
+  }
+
+  if (!name) {
+    return { error: "Character name is required." };
+  }
+
+  if (!physicalDescription) {
+    return { error: "Physical description is required." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be logged in to edit a character." };
+  }
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("characters")
+    .select("*")
+    .eq("id", characterId)
+    .single();
+
+  if (fetchError || !existing) {
+    return {
+      error: "Character not found or you do not have permission to edit it.",
+    };
+  }
+
+  if (existing.user_id !== user.id) {
+    return { error: "You do not have permission to edit this character." };
+  }
+
+  let photoPath: string | null = existing.photo_path;
+  let oldPhotoToDelete: string | null = null;
+  let newlyUploadedPath: string | null = null;
+
+  if (photo instanceof File && photo.size > 0) {
+    const photoError = validatePhoto(photo);
+    if (photoError) {
+      return { error: photoError };
+    }
+
+    const extension = photo.type.split("/")[1] ?? "jpg";
+    const newPhotoPath = `${user.id}/${characterId}.${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET)
+      .upload(newPhotoPath, photo, {
+        contentType: photo.type,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      return { error: `Failed to upload photo: ${uploadError.message}` };
+    }
+
+    newlyUploadedPath = newPhotoPath;
+    if (existing.photo_path && existing.photo_path !== newPhotoPath) {
+      oldPhotoToDelete = existing.photo_path;
+    }
+    photoPath = newPhotoPath;
+  }
+
+  const { data: updated, error: updateError } = await supabase
+    .from("characters")
+    .update({
+      name,
+      physical_description: physicalDescription,
+      photo_path: photoPath,
+    })
+    .eq("id", characterId)
+    .select()
+    .single();
+
+  if (updateError || !updated) {
+    if (newlyUploadedPath) {
+      await supabase.storage.from(BUCKET).remove([newlyUploadedPath]);
+    }
+    return {
+      error: formatCharactersError(updateError?.message ?? "Update failed.", updateError?.code),
+    };
+  }
+
+  if (oldPhotoToDelete) {
+    const { error: storageError } = await supabase.storage
+      .from(BUCKET)
+      .remove([oldPhotoToDelete]);
+
+    if (storageError) {
+      console.error("Failed to delete old photo:", storageError.message);
+    }
+  }
+
+  const photoUrl = await getCharacterPhotoUrl(updated.photo_path);
+
+  revalidatePath("/dashboard");
+  return { success: true, character: updated, photoUrl };
 }
 
 export type DeleteCharacterResult = {
