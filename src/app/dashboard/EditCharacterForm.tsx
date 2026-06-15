@@ -6,12 +6,10 @@ import {
   updateCharacter,
   type UpdateCharacterResult,
 } from "@/app/actions/characters";
+import { CharacterFormFields } from "@/components/CharacterFormFields";
 import type { Character } from "@/types/character";
 
 const initialState: UpdateCharacterResult = {};
-
-const inputClassName =
-  "w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none transition focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30";
 
 type EditCharacterFormProps = {
   character: Character;
@@ -64,50 +62,16 @@ export function EditCharacterForm({
   const previewSrc = newPhotoPreview ?? photoUrl;
 
   return (
-    <form ref={formRef} action={formAction} className="space-y-4">
+    <form ref={formRef} action={formAction} className="space-y-5">
       <input type="hidden" name="character_id" value={character.id} />
 
-      <div>
-        <label
-          htmlFor="edit-name"
-          className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-500"
-        >
-          Name
-        </label>
-        <input
-          id="edit-name"
-          name="name"
-          type="text"
-          required
-          defaultValue={character.name}
-          placeholder="e.g. Aria Stormwind"
-          className={inputClassName}
-        />
-      </div>
+      <CharacterFormFields character={character} idPrefix="edit-" />
 
-      <div>
-        <label
-          htmlFor="edit-physical_description"
-          className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-500"
-        >
-          Physical description
-        </label>
-        <textarea
-          id="edit-physical_description"
-          name="physical_description"
-          required
-          rows={4}
-          defaultValue={character.physical_description}
-          placeholder="Height, build, hair, eyes, distinguishing features..."
-          className={inputClassName}
-        />
-      </div>
-
-      <div>
-        <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-500">
+      <fieldset className="space-y-4">
+        <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-violet-400/80">
           Photo
-        </label>
-        <div className="mb-3 overflow-hidden rounded-lg border border-white/10 bg-white/[0.02]">
+        </legend>
+        <div className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.02]">
           {previewSrc ? (
             <div className="relative aspect-[4/3] w-full">
               <Image
@@ -132,16 +96,10 @@ export function EditCharacterForm({
           onChange={handlePhotoChange}
           className="w-full text-sm text-zinc-400 file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-violet-600/20 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-violet-300 file:transition hover:file:bg-violet-600/30"
         />
-        <p className="mt-1.5 text-xs text-zinc-600">
+        <p className="text-xs text-zinc-600">
           Leave empty to keep the current photo. JPEG, PNG, or WebP up to 5 MB.
         </p>
-      </div>
-
-      {state.success && (
-        <p className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
-          Character updated successfully.
-        </p>
-      )}
+      </fieldset>
 
       {state.error && (
         <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300">

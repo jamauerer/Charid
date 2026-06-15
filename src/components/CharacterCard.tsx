@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, type MouseEvent, type ReactNode } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { deleteCharacter } from "@/app/actions/characters";
 import { EditCharacterModal } from "@/app/dashboard/EditCharacterModal";
+import { ModalPortal } from "@/components/ModalPortal";
 import type { Character } from "@/types/character";
 
 type CharacterCardProps = {
@@ -20,7 +22,7 @@ function IconButton({
   variant = "default",
 }: {
   label: string;
-  onClick: () => void;
+  onClick: (e: MouseEvent) => void;
   children: ReactNode;
   variant?: "default" | "danger";
 }) {
@@ -51,11 +53,6 @@ export function CharacterCard({
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createdDate = new Date(character.created_at).toLocaleDateString(
-    undefined,
-    { year: "numeric", month: "short", day: "numeric" }
-  );
-
   async function handleDelete() {
     setDeleting(true);
     setError(null);
@@ -76,7 +73,10 @@ export function CharacterCard({
   return (
     <>
       <article className="group relative flex flex-col overflow-hidden rounded-lg border border-white/[0.07] bg-[#111113] shadow-sm ring-1 ring-transparent transition duration-200 hover:-translate-y-0.5 hover:border-violet-500/25 hover:shadow-lg hover:shadow-violet-500/10 hover:ring-violet-500/20">
-        <div className="relative aspect-[3/4] overflow-hidden bg-zinc-900">
+        <Link
+          href={`/dashboard/characters/${character.id}`}
+          className="relative block aspect-[3/4] overflow-hidden bg-zinc-900"
+        >
           {photoUrl ? (
             <>
               <Image
@@ -87,7 +87,6 @@ export function CharacterCard({
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                 unoptimized
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#111113] via-transparent to-black/10" />
               <div className="absolute inset-0 bg-gradient-to-t from-[#111113]/90 via-[#111113]/10 to-transparent" />
             </>
           ) : (
@@ -113,41 +112,6 @@ export function CharacterCard({
             </div>
           )}
 
-          <div className="absolute right-1.5 top-1.5 flex overflow-hidden rounded-md border border-white/10 bg-black/55 opacity-100 shadow-sm backdrop-blur-md transition duration-200 sm:opacity-0 sm:group-hover:opacity-100">
-            <IconButton label="Edit character" onClick={() => setShowEditModal(true)}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 16 16"
-                fill="currentColor"
-                className="h-3.5 w-3.5"
-                aria-hidden
-              >
-                <path d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .984.984l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.262a1.75 1.75 0 0 0 0-2.474Z" />
-                <path d="M4.75 3.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h6.5c.69 0 1.25-.56 1.25-1.25V9A.75.75 0 0 1 14 9v2.25A2.75 2.75 0 0 1 11.25 14h-6.5A2.75 2.75 0 0 1 2 11.25v-6.5A2.75 2.75 0 0 1 4.75 2H7a.75.75 0 0 1 0 1.5H4.75Z" />
-              </svg>
-            </IconButton>
-            <div className="w-px bg-white/10" aria-hidden />
-            <IconButton
-              label="Delete character"
-              variant="danger"
-              onClick={() => setShowDeleteModal(true)}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 16 16"
-                fill="currentColor"
-                className="h-3.5 w-3.5"
-                aria-hidden
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.273l.815 8.15A1.5 1.5 0 0 0 4.82 15h6.36a1.5 1.5 0 0 0 1.493-1.35l.815-8.15H13.5a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25Zm2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75h-1.5ZM6.05 6.423l.572 5.713a.25.25 0 0 0 .498-.05l.572-5.713a.25.25 0 0 0-.248-.273h-1.146a.25.25 0 0 0-.248.273Zm3.9 0a.25.25 0 0 0-.248-.273h-1.146a.25.25 0 0 0-.248.273l.572 5.713a.25.25 0 0 0 .498.05l.572-5.713Z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </IconButton>
-          </div>
-
           <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5 pt-8">
             <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-violet-400/90">
               Character
@@ -156,24 +120,68 @@ export function CharacterCard({
               {character.name}
             </h3>
           </div>
+        </Link>
+
+        <div className="absolute right-1.5 top-1.5 z-10 flex overflow-hidden rounded-md border border-white/10 bg-black/55 opacity-100 shadow-sm backdrop-blur-md transition duration-200 sm:opacity-0 sm:group-hover:opacity-100">
+          <IconButton
+            label="Edit character"
+            onClick={(e) => {
+              e.preventDefault();
+              setShowEditModal(true);
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 16 16"
+              fill="currentColor"
+              className="h-3.5 w-3.5"
+              aria-hidden
+            >
+              <path d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .984.984l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.262a1.75 1.75 0 0 0 0-2.474Z" />
+              <path d="M4.75 3.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h6.5c.69 0 1.25-.56 1.25-1.25V9A.75.75 0 0 1 14 9v2.25A2.75 2.75 0 0 1 11.25 14h-6.5A2.75 2.75 0 0 1 2 11.25v-6.5A2.75 2.75 0 0 1 4.75 2H7a.75.75 0 0 1 0 1.5H4.75Z" />
+            </svg>
+          </IconButton>
+          <div className="w-px bg-white/10" aria-hidden />
+          <IconButton
+            label="Delete character"
+            variant="danger"
+            onClick={(e) => {
+              e.preventDefault();
+              setShowDeleteModal(true);
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 16 16"
+              fill="currentColor"
+              className="h-3.5 w-3.5"
+              aria-hidden
+            >
+              <path
+                fillRule="evenodd"
+                d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.273l.815 8.15A1.5 1.5 0 0 0 4.82 15h6.36a1.5 1.5 0 0 0 1.493-1.35l.815-8.15H13.5a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25Zm2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75h-1.5ZM6.05 6.423l.572 5.713a.25.25 0 0 0 .498-.05l.572-5.713a.25.25 0 0 0-.248-.273h-1.146a.25.25 0 0 0-.248.273Zm3.9 0a.25.25 0 0 0-.248-.273h-1.146a.25.25 0 0 0-.248.273l.572 5.713a.25.25 0 0 0 .498.05l.572-5.713Z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </IconButton>
         </div>
 
-        <div className="space-y-1.5 px-2.5 py-2">
-          <p className="line-clamp-2 min-h-[2rem] text-[11px] leading-relaxed text-zinc-400">
-            {character.physical_description}
-          </p>
-          <div className="flex items-center justify-between border-t border-white/[0.05] pt-1.5">
-            <span className="text-[9px] font-medium uppercase tracking-wide text-zinc-600">
-              Created
-            </span>
-            <time
-              dateTime={character.created_at}
-              className="text-[10px] text-zinc-500"
-            >
-              {createdDate}
-            </time>
+        {(character.age || character.location) && (
+          <div className="space-y-0.5 px-2.5 py-2">
+            {character.age && (
+              <p className="truncate text-[11px] text-zinc-400">
+                <span className="text-zinc-600">Age · </span>
+                {character.age}
+              </p>
+            )}
+            {character.location && (
+              <p className="truncate text-[11px] text-zinc-400">
+                <span className="text-zinc-600">Location · </span>
+                {character.location}
+              </p>
+            )}
           </div>
-        </div>
+        )}
       </article>
 
       <EditCharacterModal
@@ -185,11 +193,12 @@ export function CharacterCard({
       />
 
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <ModalPortal>
+        <div className="fixed inset-0 z-[100] overflow-y-auto">
           <button
             type="button"
             aria-label="Close dialog"
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => {
               if (!deleting) {
                 setShowDeleteModal(false);
@@ -197,7 +206,8 @@ export function CharacterCard({
               }
             }}
           />
-          <div className="relative z-10 w-full max-w-md rounded-xl border border-white/10 bg-[#141416] p-5 shadow-2xl">
+          <div className="flex min-h-full items-start justify-center p-4 sm:items-center sm:p-6">
+            <div className="relative z-10 w-full max-w-md rounded-xl border border-white/10 bg-[#141416] p-5 shadow-2xl">
             <h2 className="text-base font-semibold text-zinc-100">
               Delete character
             </h2>
@@ -235,6 +245,8 @@ export function CharacterCard({
             </div>
           </div>
         </div>
+        </div>
+        </ModalPortal>
       )}
     </>
   );

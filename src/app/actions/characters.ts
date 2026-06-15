@@ -3,7 +3,8 @@
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import type { Character } from "@/types/character";
+import type { Character, CharacterRow } from "@/types/character";
+import { normalizeCharacter } from "@/types/character";
 
 const BUCKET = "character-photos";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -17,6 +18,21 @@ function validatePhoto(file: File): string | null {
     return "Photo must be 5 MB or smaller.";
   }
   return null;
+}
+
+function parseOptionalField(formData: FormData, key: string): string | null {
+  const value = String(formData.get(key) ?? "").trim();
+  return value || null;
+}
+
+function parseCharacterFields(formData: FormData) {
+  return {
+    name: String(formData.get("name") ?? "").trim(),
+    gender: parseOptionalField(formData, "gender"),
+    age: parseOptionalField(formData, "age"),
+    location: parseOptionalField(formData, "location"),
+    backstory: parseOptionalField(formData, "backstory"),
+  };
 }
 
 export type CharacterActionState = {
@@ -68,7 +84,38 @@ export async function getCharacters(): Promise<CharactersResult> {
     };
   }
 
-  return { characters: data ?? [] };
+  return { characters: (data ?? []).map((row) => normalizeCharacter(row as CharacterRow)) };
+}
+
+export async function getCharacterById(
+  characterId: string
+): Promise<{ character: Character | null; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { character: null, error: "You must be logged in." };
+  }
+
+  const { data, error } = await supabase
+    .from("characters")
+    .select("*")
+    .eq("id", characterId)
+    .single();
+
+  if (error || !data) {
+    return { character: null, error: "Character not found." };
+  }
+
+  const character = normalizeCharacter(data as CharacterRow);
+
+  if (character.user_id !== user.id) {
+    return { character: null, error: "Character not found." };
+  }
+
+  return { character };
 }
 
 export async function getCharacterPhotoUrl(
@@ -95,18 +142,12 @@ export async function createCharacter(
   _prevState: CharacterActionState,
   formData: FormData
 ): Promise<CharacterActionState> {
-  const name = String(formData.get("name") ?? "").trim();
-  const physicalDescription = String(
-    formData.get("physical_description") ?? ""
-  ).trim();
+  const { name, gender, age, location, backstory } =
+    parseCharacterFields(formData);
   const photo = formData.get("photo");
 
   if (!name) {
     return { error: "Character name is required." };
-  }
-
-  if (!physicalDescription) {
-    return { error: "Physical description is required." };
   }
 
   const supabase = await createClient();
@@ -146,7 +187,10 @@ export async function createCharacter(
     id: characterId,
     user_id: user.id,
     name,
-    physical_description: physicalDescription,
+    gender,
+    age,
+    location,
+    backstory,
     photo_path: photoPath,
   });
 
@@ -173,10 +217,8 @@ export async function updateCharacter(
   formData: FormData
 ): Promise<UpdateCharacterResult> {
   const characterId = String(formData.get("character_id") ?? "").trim();
-  const name = String(formData.get("name") ?? "").trim();
-  const physicalDescription = String(
-    formData.get("physical_description") ?? ""
-  ).trim();
+  const { name, gender, age, location, backstory } =
+    parseCharacterFields(formData);
   const photo = formData.get("photo");
 
   if (!characterId) {
@@ -185,10 +227,6 @@ export async function updateCharacter(
 
   if (!name) {
     return { error: "Character name is required." };
-  }
-
-  if (!physicalDescription) {
-    return { error: "Physical description is required." };
   }
 
   const supabase = await createClient();
@@ -251,7 +289,10 @@ export async function updateCharacter(
     .from("characters")
     .update({
       name,
-      physical_description: physicalDescription,
+      gender,
+      age,
+      location,
+      backstory,
       photo_path: photoPath,
     })
     .eq("id", characterId)
@@ -277,10 +318,12 @@ export async function updateCharacter(
     }
   }
 
-  const photoUrl = await getCharacterPhotoUrl(updated.photo_path);
+  const normalized = normalizeCharacter(updated as CharacterRow);
+  const photoUrl = await getCharacterPhotoUrl(normalized.photo_path);
 
   revalidatePath("/dashboard");
-  return { success: true, character: updated, photoUrl };
+  revalidatePath(`/dashboard/characters/${characterId}`);
+  return { success: true, character: normalized, photoUrl };
 }
 
 export type DeleteCharacterResult = {

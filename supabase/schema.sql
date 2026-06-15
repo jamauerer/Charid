@@ -3,7 +3,10 @@ create table public.characters (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   name text not null,
-  physical_description text not null,
+  gender text,
+  age text,
+  location text,
+  backstory text,
   photo_path text,
   created_at timestamptz not null default now()
 );

@@ -45,6 +45,10 @@ This creates the `characters` table with row-level security policies and grants 
 
 Then run the storage policy section at the bottom of [`supabase/schema.sql`](supabase/schema.sql) (the `storage.objects` policies).
 
+### Expand character fields (existing projects)
+
+If you already have a `characters` table with `physical_description`, run [`supabase/migrations/20250615000000_expand_character_fields.sql`](supabase/migrations/20250615000000_expand_character_fields.sql) in the SQL Editor. This adds gender, age, location, and backstory, migrates existing descriptions to backstory, and removes the old column.
+
 ## 3. Configure environment variables
 
 Copy the example env file and fill in your Supabase credentials:

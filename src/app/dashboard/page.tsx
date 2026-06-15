@@ -27,7 +27,7 @@ export default async function DashboardPage() {
   const count = charactersWithPhotos.length;
 
   return (
-    <div className="relative flex min-h-dvh flex-col bg-background font-sans text-zinc-100">
+    <div className="relative min-h-dvh bg-background font-sans text-zinc-100">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_80%_40%_at_50%_-10%,rgba(120,119,198,0.15),transparent)]" />
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_60%_40%_at_100%_100%,rgba(99,102,241,0.06),transparent)]" />
 
@@ -55,7 +55,7 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      <main className="relative mx-auto w-full max-w-7xl flex-1 px-4 py-4 sm:px-6 sm:py-5">
+      <main className="relative mx-auto w-full max-w-7xl px-4 py-4 sm:px-6 sm:py-5">
         {error && (
           <div className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-sm text-amber-200">
             {error}
