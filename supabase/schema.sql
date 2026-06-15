@@ -8,6 +8,7 @@ create table public.characters (
   location text,
   backstory text,
   photo_path text,
+  featured_image_id uuid,
   is_public boolean not null default true,
   created_at timestamptz not null default now()
 );
@@ -40,6 +41,87 @@ create policy "Public characters are viewable"
         and profiles.is_public = true
     )
   );
+
+-- Character gallery images
+create table public.character_images (
+  id uuid primary key default gen_random_uuid(),
+  character_id uuid not null references public.characters(id) on delete cascade,
+  image_path text not null,
+  caption text,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index character_images_character_id_idx
+  on public.character_images (character_id);
+
+create index character_images_character_sort_idx
+  on public.character_images (character_id, sort_order);
+
+alter table public.characters
+  add constraint characters_featured_image_id_fkey
+  foreign key (featured_image_id)
+  references public.character_images(id)
+  on delete set null;
+
+alter table public.character_images enable row level security;
+
+create policy "Users read own character images"
+  on public.character_images for select
+  using (
+    exists (
+      select 1 from public.characters
+      where characters.id = character_images.character_id
+        and characters.user_id = auth.uid()
+    )
+  );
+
+create policy "Users insert own character images"
+  on public.character_images for insert
+  with check (
+    exists (
+      select 1 from public.characters
+      where characters.id = character_images.character_id
+        and characters.user_id = auth.uid()
+    )
+  );
+
+create policy "Users update own character images"
+  on public.character_images for update
+  using (
+    exists (
+      select 1 from public.characters
+      where characters.id = character_images.character_id
+        and characters.user_id = auth.uid()
+    )
+  );
+
+create policy "Users delete own character images"
+  on public.character_images for delete
+  using (
+    exists (
+      select 1 from public.characters
+      where characters.id = character_images.character_id
+        and characters.user_id = auth.uid()
+    )
+  );
+
+create policy "Public character images are viewable"
+  on public.character_images for select
+  using (
+    exists (
+      select 1
+      from public.characters c
+      inner join public.profiles p on p.id = c.user_id
+      where c.id = character_images.character_id
+        and c.is_public = true
+        and p.is_public = true
+    )
+  );
+
+grant select on public.character_images to anon;
+grant select, insert, update, delete on public.character_images to authenticated;
+grant select, insert, update, delete on public.character_images to service_role;
 
 -- Profiles table
 create table public.profiles (
@@ -122,6 +204,22 @@ create policy "Public read portfolio character photos"
         and p.is_public = true
         and c.photo_path is not null
         and c.photo_path = storage.objects.name
+    )
+  );
+
+create policy "Public read character gallery photos"
+  on storage.objects for select
+  to anon, authenticated
+  using (
+    bucket_id = 'character-photos'
+    and exists (
+      select 1
+      from public.character_images ci
+      inner join public.characters c on c.id = ci.character_id
+      inner join public.profiles p on p.id = c.user_id
+      where c.is_public = true
+        and p.is_public = true
+        and ci.image_path = storage.objects.name
     )
   );
 

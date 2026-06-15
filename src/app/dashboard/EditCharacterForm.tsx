@@ -1,12 +1,12 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import { useActionState, useEffect, useRef } from "react";
 import {
   updateCharacter,
   type UpdateCharacterResult,
 } from "@/app/actions/characters";
 import { CharacterFormFields } from "@/components/CharacterFormFields";
+import { CharacterGalleryManager } from "@/components/gallery/CharacterGalleryManager";
 import type { Character } from "@/types/character";
 
 const initialState: UpdateCharacterResult = {};
@@ -20,7 +20,7 @@ type EditCharacterFormProps = {
 
 export function EditCharacterForm({
   character,
-  photoUrl,
+  photoUrl: _photoUrl,
   onSuccess,
   onCancel,
 }: EditCharacterFormProps) {
@@ -29,37 +29,13 @@ export function EditCharacterForm({
     initialState
   );
   const formRef = useRef<HTMLFormElement>(null);
-  const [newPhotoPreview, setNewPhotoPreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (state.success && state.character) {
       formRef.current?.reset();
-      setNewPhotoPreview(null);
       onSuccess?.(state.character, state.photoUrl ?? null);
     }
   }, [state.success, state.character, state.photoUrl, onSuccess]);
-
-  useEffect(() => {
-    return () => {
-      if (newPhotoPreview) {
-        URL.revokeObjectURL(newPhotoPreview);
-      }
-    };
-  }, [newPhotoPreview]);
-
-  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (newPhotoPreview) {
-      URL.revokeObjectURL(newPhotoPreview);
-    }
-    if (file) {
-      setNewPhotoPreview(URL.createObjectURL(file));
-    } else {
-      setNewPhotoPreview(null);
-    }
-  }
-
-  const previewSrc = newPhotoPreview ?? photoUrl;
 
   return (
     <form ref={formRef} action={formAction} className="space-y-5">
@@ -107,39 +83,7 @@ export function EditCharacterForm({
         </label>
       </fieldset>
 
-      <fieldset className="space-y-4">
-        <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-violet-400/80">
-          Photo
-        </legend>
-        <div className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.02]">
-          {previewSrc ? (
-            <div className="relative aspect-[4/3] w-full">
-              <Image
-                src={previewSrc}
-                alt={character.name}
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            </div>
-          ) : (
-            <div className="flex aspect-[4/3] items-center justify-center text-sm text-zinc-600">
-              No photo uploaded
-            </div>
-          )}
-        </div>
-        <input
-          id="edit-photo"
-          name="photo"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          onChange={handlePhotoChange}
-          className="w-full text-sm text-zinc-400 file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-violet-600/20 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-violet-300 file:transition hover:file:bg-violet-600/30"
-        />
-        <p className="text-xs text-zinc-600">
-          Leave empty to keep the current photo. JPEG, PNG, or WebP up to 5 MB.
-        </p>
-      </fieldset>
+      <CharacterGalleryManager characterId={character.id} />
 
       {state.error && (
         <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300">

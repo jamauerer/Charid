@@ -1,10 +1,11 @@
 import Link from "next/link";
-import Image from "next/image";
 import { redirect, notFound } from "next/navigation";
 import {
   getCharacterById,
   getCharacterPhotoUrl,
 } from "@/app/actions/characters";
+import { getCharacterImages } from "@/app/actions/character-images";
+import { CharacterGalleryViewer } from "@/components/gallery/CharacterGalleryViewer";
 import { CharacterDetailActions } from "./CharacterDetailActions";
 
 type CharacterDetailPageProps = {
@@ -45,6 +46,7 @@ export default async function CharacterDetailPage({
   }
 
   const photoUrl = await getCharacterPhotoUrl(character.photo_path);
+  const gallery = await getCharacterImages(id);
 
   return (
     <div className="mx-auto w-full max-w-5xl">
@@ -71,26 +73,14 @@ export default async function CharacterDetailPage({
         <CharacterDetailActions character={character} photoUrl={photoUrl} />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
-        <div className="mx-auto w-full max-w-[320px] lg:mx-0">
-          <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-[#0f0f11]">
-            <div className="relative aspect-[4/3] bg-zinc-900">
-              {photoUrl ? (
-                <Image
-                  src={photoUrl}
-                  alt={character.name}
-                  fill
-                  className="object-cover"
-                  priority
-                  unoptimized
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center text-sm text-zinc-600">
-                  No photo uploaded
-                </div>
-              )}
-            </div>
-          </div>
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:items-start">
+        <div className="mx-auto w-full max-w-[420px] lg:mx-0">
+          <CharacterGalleryViewer
+            images={gallery.images}
+            featuredImageId={gallery.featuredImageId ?? character.featured_image_id}
+            characterName={character.name}
+            fallbackPhotoUrl={photoUrl}
+          />
         </div>
 
         <div className="rounded-xl border border-white/[0.06] bg-[#0f0f11] p-5 sm:p-6">

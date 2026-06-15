@@ -7,6 +7,7 @@ export type Character = {
   location: string | null;
   backstory: string | null;
   photo_path: string | null;
+  featured_image_id: string | null;
   is_public: boolean;
   created_at: string;
 };
@@ -15,6 +16,7 @@ export type Character = {
 export type CharacterRow = Character & {
   physical_description?: string | null;
   is_public?: boolean;
+  featured_image_id?: string | null;
 };
 
 export function normalizeCharacter(row: CharacterRow): Character {
@@ -27,6 +29,7 @@ export function normalizeCharacter(row: CharacterRow): Character {
     location: row.location ?? null,
     backstory: row.backstory ?? row.physical_description ?? null,
     photo_path: row.photo_path ?? null,
+    featured_image_id: row.featured_image_id ?? null,
     is_public: row.is_public ?? true,
     created_at: row.created_at,
   };

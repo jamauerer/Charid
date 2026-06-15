@@ -38,7 +38,7 @@ export function EditCharacterModal({
         onClick={onClose}
       />
       <div className="flex min-h-full items-start justify-center p-4 sm:items-center sm:p-6">
-        <div className="relative z-10 flex w-full max-w-lg max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-xl border border-white/10 bg-[#141416] shadow-2xl sm:max-h-[calc(100dvh-3rem)]">
+        <div className="relative z-10 flex w-full max-w-2xl max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-xl border border-white/10 bg-[#141416] shadow-2xl sm:max-h-[calc(100dvh-3rem)]">
           <div className="shrink-0 flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
             <div>
               <h2 className="text-base font-semibold text-zinc-100">

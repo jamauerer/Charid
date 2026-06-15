@@ -3,6 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublicPortfolio } from "@/app/actions/profile";
 import { PublicCharacterCard } from "@/components/portfolio/PublicCharacterCard";
+import { PublicSiteHeader } from "@/components/portfolio/PublicSiteHeader";
+import {
+  getPublicBio,
+  getPublicDisplayName,
+} from "@/lib/public-profile";
 
 type PublicPortfolioPageProps = {
   params: Promise<{ username: string }>;
@@ -27,28 +32,15 @@ export default async function PublicPortfolioPage({
   }
 
   const { profile, characters, avatarUrl, characterPhotos } = data;
-  const displayName = profile.display_name ?? profile.username;
+  const displayName = getPublicDisplayName(profile);
+  const bio = getPublicBio(profile);
+  const hasCustomBio = Boolean(profile.bio?.trim());
 
   return (
     <div className="min-h-dvh bg-background font-sans text-zinc-100">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_80%_40%_at_50%_-10%,rgba(120,119,198,0.08),transparent)]" />
 
-      <header className="relative border-b border-white/[0.06] bg-background/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 text-xs font-bold text-white">
-              C
-            </div>
-            <span className="text-sm font-semibold text-zinc-200">CharID</span>
-          </Link>
-          <Link
-            href="/login"
-            className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-zinc-400 transition hover:bg-white/[0.04] hover:text-zinc-200"
-          >
-            Sign in
-          </Link>
-        </div>
-      </header>
+      <PublicSiteHeader />
 
       <main className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12">
         <div className="mb-10 text-center">
@@ -69,21 +61,29 @@ export default async function PublicPortfolioPage({
               </div>
             )}
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-100 sm:text-3xl">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-400/80">
+            Character Portfolio
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-100 sm:text-3xl">
             {displayName}
           </h1>
           <p className="mt-1 text-sm text-zinc-500">@{profile.username}</p>
-          {profile.bio && (
-            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-zinc-400">
-              {profile.bio}
-            </p>
-          )}
+          <p
+            className={`mx-auto mt-4 max-w-xl text-sm leading-relaxed ${
+              hasCustomBio ? "text-zinc-400" : "italic text-zinc-600"
+            }`}
+          >
+            {bio}
+          </p>
         </div>
 
         {characters.length === 0 ? (
           <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-5 py-10 text-center">
-            <p className="text-sm text-zinc-500">
-              No public characters yet.
+            <p className="text-sm font-medium text-zinc-400">
+              No public characters yet
+            </p>
+            <p className="mt-1 text-xs text-zinc-600">
+              When this creator publishes characters, they will appear here.
             </p>
           </div>
         ) : (
@@ -95,6 +95,7 @@ export default async function PublicPortfolioPage({
               {characters.map((character) => (
                 <PublicCharacterCard
                   key={character.id}
+                  username={profile.username}
                   character={character}
                   photoUrl={characterPhotos[character.id] ?? null}
                 />

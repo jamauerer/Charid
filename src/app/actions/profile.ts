@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getPublicCharacterImages } from "@/app/actions/character-images";
 import type { Character, CharacterRow } from "@/types/character";
 import { normalizeCharacter } from "@/types/character";
+import type { CharacterImageWithUrl } from "@/types/character-image";
 import type { Profile, ProfileRow } from "@/types/profile";
 import {
   normalizeProfile,
@@ -314,6 +316,81 @@ export async function getPublicPortfolio(
       characters,
       avatarUrl,
       characterPhotos,
+    },
+  };
+}
+
+export type PublicCharacterView = {
+  profile: Profile;
+  character: Character;
+  photoUrl: string | null;
+  avatarUrl: string | null;
+  images: CharacterImageWithUrl[];
+  featuredImageId: string | null;
+};
+
+export async function getPublicCharacter(
+  username: string,
+  characterId: string
+): Promise<{ data: PublicCharacterView | null; error?: string }> {
+  const normalizedUsername = sanitizeUsername(username);
+  if (!normalizedUsername || !characterId) {
+    return { data: null };
+  }
+
+  const supabase = await createClient();
+
+  const { data: profileRow, error: profileError } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("username", normalizedUsername)
+    .maybeSingle();
+
+  if (profileError) {
+    return {
+      data: null,
+      error: formatProfileError(profileError.message, profileError.code),
+    };
+  }
+
+  if (!profileRow || !profileRow.is_public) {
+    return { data: null };
+  }
+
+  const profile = normalizeProfile(profileRow as ProfileRow);
+
+  const { data: characterRow, error: characterError } = await supabase
+    .from("characters")
+    .select("*")
+    .eq("id", characterId)
+    .eq("user_id", profile.id)
+    .eq("is_public", true)
+    .maybeSingle();
+
+  if (characterError) {
+    return {
+      data: null,
+      error: formatProfileError(characterError.message, characterError.code),
+    };
+  }
+
+  if (!characterRow) {
+    return { data: null };
+  }
+
+  const character = normalizeCharacter(characterRow as CharacterRow);
+  const photoUrl = await getSignedStorageUrl(character.photo_path);
+  const avatarUrl = await getSignedStorageUrl(profile.avatar_url);
+  const images = await getPublicCharacterImages(characterId);
+
+  return {
+    data: {
+      profile,
+      character,
+      photoUrl,
+      avatarUrl,
+      images,
+      featuredImageId: character.featured_image_id,
     },
   };
 }
