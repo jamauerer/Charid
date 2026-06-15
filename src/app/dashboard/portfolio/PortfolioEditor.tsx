@@ -117,10 +117,14 @@ export function PortfolioEditor({
                   onChange={(e) =>
                     setUsername(sanitizeUsername(e.target.value))
                   }
+                  maxLength={30}
                   className={inputClassName}
                   placeholder="yourname"
                 />
               </div>
+              <p className="mt-1.5 text-xs text-zinc-600">
+                3–30 characters: a-z, 0-9, -, _
+              </p>
             </div>
 
             <div>

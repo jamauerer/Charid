@@ -59,14 +59,52 @@ function validateImage(file: File): string | null {
   return null;
 }
 
-function defaultUsername(userId: string, email: string): string {
-  const base =
-    email
-      .split("@")[0]
-      .replace(/[^a-z0-9]/gi, "")
-      .toLowerCase()
-      .slice(0, 20) || "creator";
-  return `${base}_${userId.replace(/-/g, "").slice(0, 8)}`;
+function emailUsernamePrefix(email: string): string {
+  const prefix = sanitizeUsername(email.split("@")[0] ?? "");
+  return prefix.length >= 3 ? prefix.slice(0, 30) : "creator";
+}
+
+function usernameWithSuffix(base: string, suffix: number): string {
+  const suffixStr = String(suffix);
+  const maxBaseLen = 30 - suffixStr.length;
+  return `${base.slice(0, maxBaseLen)}${suffixStr}`;
+}
+
+async function isUsernameTaken(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  username: string
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("username", username)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data !== null;
+}
+
+async function resolveAvailableUsername(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  email: string
+): Promise<string> {
+  const base = emailUsernamePrefix(email);
+
+  if (!(await isUsernameTaken(supabase, base))) {
+    return base;
+  }
+
+  for (let n = 2; n <= 9999; n++) {
+    const candidate = usernameWithSuffix(base, n);
+    if (!(await isUsernameTaken(supabase, candidate))) {
+      return candidate;
+    }
+  }
+
+  throw new Error("Unable to allocate a unique username.");
 }
 
 async function getSignedStorageUrl(
@@ -121,7 +159,19 @@ export async function getOrCreateProfile(): Promise<{
     return { profile, avatarUrl };
   }
 
-  const username = defaultUsername(user.id, user.email ?? "user");
+  let username: string;
+  try {
+    username = await resolveAvailableUsername(supabase, user.email ?? "user");
+  } catch (err) {
+    return {
+      profile: null,
+      avatarUrl: null,
+      error:
+        err instanceof Error
+          ? formatProfileError(err.message)
+          : "Failed to generate username.",
+    };
+  }
 
   const { data: created, error: insertError } = await supabase
     .from("profiles")
@@ -159,7 +209,7 @@ export async function updateProfile(
   if (!username || !USERNAME_PATTERN.test(username)) {
     return {
       error:
-        "Username must be 3–30 characters and use only lowercase letters, numbers, and underscores.",
+        "Username must be 3–30 characters and use only lowercase letters, numbers, hyphens, and underscores.",
     };
   }
 

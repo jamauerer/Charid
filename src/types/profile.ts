@@ -22,8 +22,8 @@ export function normalizeProfile(row: ProfileRow): Profile {
   };
 }
 
-export const USERNAME_PATTERN = /^[a-z0-9_]{3,30}$/;
+export const USERNAME_PATTERN = /^[a-z0-9_-]{3,30}$/;
 
 export function sanitizeUsername(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9_]/g, "");
+  return value.toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 30);
 }
