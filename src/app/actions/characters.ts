@@ -155,3 +155,64 @@ export async function createCharacter(
   revalidatePath("/dashboard");
   return { success: true };
 }
+
+export type DeleteCharacterResult = {
+  error?: string;
+  success?: boolean;
+};
+
+export async function deleteCharacter(
+  characterId: string
+): Promise<DeleteCharacterResult> {
+  if (!characterId) {
+    return { error: "Character ID is required." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be logged in to delete a character." };
+  }
+
+  const { data: character, error: fetchError } = await supabase
+    .from("characters")
+    .select("id, photo_path, user_id")
+    .eq("id", characterId)
+    .single();
+
+  if (fetchError || !character) {
+    return { error: "Character not found or you do not have permission to delete it." };
+  }
+
+  if (character.user_id !== user.id) {
+    return { error: "You do not have permission to delete this character." };
+  }
+
+  if (character.photo_path) {
+    const { error: storageError } = await supabase.storage
+      .from(BUCKET)
+      .remove([character.photo_path]);
+
+    if (storageError) {
+      console.error("Failed to delete photo:", storageError.message);
+      return { error: `Failed to delete photo: ${storageError.message}` };
+    }
+  }
+
+  const { error: deleteError } = await supabase
+    .from("characters")
+    .delete()
+    .eq("id", characterId);
+
+  if (deleteError) {
+    return {
+      error: formatCharactersError(deleteError.message, deleteError.code),
+    };
+  }
+
+  revalidatePath("/dashboard");
+  return { success: true };
+}

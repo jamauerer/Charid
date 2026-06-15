@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCharacters } from "@/app/actions/characters";
+import { getCharacters, getCharacterPhotoUrl } from "@/app/actions/characters";
 import { LogoutButton } from "@/components/LogoutButton";
-import { CharacterCard } from "@/components/CharacterCard";
+import { CharacterGrid } from "./CharacterGrid";
 import { NewCharacterModal } from "./NewCharacterModal";
 
 export default async function DashboardPage() {
@@ -16,6 +16,13 @@ export default async function DashboardPage() {
   }
 
   const { characters, error } = await getCharacters();
+
+  const charactersWithPhotos = await Promise.all(
+    characters.map(async (character) => ({
+      character,
+      photoUrl: await getCharacterPhotoUrl(character.photo_path),
+    }))
+  );
 
   return (
     <div className="min-h-full bg-zinc-50 dark:bg-zinc-950">
@@ -46,7 +53,7 @@ export default async function DashboardPage() {
           <NewCharacterModal />
         </div>
 
-        {characters.length === 0 ? (
+        {charactersWithPhotos.length === 0 && !error ? (
           <div className="rounded-xl border border-dashed border-zinc-300 bg-white px-6 py-16 text-center dark:border-zinc-700 dark:bg-zinc-900">
             <p className="text-lg font-medium text-zinc-700 dark:text-zinc-300">
               No characters yet
@@ -56,11 +63,7 @@ export default async function DashboardPage() {
             </p>
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {characters.map((character) => (
-              <CharacterCard key={character.id} character={character} />
-            ))}
-          </div>
+          <CharacterGrid initialCharacters={charactersWithPhotos} />
         )}
       </main>
     </div>
