@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="CharID">
+  <defs>
+    <linearGradient id="charid-mark-gradient" x1="12" y1="10" x2="52" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A78BFA"/>
+      <stop offset="1" stop-color="#6366F1"/>
+    </linearGradient>
+  </defs>
+  <!-- Character dossier card -->
+  <rect x="11" y="9" width="42" height="46" rx="5.5" stroke="url(#charid-mark-gradient)" stroke-width="2"/>
+  <!-- Archive index tab -->
+  <path d="M25 9h14v3.5H25V9z" fill="#6366F1" fill-opacity="0.2" stroke="url(#charid-mark-gradient)" stroke-width="1.25"/>
+  <!-- Side-profile silhouette: capable female hero, practical, non-glamorous -->
+  <path
+    fill="url(#charid-mark-gradient)"
+    d="M22.5 40.5c-.8-1.6-.4-3.4 1-4.5v-1.2c0-5.8 4.4-10.3 10-10.3s10 4.5 10 10.3v1.2c1.4 1.1 1.8 2.9 1 4.5-.3.6-.9 1-1.6 1h-3.2c-1.6 0-3-.9-3.8-2.2-.8 1.3-2.2 2.2-3.8 2.2h-3.2c-.7 0-1.3-.4-1.6-1zm10-17.8c-4.2 0-7.6 3.2-8 7.4-.2 2.1.6 4.1 2.2 5.3.5-1.8 2-3 3.8-3 2.2 0 4 1.7 4.2 3.9 1.8-1.2 2.6-3.2 2.4-5.3-.4-4.2-3.8-7.4-8-7.4z"
+  />
+</svg>

@@ -32,6 +32,7 @@ function parseCharacterFields(formData: FormData) {
     age: parseOptionalField(formData, "age"),
     location: parseOptionalField(formData, "location"),
     backstory: parseOptionalField(formData, "backstory"),
+    is_public: formData.get("is_public") !== "false",
   };
 }
 
@@ -142,7 +143,7 @@ export async function createCharacter(
   _prevState: CharacterActionState,
   formData: FormData
 ): Promise<CharacterActionState> {
-  const { name, gender, age, location, backstory } =
+  const { name, gender, age, location, backstory, is_public } =
     parseCharacterFields(formData);
   const photo = formData.get("photo");
 
@@ -204,6 +205,7 @@ export async function createCharacter(
   }
 
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/portfolio");
   return { success: true };
 }
 
@@ -217,7 +219,7 @@ export async function updateCharacter(
   formData: FormData
 ): Promise<UpdateCharacterResult> {
   const characterId = String(formData.get("character_id") ?? "").trim();
-  const { name, gender, age, location, backstory } =
+  const { name, gender, age, location, backstory, is_public } =
     parseCharacterFields(formData);
   const photo = formData.get("photo");
 
@@ -294,6 +296,7 @@ export async function updateCharacter(
       location,
       backstory,
       photo_path: photoPath,
+      is_public,
     })
     .eq("id", characterId)
     .select()
@@ -321,8 +324,18 @@ export async function updateCharacter(
   const normalized = normalizeCharacter(updated as CharacterRow);
   const photoUrl = await getCharacterPhotoUrl(normalized.photo_path);
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", user.id)
+    .maybeSingle();
+
   revalidatePath("/dashboard");
   revalidatePath(`/dashboard/characters/${characterId}`);
+  revalidatePath("/dashboard/portfolio");
+  if (profile?.username) {
+    revalidatePath(`/u/${profile.username}`);
+  }
   return { success: true, character: normalized, photoUrl };
 }
 
@@ -383,6 +396,16 @@ export async function deleteCharacter(
     };
   }
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", user.id)
+    .maybeSingle();
+
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/portfolio");
+  if (profile?.username) {
+    revalidatePath(`/u/${profile.username}`);
+  }
   return { success: true };
 }

@@ -7,12 +7,14 @@ export type Character = {
   location: string | null;
   backstory: string | null;
   photo_path: string | null;
+  is_public: boolean;
   created_at: string;
 };
 
 /** Raw row shape before migration (legacy column). */
 export type CharacterRow = Character & {
   physical_description?: string | null;
+  is_public?: boolean;
 };
 
 export function normalizeCharacter(row: CharacterRow): Character {
@@ -25,6 +27,7 @@ export function normalizeCharacter(row: CharacterRow): Character {
     location: row.location ?? null,
     backstory: row.backstory ?? row.physical_description ?? null,
     photo_path: row.photo_path ?? null,
+    is_public: row.is_public ?? true,
     created_at: row.created_at,
   };
 }

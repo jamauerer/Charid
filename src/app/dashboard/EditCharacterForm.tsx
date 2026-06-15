@@ -67,6 +67,46 @@ export function EditCharacterForm({
 
       <CharacterFormFields character={character} idPrefix="edit-" />
 
+      <fieldset className="space-y-3">
+        <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-violet-400/80">
+          Visibility
+        </legend>
+        <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-white/[0.06] px-3 py-2.5 transition hover:bg-white/[0.03]">
+          <input
+            type="radio"
+            name="is_public"
+            value="true"
+            defaultChecked={character.is_public !== false}
+            className="accent-violet-500"
+          />
+          <span>
+            <span className="block text-sm font-medium text-zinc-200">
+              Public
+            </span>
+            <span className="block text-xs text-zinc-500">
+              Visible on your public portfolio
+            </span>
+          </span>
+        </label>
+        <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-white/[0.06] px-3 py-2.5 transition hover:bg-white/[0.03]">
+          <input
+            type="radio"
+            name="is_public"
+            value="false"
+            defaultChecked={character.is_public === false}
+            className="accent-violet-500"
+          />
+          <span>
+            <span className="block text-sm font-medium text-zinc-200">
+              Private
+            </span>
+            <span className="block text-xs text-zinc-500">
+              Only visible to you in the dashboard
+            </span>
+          </span>
+        </label>
+      </fieldset>
+
       <fieldset className="space-y-4">
         <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-violet-400/80">
           Photo

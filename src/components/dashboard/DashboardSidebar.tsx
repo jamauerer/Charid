@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { NewCharacterModal } from "@/app/dashboard/NewCharacterModal";
 import { LogoutButton } from "@/components/LogoutButton";
+import { CharIDLogo } from "@/components/brand/CharIDLogo";
 import { DashboardNavItem } from "./DashboardNavItem";
 
 type DashboardSidebarProps = {
@@ -47,9 +48,7 @@ export function DashboardSidebar({
           onClick={onNavigate}
           className="flex items-center gap-2.5 transition hover:opacity-90"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 text-xs font-bold text-white shadow-md shadow-violet-500/20">
-            C
-          </div>
+          <CharIDLogo size="md" />
           <div>
             <p className="text-sm font-semibold leading-none tracking-tight text-zinc-100">
               CharID
