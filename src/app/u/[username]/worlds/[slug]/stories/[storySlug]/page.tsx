@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublicStory } from "@/app/actions/stories";
+import { getPublicChaptersByStory } from "@/app/actions/chapters";
 import { PublicCharacterCard } from "@/components/portfolio/PublicCharacterCard";
+import { PublicChapterList } from "@/components/portfolio/PublicChapterList";
 import { PublicSiteHeader } from "@/components/portfolio/PublicSiteHeader";
 import { StoryStatusBadge } from "@/components/StoryStatusBadge";
 import { getPublicWorldPath } from "@/lib/public-profile";
@@ -26,6 +28,8 @@ export default async function PublicStoryPage({ params }: PublicStoryPageProps) 
   if (!world || !story || !profileUsername) {
     notFound();
   }
+
+  const chapters = await getPublicChaptersByStory(story.id);
 
   return (
     <div className="min-h-dvh bg-background font-sans text-zinc-100">
@@ -72,6 +76,18 @@ export default async function PublicStoryPage({ params }: PublicStoryPageProps) 
             </p>
           )}
         </div>
+
+        <section className="mb-10">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">
+            Chapters
+          </h2>
+          <PublicChapterList
+            username={profileUsername}
+            worldSlug={world.slug}
+            storySlug={story.slug}
+            chapters={chapters}
+          />
+        </section>
 
         <section>
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">

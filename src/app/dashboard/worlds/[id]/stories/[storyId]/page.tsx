@@ -6,7 +6,10 @@ import {
   getStoryById,
   getStoryCharacters,
 } from "@/app/actions/stories";
+import { getChaptersByStoryId } from "@/app/actions/chapters";
 import { EditStoryForm } from "@/app/dashboard/EditStoryForm";
+import { NewChapterModal } from "@/app/dashboard/NewChapterModal";
+import { ChapterList } from "@/components/ChapterList";
 import { StoryCharacterSection } from "@/components/StoryCharacterSection";
 import { StoryStatusBadge } from "@/components/StoryStatusBadge";
 
@@ -39,6 +42,7 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
 
   const { entries } = await getStoryCharacters(storyId);
   const { characters: worldCharacters } = await getCharactersByWorldId(worldId);
+  const { chapters } = await getChaptersByStoryId(storyId);
 
   const photoUrls: Record<string, string | null> = {};
   await Promise.all(
@@ -89,6 +93,20 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
           <p className="mt-4 text-sm italic text-zinc-600">No summary yet.</p>
         )}
       </div>
+
+      <section className="mb-10">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
+            Chapters
+          </h2>
+          <NewChapterModal worldId={worldId} storyId={storyId} />
+        </div>
+        <ChapterList
+          worldId={worldId}
+          storyId={storyId}
+          chapters={chapters}
+        />
+      </section>
 
       <div className="mb-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,320px)]">
         <section>

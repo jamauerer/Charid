@@ -26,3 +26,12 @@ export function getPublicStoryPath(
 ): string {
   return `/u/${username}/worlds/${worldSlug}/stories/${storySlug}`;
 }
+
+export function getPublicChapterPath(
+  username: string,
+  worldSlug: string,
+  storySlug: string,
+  chapterId: string
+): string {
+  return `/u/${username}/worlds/${worldSlug}/stories/${storySlug}/chapters/${chapterId}`;
+}

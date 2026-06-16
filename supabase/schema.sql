@@ -205,6 +205,22 @@ grant select on public.story_characters to anon;
 grant select, insert, update, delete on public.story_characters to authenticated;
 grant select, insert, update, delete on public.story_characters to service_role;
 
+-- Chapters v1
+create table public.chapters (
+  id uuid primary key default gen_random_uuid(),
+  story_id uuid not null references public.stories(id) on delete cascade,
+  title text not null,
+  content text not null default '',
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+alter table public.chapters enable row level security;
+
+grant select on public.chapters to anon;
+grant select, insert, update, delete on public.chapters to authenticated;
+grant select, insert, update, delete on public.chapters to service_role;
+
 -- Profiles table
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
