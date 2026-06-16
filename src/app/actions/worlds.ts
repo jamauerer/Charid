@@ -85,17 +85,18 @@ async function isSlugTaken(
 async function resolveAvailableSlug(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
-  name: string
+  name: string,
+  excludeWorldId?: string
 ): Promise<string> {
   const base = slugifyWorldName(name);
 
-  if (!(await isSlugTaken(supabase, userId, base))) {
+  if (!(await isSlugTaken(supabase, userId, base, excludeWorldId))) {
     return base;
   }
 
   for (let n = 2; n <= 9999; n++) {
     const candidate = slugWithSuffix(base, n);
-    if (!(await isSlugTaken(supabase, userId, candidate))) {
+    if (!(await isSlugTaken(supabase, userId, candidate, excludeWorldId))) {
       return candidate;
     }
   }
@@ -148,7 +149,8 @@ async function attachCharacterCounts(
 async function revalidateWorldPaths(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
-  world?: World
+  world?: World,
+  oldSlug?: string
 ) {
   revalidatePath("/dashboard/worlds");
   if (world) {
@@ -165,6 +167,9 @@ async function revalidateWorldPaths(
     revalidatePath(`/u/${profile.username}`);
     if (world) {
       revalidatePath(`/u/${profile.username}/worlds/${world.slug}`);
+    }
+    if (oldSlug && oldSlug !== world?.slug) {
+      revalidatePath(`/u/${profile.username}/worlds/${oldSlug}`);
     }
   }
 }
@@ -389,6 +394,128 @@ export async function createWorld(
 
   const world = normalizeWorld(created as WorldRow);
   await revalidateWorldPaths(supabase, user.id, world);
+  return { success: true, world };
+}
+
+export async function updateWorld(
+  _prevState: WorldActionState,
+  formData: FormData
+): Promise<WorldActionState> {
+  const worldId = String(formData.get("world_id") ?? "").trim();
+  const name = String(formData.get("name") ?? "").trim();
+  const description =
+    String(formData.get("description") ?? "").trim() || null;
+  const isPublic = formData.get("is_public") !== "false";
+  const cover = formData.get("cover");
+  const removeCover = formData.get("remove_cover") === "true";
+
+  if (!worldId) {
+    return { error: "World ID is required." };
+  }
+
+  if (!name) {
+    return { error: "World name is required." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be logged in." };
+  }
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("worlds")
+    .select("*")
+    .eq("id", worldId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (fetchError || !existing) {
+    return { error: "World not found." };
+  }
+
+  const oldSlug = existing.slug as string;
+  let slug = oldSlug;
+
+  if (name !== existing.name) {
+    try {
+      slug = await resolveAvailableSlug(supabase, user.id, name, worldId);
+    } catch (err) {
+      return {
+        error:
+          err instanceof Error ? err.message : "Failed to generate world slug.",
+      };
+    }
+  }
+
+  let coverPath: string | null = existing.cover_image_path;
+  let oldCoverToDelete: string | null = null;
+  let newlyUploadedPath: string | null = null;
+
+  if (cover instanceof File && cover.size > 0) {
+    const coverError = validateCover(cover);
+    if (coverError) {
+      return { error: coverError };
+    }
+
+    const extension = cover.type.split("/")[1] ?? "jpg";
+    const newCoverPath = `${user.id}/worlds/${worldId}/cover.${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET)
+      .upload(newCoverPath, cover, {
+        contentType: cover.type,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      return { error: `Failed to upload cover image: ${uploadError.message}` };
+    }
+
+    newlyUploadedPath = newCoverPath;
+    if (existing.cover_image_path && existing.cover_image_path !== newCoverPath) {
+      oldCoverToDelete = existing.cover_image_path;
+    }
+    coverPath = newCoverPath;
+  } else if (removeCover && existing.cover_image_path) {
+    oldCoverToDelete = existing.cover_image_path;
+    coverPath = null;
+  }
+
+  const { data: updated, error: updateError } = await supabase
+    .from("worlds")
+    .update({
+      name,
+      slug,
+      description,
+      is_public: isPublic,
+      cover_image_path: coverPath,
+    })
+    .eq("id", worldId)
+    .select()
+    .single();
+
+  if (updateError || !updated) {
+    if (newlyUploadedPath) {
+      await supabase.storage.from(BUCKET).remove([newlyUploadedPath]);
+    }
+    return {
+      error: formatWorldError(
+        updateError?.message ?? "Failed to update world.",
+        updateError?.code
+      ),
+    };
+  }
+
+  if (oldCoverToDelete) {
+    await supabase.storage.from(BUCKET).remove([oldCoverToDelete]);
+  }
+
+  const world = normalizeWorld(updated as WorldRow);
+  await revalidateWorldPaths(supabase, user.id, world, oldSlug);
   return { success: true, world };
 }
 

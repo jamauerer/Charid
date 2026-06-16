@@ -10,6 +10,7 @@ import {
   getWorldCoverUrl,
 } from "@/app/actions/worlds";
 import { getStoriesByWorldId } from "@/app/actions/stories";
+import { EditWorldForm } from "@/app/dashboard/EditWorldForm";
 import { WorldCharactersSection } from "./WorldCharactersSection";
 import { WorldStoriesSection } from "./WorldStoriesSection";
 
@@ -112,6 +113,15 @@ export default async function WorldDetailPage({ params }: WorldDetailPageProps) 
           )}
         </div>
       </div>
+
+      <section className="mb-10">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">
+          Edit World
+        </h2>
+        <div className="rounded-xl border border-white/[0.06] bg-[#0f0f11] p-5 sm:p-6">
+          <EditWorldForm world={world} coverUrl={coverUrl} />
+        </div>
+      </section>
 
       <WorldStoriesSection worldId={id} stories={stories} />
 
