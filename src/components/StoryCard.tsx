@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { StoryWithCounts } from "@/types/story";
 import { StoryStatusBadge } from "@/components/StoryStatusBadge";
+import { StoryProjectTypeBadge } from "@/components/StoryProjectTypeBadge";
 
 type StoryCardProps = {
   worldId: string;
@@ -13,9 +14,12 @@ export function StoryCard({ worldId, story }: StoryCardProps) {
       href={`/dashboard/worlds/${worldId}/stories/${story.id}`}
       className="block rounded-xl border border-white/[0.06] bg-[#0f0f11] p-4 transition hover:border-white/10 hover:bg-[#111113]"
     >
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex flex-wrap items-start justify-between gap-2">
         <h3 className="text-sm font-semibold text-zinc-100">{story.title}</h3>
-        <StoryStatusBadge status={story.status} />
+        <div className="flex flex-wrap items-center gap-1.5">
+          <StoryProjectTypeBadge projectType={story.project_type} />
+          <StoryStatusBadge status={story.status} />
+        </div>
       </div>
       {story.summary ? (
         <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-zinc-400">

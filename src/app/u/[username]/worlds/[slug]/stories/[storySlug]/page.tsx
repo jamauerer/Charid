@@ -6,6 +6,7 @@ import { PublicCharacterCard } from "@/components/portfolio/PublicCharacterCard"
 import { PublicChapterList } from "@/components/portfolio/PublicChapterList";
 import { PublicSiteHeader } from "@/components/portfolio/PublicSiteHeader";
 import { StoryStatusBadge } from "@/components/StoryStatusBadge";
+import { StoryProjectTypeBadge } from "@/components/StoryProjectTypeBadge";
 import { getPublicWorldPath } from "@/lib/public-profile";
 
 type PublicStoryPageProps = {
@@ -64,6 +65,7 @@ export default async function PublicStoryPage({ params }: PublicStoryPageProps) 
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-100 sm:text-3xl">
               {story.title}
             </h1>
+            <StoryProjectTypeBadge projectType={story.project_type} />
             <StoryStatusBadge status={story.status} />
           </div>
           {story.summary?.trim() ? (

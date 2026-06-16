@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { updateStory, type StoryActionState } from "@/app/actions/stories";
 import type { Story } from "@/types/story";
-import { STORY_STATUSES } from "@/types/story";
+import { STORY_STATUSES, STORY_PROJECT_TYPES, STORY_PROJECT_TYPE_LABELS } from "@/types/story";
 
 type EditStoryFormProps = {
   story: Story;
@@ -76,6 +76,24 @@ export function EditStoryForm({ story, worldId }: EditStoryFormProps) {
           {STORY_STATUSES.map((status) => (
             <option key={status} value={status}>
               {status}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="edit-story-project-type" className="mb-1.5 block text-xs font-medium text-zinc-400">
+          Project type
+        </label>
+        <select
+          id="edit-story-project-type"
+          name="project_type"
+          defaultValue={displayStory.project_type}
+          className="w-full rounded-lg border border-white/10 bg-[#141416] px-3 py-2 text-sm text-zinc-200 outline-none focus:border-violet-500/50"
+        >
+          {STORY_PROJECT_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {STORY_PROJECT_TYPE_LABELS[type]}
             </option>
           ))}
         </select>

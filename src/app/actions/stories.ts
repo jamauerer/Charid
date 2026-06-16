@@ -7,6 +7,7 @@ import { normalizeCharacter } from "@/types/character";
 import type { Story, StoryRow, StoryWithCounts } from "@/types/story";
 import {
   normalizeStory,
+  parseStoryProjectType,
   parseStoryStatus,
   slugifyStoryTitle,
 } from "@/types/story";
@@ -273,6 +274,7 @@ export async function createStory(
   const title = String(formData.get("title") ?? "").trim();
   const summary = String(formData.get("summary") ?? "").trim() || null;
   const status = parseStoryStatus(formData.get("status"));
+  const projectType = parseStoryProjectType(formData.get("project_type"));
 
   if (!worldId || !title) {
     return { error: "Title is required." };
@@ -302,6 +304,7 @@ export async function createStory(
       slug,
       summary,
       status,
+      project_type: projectType,
     })
     .select("*")
     .single();
@@ -341,6 +344,7 @@ export async function updateStory(
   const title = String(formData.get("title") ?? "").trim();
   const summary = String(formData.get("summary") ?? "").trim() || null;
   const status = parseStoryStatus(formData.get("status"));
+  const projectType = parseStoryProjectType(formData.get("project_type"));
 
   if (!storyId || !worldId || !title) {
     return { error: "Title is required." };
@@ -357,7 +361,7 @@ export async function updateStory(
 
   const { data: updated, error: updateError } = await supabase
     .from("stories")
-    .update({ title, summary, status })
+    .update({ title, summary, status, project_type: projectType })
     .eq("id", storyId)
     .select("*")
     .single();

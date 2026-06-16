@@ -184,6 +184,14 @@ create table public.stories (
   summary text,
   status text not null default 'Idea'
     check (status in ('Idea', 'Planning', 'In Progress', 'Complete')),
+  project_type text not null default 'novel'
+    check (project_type in (
+      'novel',
+      'graphic_novel',
+      'film_animation',
+      'childrens_book',
+      'other'
+    )),
   created_at timestamptz not null default now(),
   unique (world_id, slug)
 );
