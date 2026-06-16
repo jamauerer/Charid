@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { Character, CharacterRow } from "@/types/character";
 import { normalizeCharacter } from "@/types/character";
+import type { StoryWithCounts } from "@/types/story";
+import { getPublicStoriesByWorld } from "@/app/actions/stories";
 import type { World, WorldRow, WorldWithCounts } from "@/types/world";
 import { normalizeWorld, slugifyWorldName } from "@/types/world";
 
@@ -436,6 +438,7 @@ export async function getPublicWorld(
 ): Promise<{
   world: World | null;
   coverUrl: string | null;
+  stories: StoryWithCounts[];
   characters: Character[];
   characterPhotos: Record<string, string | null>;
   profileUsername: string | null;
@@ -455,6 +458,7 @@ export async function getPublicWorld(
     return {
       world: null,
       coverUrl: null,
+      stories: [],
       characters: [],
       characterPhotos: {},
       profileUsername: null,
@@ -473,6 +477,7 @@ export async function getPublicWorld(
     return {
       world: null,
       coverUrl: null,
+      stories: [],
       characters: [],
       characterPhotos: {},
       profileUsername: profile.username,
@@ -484,6 +489,7 @@ export async function getPublicWorld(
     return {
       world: null,
       coverUrl: null,
+      stories: [],
       characters: [],
       characterPhotos: {},
       profileUsername: profile.username,
@@ -492,6 +498,7 @@ export async function getPublicWorld(
 
   const world = normalizeWorld(worldRow as WorldRow);
   const coverUrl = await getSignedStorageUrl(world.cover_image_path);
+  const stories = await getPublicStoriesByWorld(world.id);
 
   const { data: characterRows } = await supabase
     .from("characters")
@@ -517,6 +524,7 @@ export async function getPublicWorld(
   return {
     world,
     coverUrl,
+    stories,
     characters,
     characterPhotos,
     profileUsername: profile.username,

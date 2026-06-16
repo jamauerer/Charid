@@ -174,6 +174,37 @@ grant select on public.worlds to anon;
 grant select, insert, update, delete on public.worlds to authenticated;
 grant select, insert, update, delete on public.worlds to service_role;
 
+-- Story Planning v1
+create table public.stories (
+  id uuid primary key default gen_random_uuid(),
+  world_id uuid not null references public.worlds(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  title text not null,
+  slug text not null,
+  summary text,
+  status text not null default 'Idea'
+    check (status in ('Idea', 'Planning', 'In Progress', 'Complete')),
+  created_at timestamptz not null default now(),
+  unique (world_id, slug)
+);
+
+create table public.story_characters (
+  story_id uuid not null references public.stories(id) on delete cascade,
+  character_id uuid not null references public.characters(id) on delete cascade,
+  primary key (story_id, character_id)
+);
+
+alter table public.stories enable row level security;
+alter table public.story_characters enable row level security;
+
+grant select on public.stories to anon;
+grant select, insert, update, delete on public.stories to authenticated;
+grant select, insert, update, delete on public.stories to service_role;
+
+grant select on public.story_characters to anon;
+grant select, insert, update, delete on public.story_characters to authenticated;
+grant select, insert, update, delete on public.story_characters to service_role;
+
 -- Profiles table
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,

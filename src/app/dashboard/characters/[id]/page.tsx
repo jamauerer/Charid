@@ -5,7 +5,9 @@ import {
   getCharacterPhotoUrl,
 } from "@/app/actions/characters";
 import { getCharacterImages } from "@/app/actions/character-images";
+import { getStoriesForCharacter } from "@/app/actions/stories";
 import { CharacterGalleryViewer } from "@/components/gallery/CharacterGalleryViewer";
+import { CharacterStoriesSection } from "@/components/CharacterStoriesSection";
 import { CharacterDetailActions } from "./CharacterDetailActions";
 
 type CharacterDetailPageProps = {
@@ -47,6 +49,7 @@ export default async function CharacterDetailPage({
 
   const photoUrl = await getCharacterPhotoUrl(character.photo_path);
   const gallery = await getCharacterImages(id);
+  const { entries: storyEntries } = await getStoriesForCharacter(id);
 
   return (
     <div className="mx-auto w-full max-w-5xl">
@@ -111,6 +114,8 @@ export default async function CharacterDetailPage({
               </p>
             )}
           </section>
+
+          <CharacterStoriesSection entries={storyEntries} />
         </div>
       </div>
     </div>

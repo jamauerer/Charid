@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublicWorld } from "@/app/actions/worlds";
 import { PublicCharacterCard } from "@/components/portfolio/PublicCharacterCard";
+import { PublicStoryCard } from "@/components/portfolio/PublicStoryCard";
 import { PublicSiteHeader } from "@/components/portfolio/PublicSiteHeader";
 
 type PublicWorldPageProps = {
@@ -22,7 +23,7 @@ function ComingSoonSection({ title }: { title: string }) {
 
 export default async function PublicWorldPage({ params }: PublicWorldPageProps) {
   const { username, slug } = await params;
-  const { world, coverUrl, characters, characterPhotos, profileUsername, error } =
+  const { world, coverUrl, stories, characters, characterPhotos, profileUsername, error } =
     await getPublicWorld(username, slug);
 
   if (error) {
@@ -104,6 +105,28 @@ export default async function PublicWorldPage({ params }: PublicWorldPageProps) 
 
         <section className="mb-10">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">
+            Stories
+          </h2>
+          {stories.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-5 py-8 text-center">
+              <p className="text-sm text-zinc-500">No stories in this world yet.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {stories.map((story) => (
+                <PublicStoryCard
+                  key={story.id}
+                  username={profileUsername}
+                  worldSlug={world.slug}
+                  story={story}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="mb-10">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">
             Characters
           </h2>
           {characters.length === 0 ? (
@@ -126,8 +149,7 @@ export default async function PublicWorldPage({ params }: PublicWorldPageProps) 
           )}
         </section>
 
-        <div className="grid gap-4 sm:grid-cols-3">
-          <ComingSoonSection title="Stories" />
+        <div className="grid gap-4 sm:grid-cols-2">
           <ComingSoonSection title="Locations" />
           <ComingSoonSection title="Media" />
         </div>
