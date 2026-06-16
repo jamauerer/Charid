@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublicPortfolio } from "@/app/actions/profile";
 import { PublicCharacterCard } from "@/components/portfolio/PublicCharacterCard";
+import { PublicWorldCard } from "@/components/portfolio/PublicWorldCard";
 import { PublicSiteHeader } from "@/components/portfolio/PublicSiteHeader";
 import {
   getPublicBio,
@@ -31,7 +32,8 @@ export default async function PublicPortfolioPage({
     notFound();
   }
 
-  const { profile, characters, avatarUrl, characterPhotos } = data;
+  const { profile, characters, worlds, avatarUrl, characterPhotos, worldCovers } =
+    data;
   const displayName = getPublicDisplayName(profile);
   const bio = getPublicBio(profile);
   const hasCustomBio = Boolean(profile.bio?.trim());
@@ -77,16 +79,34 @@ export default async function PublicPortfolioPage({
           </p>
         </div>
 
-        {characters.length === 0 ? (
+        {worlds.length > 0 && (
+          <section className="mb-10">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">
+              Worlds
+            </h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {worlds.map((world) => (
+                <PublicWorldCard
+                  key={world.id}
+                  username={profile.username}
+                  world={world}
+                  coverUrl={worldCovers[world.id] ?? null}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {characters.length === 0 && worlds.length === 0 ? (
           <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-5 py-10 text-center">
             <p className="text-sm font-medium text-zinc-400">
-              No public characters yet
+              No public content yet
             </p>
             <p className="mt-1 text-xs text-zinc-600">
-              When this creator publishes characters, they will appear here.
+              When this creator publishes worlds and characters, they will appear here.
             </p>
           </div>
-        ) : (
+        ) : characters.length > 0 ? (
           <>
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">
               Characters
@@ -102,7 +122,16 @@ export default async function PublicPortfolioPage({
               ))}
             </div>
           </>
-        )}
+        ) : null}
+
+        <section className="mt-10">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">
+            Stories
+          </h2>
+          <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-5 py-8 text-center">
+            <p className="text-sm text-zinc-600">Coming Soon</p>
+          </div>
+        </section>
       </main>
     </div>
   );

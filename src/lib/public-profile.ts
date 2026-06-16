@@ -14,3 +14,7 @@ export function getPublicCharacterPath(
 ): string {
   return `/u/${username}/characters/${characterId}`;
 }
+
+export function getPublicWorldPath(username: string, slug: string): string {
+  return `/u/${username}/worlds/${slug}`;
+}

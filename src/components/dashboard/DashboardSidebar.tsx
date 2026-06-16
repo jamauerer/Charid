@@ -75,6 +75,25 @@ export function DashboardSidebar({
           }
         />
         <DashboardNavItem
+          href="/dashboard/worlds"
+          label="Worlds"
+          active={
+            pathname === "/dashboard/worlds" ||
+            pathname.startsWith("/dashboard/worlds/")
+          }
+          onNavigate={onNavigate}
+          icon={
+            <NavIcon>
+              <path
+                fillRule="evenodd"
+                d="M4.25 5.5a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 .75.75v9a.75.75 0 0 1-.75.75H5a.75.75 0 0 1-.75-.75v-9Zm1.5.75v7.5h9v-7.5h-9Z"
+                clipRule="evenodd"
+              />
+              <path d="M8 8.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5A.75.75 0 0 1 8 8.25ZM8 11a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 0 1.5h-4.5A.75.75 0 0 1 8 11Z" />
+            </NavIcon>
+          }
+        />
+        <DashboardNavItem
           href="/dashboard/portfolio"
           label="Portfolio"
           active={pathname === "/dashboard/portfolio"}

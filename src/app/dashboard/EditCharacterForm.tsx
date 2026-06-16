@@ -7,6 +7,7 @@ import {
 } from "@/app/actions/characters";
 import { CharacterFormFields } from "@/components/CharacterFormFields";
 import { CharacterGalleryManager } from "@/components/gallery/CharacterGalleryManager";
+import { WorldSelectField } from "@/components/WorldSelectField";
 import type { Character } from "@/types/character";
 
 const initialState: UpdateCharacterResult = {};
@@ -42,6 +43,8 @@ export function EditCharacterForm({
       <input type="hidden" name="character_id" value={character.id} />
 
       <CharacterFormFields character={character} idPrefix="edit-" />
+
+      <WorldSelectField character={character} idPrefix="edit-" />
 
       <fieldset className="space-y-3">
         <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-violet-400/80">

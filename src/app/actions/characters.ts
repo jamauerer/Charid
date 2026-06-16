@@ -30,6 +30,7 @@ function parseOptionalField(formData: FormData, key: string): string | null {
 }
 
 function parseCharacterFields(formData: FormData) {
+  const worldIdRaw = String(formData.get("world_id") ?? "").trim();
   return {
     name: String(formData.get("name") ?? "").trim(),
     gender: parseOptionalField(formData, "gender"),
@@ -37,6 +38,7 @@ function parseCharacterFields(formData: FormData) {
     location: parseOptionalField(formData, "location"),
     backstory: parseOptionalField(formData, "backstory"),
     is_public: formData.get("is_public") !== "false",
+    world_id: worldIdRaw || null,
   };
 }
 
@@ -235,7 +237,7 @@ export async function updateCharacter(
   formData: FormData
 ): Promise<UpdateCharacterResult> {
   const characterId = String(formData.get("character_id") ?? "").trim();
-  const { name, gender, age, location, backstory, is_public } =
+  const { name, gender, age, location, backstory, is_public, world_id } =
     parseCharacterFields(formData);
 
   if (!characterId) {
@@ -282,6 +284,19 @@ export async function updateCharacter(
     return { error: "You do not have permission to edit this character." };
   }
 
+  if (world_id) {
+    const { data: world, error: worldError } = await supabase
+      .from("worlds")
+      .select("id")
+      .eq("id", world_id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (worldError || !world) {
+      return { error: "Selected world not found." };
+    }
+  }
+
   const { data: updated, error: updateError } = await supabase
     .from("characters")
     .update({
@@ -291,6 +306,7 @@ export async function updateCharacter(
       location,
       backstory,
       is_public,
+      world_id,
     })
     .eq("id", characterId)
     .select()
@@ -323,6 +339,13 @@ export async function updateCharacter(
   revalidatePath("/dashboard");
   revalidatePath(`/dashboard/characters/${characterId}`);
   revalidatePath("/dashboard/portfolio");
+  revalidatePath("/dashboard/worlds");
+  if (existing.world_id) {
+    revalidatePath(`/dashboard/worlds/${existing.world_id}`);
+  }
+  if (normalized.world_id && normalized.world_id !== existing.world_id) {
+    revalidatePath(`/dashboard/worlds/${normalized.world_id}`);
+  }
   if (profile?.username) {
     revalidatePath(`/u/${profile.username}`);
     revalidatePath(`/u/${profile.username}/characters/${characterId}`);

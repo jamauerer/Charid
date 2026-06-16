@@ -3,9 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getPublicCharacterImages } from "@/app/actions/character-images";
+import { getPublicWorlds } from "@/app/actions/worlds";
 import type { Character, CharacterRow } from "@/types/character";
 import { normalizeCharacter } from "@/types/character";
 import type { CharacterImageWithUrl } from "@/types/character-image";
+import type { World } from "@/types/world";
 import type { Profile, ProfileRow } from "@/types/profile";
 import {
   normalizeProfile,
@@ -27,8 +29,10 @@ export type ProfileActionState = {
 export type PublicPortfolio = {
   profile: Profile;
   characters: Character[];
+  worlds: World[];
   avatarUrl: string | null;
   characterPhotos: Record<string, string | null>;
+  worldCovers: Record<string, string | null>;
 };
 
 function formatProfileError(message: string, code?: string): string {
@@ -360,12 +364,18 @@ export async function getPublicPortfolio(
     })
   );
 
+  const { worlds, coverUrls: worldCovers } = await getPublicWorlds(
+    profile.username
+  );
+
   return {
     data: {
       profile,
       characters,
+      worlds,
       avatarUrl,
       characterPhotos,
+      worldCovers,
     },
   };
 }
