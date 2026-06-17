@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect, notFound } from "next/navigation";
 import { getCharacterPhotoUrl } from "@/app/actions/characters";
 import { getCharactersByWorldId, getWorldById } from "@/app/actions/worlds";
@@ -7,7 +8,9 @@ import {
   getStoryCharacters,
 } from "@/app/actions/stories";
 import { getChaptersByStoryId } from "@/app/actions/chapters";
+import { getStoryCoverUrl } from "@/app/actions/story-images";
 import { EditStoryForm } from "@/app/dashboard/EditStoryForm";
+import { StoryGalleryManager } from "@/components/gallery/StoryGalleryManager";
 import { NewChapterModal } from "@/app/dashboard/NewChapterModal";
 import { ChapterList } from "@/components/ChapterList";
 import { StoryCharacterSection } from "@/components/StoryCharacterSection";
@@ -43,6 +46,7 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
   const { entries } = await getStoryCharacters(storyId);
   const { characters: worldCharacters } = await getCharactersByWorldId(worldId);
   const { chapters } = await getChaptersByStoryId(storyId);
+  const coverUrl = await getStoryCoverUrl(storyId);
 
   const photoUrls: Record<string, string | null> = {};
   await Promise.all(
@@ -75,24 +79,42 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
         </Link>
       </div>
 
-      <div className="mb-8 rounded-xl border border-white/[0.06] bg-[#0f0f11] p-5 sm:p-6">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-violet-400/80">
-          Story
-        </p>
-        <div className="mt-1 flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">
-            {story.title}
-          </h1>
-          <StoryStatusBadge status={story.status} />
-        </div>
-        {story.summary?.trim() ? (
-          <p className="mt-4 max-w-3xl whitespace-pre-wrap text-[15px] leading-relaxed text-zinc-300">
-            {story.summary}
-          </p>
-        ) : (
-          <p className="mt-4 text-sm italic text-zinc-600">No summary yet.</p>
+      <div className="mb-8 overflow-hidden rounded-xl border border-white/[0.06] bg-[#0f0f11]">
+        {coverUrl && (
+          <div className="relative aspect-[21/9] bg-zinc-900 sm:aspect-[3/1]">
+            <Image
+              src={coverUrl}
+              alt={story.title}
+              fill
+              className="object-cover"
+              priority
+              unoptimized
+            />
+          </div>
         )}
+        <div className="p-5 sm:p-6">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-violet-400/80">
+            Story
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">
+              {story.title}
+            </h1>
+            <StoryStatusBadge status={story.status} />
+          </div>
+          {story.summary?.trim() ? (
+            <p className="mt-4 max-w-3xl whitespace-pre-wrap text-[15px] leading-relaxed text-zinc-300">
+              {story.summary}
+            </p>
+          ) : (
+            <p className="mt-4 text-sm italic text-zinc-600">No summary yet.</p>
+          )}
+        </div>
       </div>
+
+      <section className="mb-10 rounded-xl border border-white/[0.06] bg-[#0f0f11] p-5 sm:p-6">
+        <StoryGalleryManager storyId={storyId} />
+      </section>
 
       <section className="mb-10">
         <div className="mb-4 flex items-center justify-between gap-3">

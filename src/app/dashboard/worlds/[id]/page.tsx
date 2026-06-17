@@ -10,6 +10,7 @@ import {
   getWorldCoverUrl,
 } from "@/app/actions/worlds";
 import { getStoriesByWorldId } from "@/app/actions/stories";
+import { getStoryCoverUrls } from "@/app/actions/story-images";
 import { EditWorldForm } from "@/app/dashboard/EditWorldForm";
 import { WorldCharactersSection } from "./WorldCharactersSection";
 import { WorldStoriesSection } from "./WorldStoriesSection";
@@ -33,6 +34,7 @@ export default async function WorldDetailPage({ params }: WorldDetailPageProps) 
   const coverUrl = await getWorldCoverUrl(world.cover_image_path);
   const { characters } = await getCharactersByWorldId(id);
   const { stories } = await getStoriesByWorldId(id);
+  const storyCoverUrls = await getStoryCoverUrls(stories.map((story) => story.id));
 
   const charactersWithPhotos = await Promise.all(
     characters.map(async (character) => ({
@@ -123,7 +125,11 @@ export default async function WorldDetailPage({ params }: WorldDetailPageProps) 
         </div>
       </section>
 
-      <WorldStoriesSection worldId={id} stories={stories} />
+      <WorldStoriesSection
+        worldId={id}
+        stories={stories}
+        coverUrls={storyCoverUrls}
+      />
 
       <section>
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">

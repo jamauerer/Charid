@@ -23,7 +23,7 @@ function ComingSoonSection({ title }: { title: string }) {
 
 export default async function PublicWorldPage({ params }: PublicWorldPageProps) {
   const { username, slug } = await params;
-  const { world, coverUrl, stories, characters, characterPhotos, profileUsername, error } =
+  const { world, coverUrl, stories, storyCoverUrls, characters, characterPhotos, profileUsername, error } =
     await getPublicWorld(username, slug);
 
   if (error) {
@@ -119,6 +119,7 @@ export default async function PublicWorldPage({ params }: PublicWorldPageProps) 
                   username={profileUsername}
                   worldSlug={world.slug}
                   story={story}
+                  coverUrl={storyCoverUrls[story.id] ?? null}
                 />
               ))}
             </div>

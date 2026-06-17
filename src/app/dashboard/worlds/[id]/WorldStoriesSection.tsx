@@ -7,11 +7,13 @@ import type { StoryWithCounts } from "@/types/story";
 type WorldStoriesSectionProps = {
   worldId: string;
   stories: StoryWithCounts[];
+  coverUrls?: Record<string, string | null>;
 };
 
 export function WorldStoriesSection({
   worldId,
   stories,
+  coverUrls = {},
 }: WorldStoriesSectionProps) {
   return (
     <section className="mb-10">
@@ -32,7 +34,12 @@ export function WorldStoriesSection({
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {stories.map((story) => (
-            <StoryCard key={story.id} worldId={worldId} story={story} />
+            <StoryCard
+              key={story.id}
+              worldId={worldId}
+              story={story}
+              coverUrl={coverUrls[story.id] ?? null}
+            />
           ))}
         </div>
       )}

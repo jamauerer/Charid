@@ -34,12 +34,14 @@ export type Story = {
   summary: string | null;
   status: StoryStatus;
   project_type: StoryProjectType;
+  featured_image_id: string | null;
   created_at: string;
 };
 
 export type StoryRow = Story & {
   status?: string;
   project_type?: string;
+  featured_image_id?: string | null;
 };
 
 export type StoryWithCounts = Story & {
@@ -71,6 +73,7 @@ export function normalizeStory(row: StoryRow): Story {
     summary: row.summary ?? null,
     status,
     project_type: projectType,
+    featured_image_id: row.featured_image_id ?? null,
     created_at: row.created_at,
   };
 }

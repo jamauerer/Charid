@@ -5,6 +5,7 @@ import { getPublicChaptersByStory } from "@/app/actions/chapters";
 import { PublicCharacterCard } from "@/components/portfolio/PublicCharacterCard";
 import { PublicChapterList } from "@/components/portfolio/PublicChapterList";
 import { PublicSiteHeader } from "@/components/portfolio/PublicSiteHeader";
+import { StoryGalleryViewer } from "@/components/gallery/StoryGalleryViewer";
 import { StoryStatusBadge } from "@/components/StoryStatusBadge";
 import { StoryProjectTypeBadge } from "@/components/StoryProjectTypeBadge";
 import { getPublicWorldPath } from "@/lib/public-profile";
@@ -15,7 +16,7 @@ type PublicStoryPageProps = {
 
 export default async function PublicStoryPage({ params }: PublicStoryPageProps) {
   const { username, slug: worldSlug, storySlug } = await params;
-  const { world, story, characters, characterPhotos, profileUsername, error } =
+  const { world, story, characters, characterPhotos, images, featuredImageId, profileUsername, error } =
     await getPublicStory(username, worldSlug, storySlug);
 
   if (error) {
@@ -78,6 +79,19 @@ export default async function PublicStoryPage({ params }: PublicStoryPageProps) 
             </p>
           )}
         </div>
+
+        {images.length > 0 && (
+          <section className="mb-10">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">
+              Reference Assets
+            </h2>
+            <StoryGalleryViewer
+              images={images}
+              featuredImageId={featuredImageId}
+              storyTitle={story.title}
+            />
+          </section>
+        )}
 
         <section className="mb-10">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">

@@ -11,6 +11,8 @@ import {
   parseStoryStatus,
   slugifyStoryTitle,
 } from "@/types/story";
+import { deleteAllStoryImageFiles, getPublicStoryImages } from "@/app/actions/story-images";
+import type { StoryImageWithUrl } from "@/types/story-image";
 import type { World, WorldRow } from "@/types/world";
 import { normalizeWorld } from "@/types/world";
 
@@ -410,6 +412,8 @@ export async function deleteStory(
 
   const worldId = storyCheck.story.world_id;
 
+  await deleteAllStoryImageFiles(supabase, storyId);
+
   const { error } = await supabase.from("stories").delete().eq("id", storyId);
 
   if (error) {
@@ -691,6 +695,8 @@ export async function getPublicStory(
   story: Story | null;
   characters: Character[];
   characterPhotos: Record<string, string | null>;
+  images: StoryImageWithUrl[];
+  featuredImageId: string | null;
   profileUsername: string | null;
   error?: string;
 }> {
@@ -709,6 +715,8 @@ export async function getPublicStory(
       story: null,
       characters: [],
       characterPhotos: {},
+      images: [],
+      featuredImageId: null,
       profileUsername: null,
     };
   }
@@ -727,6 +735,8 @@ export async function getPublicStory(
       story: null,
       characters: [],
       characterPhotos: {},
+      images: [],
+      featuredImageId: null,
       profileUsername: profile.username,
     };
   }
@@ -746,6 +756,8 @@ export async function getPublicStory(
       story: null,
       characters: [],
       characterPhotos: {},
+      images: [],
+      featuredImageId: null,
       profileUsername: profile.username,
       error: formatStoryError(storyError.message, storyError.code),
     };
@@ -757,6 +769,8 @@ export async function getPublicStory(
       story: null,
       characters: [],
       characterPhotos: {},
+      images: [],
+      featuredImageId: null,
       profileUsername: profile.username,
     };
   }
@@ -800,11 +814,15 @@ export async function getPublicStory(
     })
   );
 
+  const images = await getPublicStoryImages(story.id);
+
   return {
     world,
     story,
     characters,
     characterPhotos,
+    images,
+    featuredImageId: story.featured_image_id,
     profileUsername: profile.username,
   };
 }

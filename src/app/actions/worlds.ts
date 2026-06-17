@@ -7,6 +7,7 @@ import type { Character, CharacterRow } from "@/types/character";
 import { normalizeCharacter } from "@/types/character";
 import type { StoryWithCounts } from "@/types/story";
 import { getPublicStoriesByWorld } from "@/app/actions/stories";
+import { getStoryCoverUrls } from "@/app/actions/story-images";
 import type { World, WorldRow, WorldWithCounts } from "@/types/world";
 import { normalizeWorld, slugifyWorldName } from "@/types/world";
 
@@ -566,6 +567,7 @@ export async function getPublicWorld(
   world: World | null;
   coverUrl: string | null;
   stories: StoryWithCounts[];
+  storyCoverUrls: Record<string, string | null>;
   characters: Character[];
   characterPhotos: Record<string, string | null>;
   profileUsername: string | null;
@@ -586,6 +588,7 @@ export async function getPublicWorld(
       world: null,
       coverUrl: null,
       stories: [],
+      storyCoverUrls: {},
       characters: [],
       characterPhotos: {},
       profileUsername: null,
@@ -605,6 +608,7 @@ export async function getPublicWorld(
       world: null,
       coverUrl: null,
       stories: [],
+      storyCoverUrls: {},
       characters: [],
       characterPhotos: {},
       profileUsername: profile.username,
@@ -617,6 +621,7 @@ export async function getPublicWorld(
       world: null,
       coverUrl: null,
       stories: [],
+      storyCoverUrls: {},
       characters: [],
       characterPhotos: {},
       profileUsername: profile.username,
@@ -626,6 +631,7 @@ export async function getPublicWorld(
   const world = normalizeWorld(worldRow as WorldRow);
   const coverUrl = await getSignedStorageUrl(world.cover_image_path);
   const stories = await getPublicStoriesByWorld(world.id);
+  const storyCoverUrls = await getStoryCoverUrls(stories.map((story) => story.id));
 
   const { data: characterRows } = await supabase
     .from("characters")
@@ -652,6 +658,7 @@ export async function getPublicWorld(
     world,
     coverUrl,
     stories,
+    storyCoverUrls,
     characters,
     characterPhotos,
     profileUsername: profile.username,
