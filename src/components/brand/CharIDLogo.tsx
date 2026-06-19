@@ -30,7 +30,7 @@ export function CharIDLogo({
           priority
           aria-hidden
         />
-        <span className="text-2xl font-bold tracking-tight text-zinc-100">
+        <span className="text-2xl font-bold tracking-tight text-[var(--foreground)]">
           CharID
         </span>
       </div>

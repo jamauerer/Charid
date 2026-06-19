@@ -6,16 +6,18 @@ import Link from "next/link";
 import { deleteCharacter } from "@/app/actions/characters";
 import { EditCharacterModal } from "@/app/dashboard/EditCharacterModal";
 import { ModalPortal } from "@/components/ModalPortal";
-import type { Character } from "@/types/character";
+import { CardCoverPlaceholder } from "@/components/studio/CardCoverPlaceholder";
+import { studioCardSurface } from "@/lib/visual-identity";
+import type { CharacterDisplay } from "@/types/character";
 
 type CharacterCardProps = {
-  character: Character;
+  character: CharacterDisplay;
   photoUrl: string | null;
   onDeleted: (characterId: string) => void;
-  onUpdated: (character: Character, photoUrl: string | null) => void;
+  onUpdated: (character: CharacterDisplay, photoUrl: string | null) => void;
 };
 
-function formatMetadata(character: Character): string | null {
+function formatMetadata(character: CharacterDisplay): string | null {
   const parts = [character.gender, character.age, character.location].filter(
     Boolean
   ) as string[];
@@ -69,10 +71,10 @@ export function CharacterCard({
 
   return (
     <>
-      <article className="group relative overflow-hidden rounded-lg border border-white/[0.06] bg-[#0f0f11] transition hover:border-white/10 hover:bg-[#111113]">
+      <article className={`group relative ${studioCardSurface}`}>
         <Link
           href={`/dashboard/characters/${character.id}`}
-          className="relative block aspect-[4/3] overflow-hidden bg-zinc-900"
+          className="relative block aspect-[4/5] overflow-hidden bg-[var(--studio-empty-fill)]"
         >
           {photoUrl ? (
             <Image
@@ -84,26 +86,10 @@ export function CharacterCard({
               unoptimized
             />
           ) : (
-            <div className="flex h-full flex-col items-center justify-center gap-1 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-zinc-600">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  className="h-4 w-4"
-                  aria-hidden
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                  />
-                </svg>
-              </div>
-              <span className="text-[10px] text-zinc-600">No portrait</span>
-            </div>
+            <CardCoverPlaceholder
+              title="No portrait yet"
+              description="Add a photo when you're ready."
+            />
           )}
         </Link>
 
@@ -117,7 +103,7 @@ export function CharacterCard({
               e.stopPropagation();
               setMenuOpen((open) => !open);
             }}
-            className="flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-black/60 text-zinc-300 backdrop-blur-sm transition hover:bg-black/80 hover:text-white"
+            className="flex h-7 w-7 items-center justify-center rounded-md border border-[var(--brand-border)] bg-black/60 text-[var(--brand-text-secondary)] backdrop-blur-sm transition hover:bg-black/80 hover:text-white"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -131,10 +117,10 @@ export function CharacterCard({
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 top-full mt-1 min-w-[120px] overflow-hidden rounded-lg border border-white/10 bg-[#141416] py-1 shadow-xl">
+            <div className="absolute right-0 top-full mt-1 min-w-[120px] overflow-hidden rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] py-1 shadow-xl">
               <button
                 type="button"
-                className="flex w-full items-center px-3 py-1.5 text-left text-xs text-zinc-300 transition hover:bg-white/[0.06] hover:text-white"
+                className="flex w-full items-center px-3 py-1.5 text-left text-xs text-[var(--brand-text-secondary)] transition hover:bg-[var(--brand-surface-elevated)] hover:text-white"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -146,7 +132,7 @@ export function CharacterCard({
               </button>
               <button
                 type="button"
-                className="flex w-full items-center px-3 py-1.5 text-left text-xs text-red-400 transition hover:bg-red-500/10 hover:text-red-300"
+                className="flex w-full items-center px-3 py-1.5 text-left text-xs text-red-400 transition hover:bg-red-500/10 hover:text-[var(--status-danger-text)]"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -160,12 +146,14 @@ export function CharacterCard({
           )}
         </div>
 
-        <div className="px-3 py-2.5">
-          <h3 className="truncate text-sm font-bold tracking-tight text-zinc-100">
+        <div className="px-4 py-3.5">
+          <h3 className="truncate text-base font-semibold tracking-tight text-[var(--foreground)]">
             {character.name}
           </h3>
           {metadata && (
-            <p className="mt-1 truncate text-xs text-zinc-500">{metadata}</p>
+            <p className="mt-1 truncate text-xs text-[var(--brand-text-secondary)]">
+              {metadata}
+            </p>
           )}
         </div>
       </article>
@@ -184,7 +172,7 @@ export function CharacterCard({
             <button
               type="button"
               aria-label="Close dialog"
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+              className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
               onClick={() => {
                 if (!deleting) {
                   setShowDeleteModal(false);
@@ -193,17 +181,17 @@ export function CharacterCard({
               }}
             />
             <div className="flex min-h-full items-start justify-center p-4 sm:items-center sm:p-6">
-              <div className="relative z-10 w-full max-w-md rounded-xl border border-white/10 bg-[#141416] p-5 shadow-2xl">
-                <h2 className="text-base font-semibold text-zinc-100">
+              <div className="relative z-10 w-full max-w-md rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] p-5 shadow-lg">
+                <h2 className="text-base font-semibold text-[var(--brand-text-secondary)]">
                   Delete character
                 </h2>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                <p className="mt-2 text-sm leading-relaxed text-[var(--brand-text-secondary)]">
                   Are you sure you want to delete this character? This action
                   cannot be undone.
                 </p>
 
                 {error && (
-                  <p className="mt-3 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+                  <p className="mt-3 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-[var(--status-danger-text)]">
                     {error}
                   </p>
                 )}
@@ -216,7 +204,7 @@ export function CharacterCard({
                       setShowDeleteModal(false);
                       setError(null);
                     }}
-                    className="rounded-lg border border-white/10 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="rounded-lg border border-[var(--brand-border)] px-4 py-2 text-sm font-medium text-[var(--brand-text-secondary)] transition hover:bg-[var(--brand-surface)] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Cancel
                   </button>

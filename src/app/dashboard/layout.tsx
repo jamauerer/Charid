@@ -16,7 +16,17 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const isAdmin = profile?.role === "admin";
+
   return (
-    <DashboardShell userEmail={user.email ?? ""}>{children}</DashboardShell>
+    <DashboardShell userEmail={user.email ?? ""} isAdmin={isAdmin}>
+      {children}
+    </DashboardShell>
   );
 }

@@ -13,8 +13,8 @@ export function NewCharacterModal({ variant = "default" }: NewCharacterModalProp
 
   const triggerClass =
     variant === "sidebar"
-      ? "flex w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-3 py-2 text-[13px] font-semibold text-white shadow-sm shadow-violet-500/15 transition hover:from-violet-500 hover:to-indigo-500"
-      : "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm shadow-violet-500/15 transition hover:from-violet-500 hover:to-indigo-500";
+      ? "flex w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-3 py-2 text-[13px] font-semibold text-white shadow-sm shadow-violet-500/15 transition hover:bg-[var(--brand-accent-hover)]"
+      : "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm shadow-violet-500/15 transition hover:bg-[var(--brand-accent-hover)]";
 
   return (
     <>
@@ -37,24 +37,24 @@ export function NewCharacterModal({ variant = "default" }: NewCharacterModalProp
             <button
               type="button"
               aria-label="Close dialog"
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+              className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
               onClick={() => setOpen(false)}
             />
             <div className="flex min-h-full items-start justify-center p-4 sm:items-center sm:p-6">
-              <div className="relative z-10 flex w-full max-w-lg max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-xl border border-white/10 bg-[#141416] shadow-2xl sm:max-h-[calc(100dvh-3rem)]">
-                <div className="shrink-0 flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
+              <div className="relative z-10 flex w-full max-w-lg max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] shadow-lg sm:max-h-[calc(100dvh-3rem)]">
+                <div className="shrink-0 flex items-center justify-between border-b border-[var(--brand-border)] px-5 py-4">
                   <div>
-                    <h2 className="text-base font-semibold text-zinc-100">
+                    <h2 className="text-base font-semibold text-[var(--brand-text-secondary)]">
                       New Character
                     </h2>
-                    <p className="mt-0.5 text-xs text-zinc-500">
+                    <p className="mt-0.5 text-xs text-[var(--brand-text-secondary)]">
                       Add a new profile to your studio
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
-                    className="rounded-md p-1.5 text-zinc-500 transition hover:bg-white/[0.06] hover:text-zinc-300"
+                    className="rounded-md p-1.5 text-[var(--brand-text-secondary)] transition hover:bg-[var(--brand-surface-elevated)] hover:text-[var(--brand-text-secondary)]"
                     aria-label="Close"
                   >
                     <svg

@@ -8,6 +8,7 @@ import type { Story, StoryRow } from "@/types/story";
 import { normalizeStory } from "@/types/story";
 import type { World, WorldRow } from "@/types/world";
 import { normalizeWorld } from "@/types/world";
+import { scanSavedText } from "@/lib/moderation/scan-text";
 
 export type ChapterActionState = {
   error?: string;
@@ -288,6 +289,14 @@ export async function updateChapter(
   }
 
   const chapter = normalizeChapter(updated as ChapterRow);
+
+  void scanSavedText({
+    supabase,
+    userId: user.id,
+    entityType: "chapter",
+    entityId: chapterId,
+    fields: { title, content },
+  });
 
   let worldSlug: string | undefined;
   if (worldId) {

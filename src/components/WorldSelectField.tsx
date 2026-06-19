@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getWorldSelectOptions } from "@/app/actions/worlds";
+import { selectClassName } from "@/components/CharacterFormFields";
 import type { Character } from "@/types/character";
 
 type WorldSelectFieldProps = {
@@ -25,7 +26,7 @@ export function WorldSelectField({
 
   return (
     <fieldset className="space-y-3">
-      <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-violet-400/80">
+      <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
         World
       </legend>
       <label htmlFor={`${idPrefix}world_id`} className="sr-only">
@@ -36,7 +37,7 @@ export function WorldSelectField({
         name="world_id"
         defaultValue={character.world_id ?? ""}
         disabled={loading}
-        className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5 text-sm text-zinc-100 focus:border-violet-500/50 focus:outline-none focus:ring-1 focus:ring-violet-500/30 disabled:opacity-60"
+        className={selectClassName}
       >
         <option value="">No world (unassigned)</option>
         {worlds.map((world) => (
@@ -45,7 +46,7 @@ export function WorldSelectField({
           </option>
         ))}
       </select>
-      <p className="text-xs text-zinc-600">
+      <p className="text-xs text-[var(--brand-text-secondary)]">
         Assign this character to one of your worlds.
       </p>
     </fieldset>

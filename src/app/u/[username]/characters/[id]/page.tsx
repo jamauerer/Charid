@@ -23,12 +23,12 @@ function DetailField({
 
   return (
     <div>
-      <dt className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">
+      <dt className="text-[10px] font-medium uppercase tracking-wide text-[var(--brand-text-secondary)]">
         {label}
       </dt>
       <dd
         className={`mt-0.5 text-sm ${
-          value?.trim() ? "text-zinc-200" : "italic text-zinc-600"
+          value?.trim() ? "text-[var(--brand-text-secondary)]" : "italic text-[var(--brand-text-secondary)]"
         }`}
       >
         {display}
@@ -45,8 +45,8 @@ export default async function PublicCharacterPage({
 
   if (error) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-background px-4 font-sans text-zinc-100">
-        <p className="text-sm text-amber-300">{error}</p>
+      <div className="flex min-h-dvh items-center justify-center bg-background px-4 font-sans text-[var(--brand-text-secondary)]">
+        <p className="text-sm text-[var(--status-info-text)]">{error}</p>
       </div>
     );
   }
@@ -59,7 +59,7 @@ export default async function PublicCharacterPage({
   const creatorName = getPublicDisplayName(profile);
 
   return (
-    <div className="min-h-dvh bg-background font-sans text-zinc-100">
+    <div className="min-h-dvh bg-background font-sans text-[var(--brand-text-secondary)]">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_80%_40%_at_50%_-10%,rgba(120,119,198,0.08),transparent)]" />
 
       <PublicSiteHeader />
@@ -68,7 +68,7 @@ export default async function PublicCharacterPage({
         <div className="mb-7 flex items-center justify-between gap-3">
           <Link
             href={`/u/${profile.username}`}
-            className="inline-flex items-center gap-1 text-sm text-zinc-400 transition hover:text-zinc-200"
+            className="inline-flex items-center gap-1 text-sm text-[var(--brand-text-secondary)] transition hover:text-[var(--brand-text-secondary)]"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -85,11 +85,11 @@ export default async function PublicCharacterPage({
             </svg>
             Back to @{profile.username}
           </Link>
-          <p className="truncate text-xs text-zinc-500">
+          <p className="truncate text-xs text-[var(--brand-text-secondary)]">
             by{" "}
             <Link
               href={`/u/${profile.username}`}
-              className="text-zinc-400 transition hover:text-zinc-200"
+              className="text-[var(--brand-text-secondary)] transition hover:text-[var(--brand-text-secondary)]"
             >
               {creatorName}
             </Link>
@@ -106,11 +106,11 @@ export default async function PublicCharacterPage({
             />
           </div>
 
-          <div className="rounded-xl border border-white/[0.06] bg-[#0f0f11] p-5 sm:p-6">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-violet-400/80">
+          <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] p-5 sm:p-6">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
               Character Profile
             </p>
-            <h1 className="mt-1.5 text-xl font-semibold tracking-tight text-zinc-100 sm:text-2xl">
+            <h1 className="mt-1.5 text-xl font-semibold tracking-tight text-[var(--brand-text-secondary)] sm:text-2xl">
               {character.name}
             </h1>
 
@@ -132,16 +132,16 @@ export default async function PublicCharacterPage({
               />
             </dl>
 
-            <section className="mt-6 border-t border-white/[0.06] pt-5">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-violet-400">
+            <section className="mt-6 border-t border-[var(--brand-border)] pt-5">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
                 Backstory
               </h2>
               {character.backstory?.trim() ? (
-                <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-zinc-300">
+                <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-[var(--brand-text-secondary)]">
                   {character.backstory}
                 </p>
               ) : (
-                <p className="mt-3 text-sm italic text-zinc-600">
+                <p className="mt-3 text-sm italic text-[var(--brand-text-secondary)]">
                   No backstory has been shared for this character yet.
                 </p>
               )}

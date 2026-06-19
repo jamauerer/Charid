@@ -1,18 +1,26 @@
 import type { Character } from "@/types/character";
 
 export const inputClassName =
-  "w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none transition focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30";
+  "w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] outline-none transition focus:border-[var(--brand-accent)] focus:ring-1 focus:ring-[color-mix(in_srgb,var(--brand-accent)_20%,transparent)]";
+
+export const selectClassName =
+  "w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2.5 text-sm text-[var(--brand-text-secondary)] outline-none transition focus:border-[var(--brand-accent)] focus:ring-1 focus:ring-[color-mix(in_srgb,var(--brand-accent)_20%,transparent)] disabled:cursor-not-allowed disabled:opacity-60";
+
+export const selectClassNameCompact =
+  "w-full rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2 py-1.5 text-xs text-[var(--brand-text-secondary)] outline-none transition focus:border-[var(--brand-accent)] focus:ring-1 focus:ring-[color-mix(in_srgb,var(--brand-accent)_20%,transparent)] disabled:cursor-not-allowed disabled:opacity-60";
 
 const labelClassName =
-  "mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-500";
+  "mb-1.5 block text-xs font-medium uppercase tracking-wide text-[var(--brand-text-secondary)]";
 
 type CharacterFormFieldsProps = {
   character?: Character;
+  ageDefault?: string | null;
   idPrefix?: string;
 };
 
 export function CharacterFormFields({
   character,
+  ageDefault,
   idPrefix = "",
 }: CharacterFormFieldsProps) {
   const p = idPrefix;
@@ -20,7 +28,7 @@ export function CharacterFormFields({
   return (
     <>
       <fieldset className="space-y-4">
-        <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-violet-400/80">
+        <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
           Identity
         </legend>
 
@@ -61,7 +69,7 @@ export function CharacterFormFields({
               id={`${p}age`}
               name="age"
               type="text"
-              defaultValue={character?.age ?? ""}
+              defaultValue={ageDefault ?? ""}
               placeholder="e.g. 28"
               className={inputClassName}
             />
@@ -84,7 +92,7 @@ export function CharacterFormFields({
       </fieldset>
 
       <fieldset className="space-y-4">
-        <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-violet-400/80">
+        <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
           Backstory
         </legend>
         <div>

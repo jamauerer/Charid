@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { dsNavActive, dsNavInactive, dsNavIndicator } from "@/lib/design-system";
 
 type DashboardNavItemProps = {
   href: string;
@@ -21,15 +22,15 @@ export function DashboardNavItem({
   onNavigate,
 }: DashboardNavItemProps) {
   const baseClass =
-    "group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition";
+    "relative flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition";
 
   if (disabled) {
     return (
       <span
-        className={`${baseClass} cursor-not-allowed text-zinc-600`}
+        className={`${baseClass} cursor-not-allowed text-[var(--brand-text-muted)]`}
         aria-disabled="true"
       >
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center text-zinc-600">
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center opacity-50">
           {icon}
         </span>
         {label}
@@ -41,23 +42,22 @@ export function DashboardNavItem({
     <Link
       href={href}
       onClick={onNavigate}
-      className={`${baseClass} ${
-        active
-          ? "bg-white/[0.07] text-zinc-100 ring-1 ring-inset ring-white/[0.06]"
-          : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+      aria-current={active ? "page" : undefined}
+      className={`${baseClass} group ${
+        active ? dsNavActive : dsNavInactive
       }`}
     >
+      {active && <span className={dsNavIndicator} aria-hidden />}
       <span
         className={`flex h-5 w-5 shrink-0 items-center justify-center ${
-          active ? "text-violet-400" : "text-zinc-500 group-hover:text-zinc-400"
+          active
+            ? "text-[var(--foreground)]"
+            : "text-[var(--brand-text-secondary)] group-hover:text-[var(--foreground)]"
         }`}
       >
         {icon}
       </span>
       {label}
-      {active && (
-        <span className="ml-auto h-1.5 w-1.5 rounded-full bg-violet-400" aria-hidden />
-      )}
     </Link>
   );
 }

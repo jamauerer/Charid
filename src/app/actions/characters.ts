@@ -9,6 +9,10 @@ import {
   createCharacterImageFromPath,
   deleteAllCharacterImageFiles,
 } from "@/app/actions/character-images";
+import { ensureCharacterBible } from "@/app/actions/character-bible";
+import { scanUploadedImage } from "@/lib/moderation/scan-image";
+import { getOrCreateDefaultProject } from "@/app/actions/projects";
+import { scanSavedText } from "@/lib/moderation/scan-text";
 
 const BUCKET = "character-photos";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -35,9 +39,12 @@ function parseCharacterFields(formData: FormData) {
     name: String(formData.get("name") ?? "").trim(),
     gender: parseOptionalField(formData, "gender"),
     age: parseOptionalField(formData, "age"),
+    species: parseOptionalField(formData, "species"),
+    core_personality: parseOptionalField(formData, "core_personality"),
+    permanent_features: parseOptionalField(formData, "permanent_features"),
     location: parseOptionalField(formData, "location"),
     backstory: parseOptionalField(formData, "backstory"),
-    is_public: formData.get("is_public") !== "false",
+    is_public: formData.get("is_public") === "true",
     world_id: worldIdRaw || null,
   };
 }
@@ -45,6 +52,14 @@ function parseCharacterFields(formData: FormData) {
 export type CharacterActionState = {
   error?: string;
   success?: boolean;
+  characterId?: string;
+};
+
+export type CharacterPickerItem = {
+  id: string;
+  name: string;
+  world_id: string | null;
+  world_name: string | null;
 };
 
 export type CharactersResult = {
@@ -145,12 +160,133 @@ export async function getCharacterPhotoUrl(
   return data.signedUrl;
 }
 
+export async function getCharactersForPicker(): Promise<{
+  characters: CharacterPickerItem[];
+  error?: string;
+}> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { characters: [], error: "You must be logged in." };
+  }
+
+  const { data, error } = await supabase
+    .from("characters")
+    .select("id, name, world_id")
+    .eq("user_id", user.id)
+    .order("name", { ascending: true });
+
+  if (error) {
+    return {
+      characters: [],
+      error: formatCharactersError(error.message, error.code),
+    };
+  }
+
+  const worldIds = [
+    ...new Set(
+      (data ?? [])
+        .map((row) => row.world_id as string | null)
+        .filter((id): id is string => Boolean(id))
+    ),
+  ];
+
+  const worldNames = new Map<string, string>();
+  if (worldIds.length > 0) {
+    const { data: worlds } = await supabase
+      .from("worlds")
+      .select("id, name")
+      .in("id", worldIds);
+    for (const world of worlds ?? []) {
+      worldNames.set(world.id, world.name);
+    }
+  }
+
+  return {
+    characters: (data ?? []).map((row) => ({
+      id: row.id,
+      name: row.name,
+      world_id: row.world_id ?? null,
+      world_name: row.world_id ? (worldNames.get(row.world_id) ?? null) : null,
+    })),
+  };
+}
+
+export async function assignCharactersToWorld(
+  worldId: string,
+  characterIds: string[]
+): Promise<{ error?: string; assignedCount?: number }> {
+  const uniqueIds = [...new Set(characterIds.filter(Boolean))];
+  if (uniqueIds.length === 0) {
+    return { error: "Select at least one character." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be logged in." };
+  }
+
+  const { data: world, error: worldError } = await supabase
+    .from("worlds")
+    .select("id")
+    .eq("id", worldId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (worldError || !world) {
+    return { error: "World not found." };
+  }
+
+  const { data: updated, error: updateError } = await supabase
+    .from("characters")
+    .update({ world_id: worldId })
+    .eq("user_id", user.id)
+    .in("id", uniqueIds)
+    .select("id");
+
+  if (updateError) {
+    return { error: formatCharactersError(updateError.message, updateError.code) };
+  }
+
+  const assignedCount = updated?.length ?? 0;
+  if (assignedCount === 0) {
+    return { error: "No characters were assigned." };
+  }
+
+  revalidatePath("/dashboard/characters");
+  revalidatePath(`/dashboard/worlds/${worldId}`);
+  revalidatePath("/dashboard/portfolio");
+
+  for (const row of updated ?? []) {
+    revalidatePath(`/dashboard/characters/${row.id}`);
+  }
+
+  return { assignedCount };
+}
+
 export async function createCharacter(
   _prevState: CharacterActionState,
   formData: FormData
 ): Promise<CharacterActionState> {
-  const { name, gender, age, location, backstory, is_public } =
-    parseCharacterFields(formData);
+  const {
+    name,
+    gender,
+    age,
+    species,
+    core_personality,
+    permanent_features,
+    location,
+    backstory,
+    is_public,
+    world_id,
+  } = parseCharacterFields(formData);
   const photo = formData.get("photo");
 
   if (!name) {
@@ -164,6 +300,46 @@ export async function createCharacter(
 
   if (!user) {
     return { error: "You must be logged in to create a character." };
+  }
+
+  let projectId: string | null = null;
+  const formProjectId = String(formData.get("project_id") ?? "").trim();
+
+  if (formProjectId) {
+    const { data: projectRow } = await supabase
+      .from("projects")
+      .select("id")
+      .eq("id", formProjectId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (projectRow) {
+      projectId = projectRow.id as string;
+    }
+  }
+
+  if (world_id) {
+    const { data: world, error: worldError } = await supabase
+      .from("worlds")
+      .select("id, project_id")
+      .eq("id", world_id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (worldError || !world) {
+      return { error: "World not found." };
+    }
+
+    if (!projectId && world.project_id) {
+      projectId = world.project_id as string;
+    }
+  }
+
+  if (!projectId) {
+    const defaultProject = await getOrCreateDefaultProject(supabase, user.id);
+    if (defaultProject.error && !defaultProject.project) {
+      return { error: defaultProject.error };
+    }
+    projectId = defaultProject.project?.id ?? null;
   }
 
   const characterId = randomUUID();
@@ -193,12 +369,17 @@ export async function createCharacter(
   const { error: insertError } = await supabase.from("characters").insert({
     id: characterId,
     user_id: user.id,
+    project_id: projectId,
     name,
     gender,
-    age,
+    species,
+    core_personality,
+    permanent_features,
     location,
     backstory,
     photo_path: photoPath,
+    is_public: is_public ?? false,
+    world_id,
   });
 
   if (insertError) {
@@ -208,6 +389,13 @@ export async function createCharacter(
     return {
       error: formatCharactersError(insertError.message, insertError.code),
     };
+  }
+
+  const bibleResult = await ensureCharacterBible(supabase, characterId, user.id, {
+    age,
+  });
+  if (bibleResult.error) {
+    console.error("Failed to create character bible row:", bibleResult.error);
   }
 
   if (photoPath) {
@@ -223,8 +411,44 @@ export async function createCharacter(
   }
 
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/characters");
   revalidatePath("/dashboard/portfolio");
-  return { success: true };
+  if (projectId) {
+    revalidatePath(`/dashboard/projects/${projectId}`);
+    revalidatePath("/dashboard/projects");
+  }
+  if (world_id) {
+    revalidatePath(`/dashboard/worlds/${world_id}`);
+  }
+
+  void scanSavedText({
+    supabase,
+    userId: user.id,
+    entityType: "character",
+    entityId: characterId,
+    fields: {
+      name,
+      species,
+      core_personality,
+      permanent_features,
+      location,
+      backstory,
+    },
+  });
+
+  if (photoPath) {
+    void scanUploadedImage({
+      supabase,
+      userId: user.id,
+      entityType: "character_photo",
+      entityId: characterId,
+      storageBucket: BUCKET,
+      storagePath: photoPath,
+      mimeType: photo instanceof File ? photo.type : undefined,
+    });
+  }
+
+  return { success: true, characterId };
 }
 
 export type UpdateCharacterResult = CharacterActionState & {
@@ -237,7 +461,7 @@ export async function updateCharacter(
   formData: FormData
 ): Promise<UpdateCharacterResult> {
   const characterId = String(formData.get("character_id") ?? "").trim();
-  const { name, gender, age, location, backstory, is_public, world_id } =
+  const { name, gender, age, species, core_personality, permanent_features, location, backstory, is_public, world_id } =
     parseCharacterFields(formData);
 
   if (!characterId) {
@@ -302,7 +526,9 @@ export async function updateCharacter(
     .update({
       name,
       gender,
-      age,
+      species,
+      core_personality,
+      permanent_features,
       location,
       backstory,
       is_public,
@@ -327,6 +553,13 @@ export async function updateCharacter(
     return { error: "Update failed: no row returned." };
   }
 
+  const bibleResult = await ensureCharacterBible(supabase, characterId, user.id, {
+    age,
+  });
+  if (bibleResult.error) {
+    console.error("[updateCharacter] bible update error:", bibleResult.error);
+  }
+
   const normalized = normalizeCharacter(updated as CharacterRow);
   const photoUrl = await getCharacterPhotoUrl(normalized.photo_path);
 
@@ -337,6 +570,7 @@ export async function updateCharacter(
     .maybeSingle();
 
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/characters");
   revalidatePath(`/dashboard/characters/${characterId}`);
   revalidatePath("/dashboard/portfolio");
   revalidatePath("/dashboard/worlds");
@@ -350,7 +584,54 @@ export async function updateCharacter(
     revalidatePath(`/u/${profile.username}`);
     revalidatePath(`/u/${profile.username}/characters/${characterId}`);
   }
+
+  void scanSavedText({
+    supabase,
+    userId: user.id,
+    entityType: "character",
+    entityId: characterId,
+    fields: {
+      name,
+      species,
+      core_personality,
+      permanent_features,
+      location,
+      backstory,
+    },
+  });
+
   return { success: true, character: normalized, photoUrl };
+}
+
+export async function saveCharacterPersonality(
+  characterId: string,
+  corePersonality: string
+): Promise<{ error?: string; success?: boolean }> {
+  if (!characterId) {
+    return { error: "Character ID is required." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be logged in." };
+  }
+
+  const { error } = await supabase
+    .from("characters")
+    .update({ core_personality: corePersonality.trim() || null })
+    .eq("id", characterId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/dashboard/characters/${characterId}`);
+  return { success: true };
 }
 
 export type DeleteCharacterResult = {
@@ -412,6 +693,7 @@ export async function deleteCharacter(
     .maybeSingle();
 
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/characters");
   revalidatePath("/dashboard/portfolio");
   if (profile?.username) {
     revalidatePath(`/u/${profile.username}`);

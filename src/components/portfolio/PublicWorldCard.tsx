@@ -21,9 +21,9 @@ export function PublicWorldCard({
   return (
     <Link
       href={href}
-      className="group overflow-hidden rounded-lg border border-white/[0.06] bg-[#0f0f11] transition hover:border-white/10 hover:bg-[#111113]"
+      className="group overflow-hidden rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] transition hover:border-[var(--brand-border)] hover:bg-[#111113]"
     >
-      <div className="relative aspect-[16/9] overflow-hidden bg-zinc-900">
+      <div className="relative aspect-[16/9] overflow-hidden bg-[var(--studio-empty-fill)]">
         {coverUrl ? (
           <Image
             src={coverUrl}
@@ -33,13 +33,13 @@ export function PublicWorldCard({
             unoptimized
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-violet-950/40 to-zinc-900 text-xs text-zinc-600">
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-violet-950/40 to-zinc-900 text-xs text-[var(--brand-text-secondary)]">
             No cover
           </div>
         )}
       </div>
       <div className="px-3 py-2.5">
-        <h3 className="truncate text-sm font-bold tracking-tight text-zinc-100 transition group-hover:text-violet-300">
+        <h3 className="truncate text-sm font-bold tracking-tight text-[var(--brand-text-secondary)] transition group-hover:text-neutral-600">
           {world.name}
         </h3>
       </div>

@@ -6,14 +6,14 @@ type PlaceholderPageProps = {
 export function PlaceholderPage({ title, description }: PlaceholderPageProps) {
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="rounded-xl border border-white/[0.06] bg-[#0f0f11] px-6 py-10 text-center">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-400/80">
+      <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-6 py-10 text-center">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
           Coming Soon
         </p>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight text-zinc-100">
+        <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--brand-text-secondary)]">
           {title}
         </h1>
-        <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-zinc-500">
+        <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-[var(--brand-text-secondary)]">
           {description}
         </p>
       </div>

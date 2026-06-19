@@ -12,11 +12,11 @@ type PublicWorldPageProps = {
 
 function ComingSoonSection({ title }: { title: string }) {
   return (
-    <section className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-5 py-8 text-center">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
+    <section className="rounded-xl border border-dashed border-[var(--brand-border)] bg-[var(--brand-surface)] px-5 py-8 text-center">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--brand-text-secondary)]">
         {title}
       </h2>
-      <p className="mt-2 text-sm text-zinc-600">Coming Soon</p>
+      <p className="mt-2 text-sm text-[var(--brand-text-secondary)]">Coming Soon</p>
     </section>
   );
 }
@@ -28,8 +28,8 @@ export default async function PublicWorldPage({ params }: PublicWorldPageProps) 
 
   if (error) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-background px-4 font-sans text-zinc-100">
-        <p className="text-sm text-amber-300">{error}</p>
+      <div className="flex min-h-dvh items-center justify-center bg-background px-4 font-sans text-[var(--brand-text-secondary)]">
+        <p className="text-sm text-[var(--status-info-text)]">{error}</p>
       </div>
     );
   }
@@ -39,7 +39,7 @@ export default async function PublicWorldPage({ params }: PublicWorldPageProps) 
   }
 
   return (
-    <div className="min-h-dvh bg-background font-sans text-zinc-100">
+    <div className="min-h-dvh bg-background font-sans text-[var(--brand-text-secondary)]">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_80%_40%_at_50%_-10%,rgba(120,119,198,0.08),transparent)]" />
 
       <PublicSiteHeader />
@@ -48,7 +48,7 @@ export default async function PublicWorldPage({ params }: PublicWorldPageProps) 
         <div className="mb-7">
           <Link
             href={`/u/${profileUsername}`}
-            className="inline-flex items-center gap-1 text-sm text-zinc-400 transition hover:text-zinc-200"
+            className="inline-flex items-center gap-1 text-sm text-[var(--brand-text-secondary)] transition hover:text-[var(--brand-text-secondary)]"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -67,8 +67,8 @@ export default async function PublicWorldPage({ params }: PublicWorldPageProps) 
           </Link>
         </div>
 
-        <div className="mb-10 overflow-hidden rounded-xl border border-white/[0.06] bg-[#0f0f11]">
-          <div className="relative aspect-[21/9] bg-zinc-900 sm:aspect-[3/1]">
+        <div className="mb-10 overflow-hidden rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)]">
+          <div className="relative aspect-[21/9] bg-[var(--studio-empty-fill)] sm:aspect-[3/1]">
             {coverUrl ? (
               <Image
                 src={coverUrl}
@@ -79,24 +79,24 @@ export default async function PublicWorldPage({ params }: PublicWorldPageProps) 
                 unoptimized
               />
             ) : (
-              <div className="flex h-full items-center justify-center bg-gradient-to-br from-violet-950/30 to-zinc-900 text-sm text-zinc-600">
-                No cover image
+              <div className="flex h-full items-center justify-center bg-gradient-to-br from-violet-950/30 to-zinc-900 text-sm text-[var(--brand-text-secondary)]">
+                No cover yet
               </div>
             )}
           </div>
           <div className="p-5 sm:p-6">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-violet-400/80">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
               World
             </p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-100 sm:text-3xl">
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--brand-text-secondary)] sm:text-3xl">
               {world.name}
             </h1>
             {world.description?.trim() ? (
-              <p className="mt-4 max-w-3xl whitespace-pre-wrap text-[15px] leading-relaxed text-zinc-300">
+              <p className="mt-4 max-w-3xl whitespace-pre-wrap text-[15px] leading-relaxed text-[var(--brand-text-secondary)]">
                 {world.description}
               </p>
             ) : (
-              <p className="mt-4 text-sm italic text-zinc-600">
+              <p className="mt-4 text-sm italic text-[var(--brand-text-secondary)]">
                 No description has been shared for this world yet.
               </p>
             )}
@@ -104,12 +104,12 @@ export default async function PublicWorldPage({ params }: PublicWorldPageProps) 
         </div>
 
         <section className="mb-10">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--brand-text-secondary)]">
             Stories
           </h2>
           {stories.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-5 py-8 text-center">
-              <p className="text-sm text-zinc-500">No stories in this world yet.</p>
+            <div className="rounded-xl border border-dashed border-[var(--brand-border)] bg-[var(--brand-surface)] px-5 py-8 text-center">
+              <p className="text-sm text-[var(--brand-text-secondary)]">No stories in this world yet.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -127,12 +127,12 @@ export default async function PublicWorldPage({ params }: PublicWorldPageProps) 
         </section>
 
         <section className="mb-10">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--brand-text-secondary)]">
             Characters
           </h2>
           {characters.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-5 py-10 text-center">
-              <p className="text-sm text-zinc-500">
+            <div className="rounded-xl border border-dashed border-[var(--brand-border)] bg-[var(--brand-surface)] px-5 py-10 text-center">
+              <p className="text-sm text-[var(--brand-text-secondary)]">
                 No public characters in this world yet.
               </p>
             </div>

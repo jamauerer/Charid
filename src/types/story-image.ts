@@ -8,6 +8,51 @@ export const STORY_ASSET_TYPES = [
 
 export type StoryAssetType = (typeof STORY_ASSET_TYPES)[number];
 
+/** Core assignable slot roles (Story Bible V1). */
+export const STORY_CORE_SLOT_ROLES = [
+  "cover",
+  "scene_reference",
+  "mood_board",
+  "storyboard",
+  "chapter_reference",
+  "reference",
+] as const;
+
+export type StoryCoreSlotRole = (typeof STORY_CORE_SLOT_ROLES)[number];
+
+/** Legacy asset type / role names — normalized at read time. */
+export const LEGACY_STORY_SLOT_ROLE_MAP: Record<string, string> = {
+  key_scene: "scene_reference",
+};
+
+const EXTENDED_SLOT_PREFIXES = ["scene_", "chapter_", "storyboard_"] as const;
+
+export function normalizeStorySlotRole(role: string): string {
+  return LEGACY_STORY_SLOT_ROLE_MAP[role] ?? role;
+}
+
+export function isStorySlotRole(role: string): role is StoryCoreSlotRole {
+  if ((STORY_CORE_SLOT_ROLES as readonly string[]).includes(role)) {
+    return true;
+  }
+  return EXTENDED_SLOT_PREFIXES.some((prefix) => role.startsWith(prefix));
+}
+
+export function assetTypeToStorySlotRole(
+  assetType: StoryAssetType
+): string | null {
+  switch (assetType) {
+    case "cover":
+      return "cover";
+    case "mood_board":
+      return "mood_board";
+    case "key_scene":
+      return "scene_reference";
+    default:
+      return null;
+  }
+}
+
 export const STORY_ASSET_TYPE_LABELS: Record<StoryAssetType, string> = {
   cover: "Cover",
   reference: "Reference",

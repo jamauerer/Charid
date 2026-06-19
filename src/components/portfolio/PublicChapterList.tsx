@@ -17,14 +17,14 @@ export function PublicChapterList({
 }: PublicChapterListProps) {
   if (chapters.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-5 py-8 text-center">
-        <p className="text-sm text-zinc-500">No chapters published yet.</p>
+      <div className="rounded-xl border border-dashed border-[var(--brand-border)] bg-[var(--brand-surface)] px-5 py-8 text-center">
+        <p className="text-sm text-[var(--brand-text-secondary)]">No chapters published yet.</p>
       </div>
     );
   }
 
   return (
-    <ol className="divide-y divide-white/[0.06] rounded-xl border border-white/[0.06] bg-[#0f0f11]">
+    <ol className="divide-y divide-white/[0.06] rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)]">
       {chapters.map((chapter, index) => (
         <li key={chapter.id}>
           <Link
@@ -34,12 +34,12 @@ export function PublicChapterList({
               storySlug,
               chapter.id
             )}
-            className="flex items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03]"
+            className="flex items-center gap-3 px-4 py-3 transition hover:bg-[var(--brand-surface)]"
           >
-            <span className="w-6 shrink-0 text-xs font-medium tabular-nums text-zinc-600">
+            <span className="w-6 shrink-0 text-xs font-medium tabular-nums text-[var(--brand-text-secondary)]">
               {index + 1}.
             </span>
-            <span className="text-sm font-medium text-zinc-200 transition hover:text-violet-300">
+            <span className="text-sm font-medium text-[var(--brand-text-secondary)] transition hover:text-neutral-600">
               {chapter.title}
             </span>
           </Link>

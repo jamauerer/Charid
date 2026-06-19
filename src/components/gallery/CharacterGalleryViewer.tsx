@@ -26,6 +26,8 @@ export function CharacterGalleryViewer({
           character_id: "",
           image_path: "",
           caption: null,
+          asset_role: "canonical",
+          asset_role_label: null,
           sort_order: 0,
           created_at: "",
           url: fallbackPhotoUrl,
@@ -51,8 +53,8 @@ export function CharacterGalleryViewer({
 
   if (galleryImages.length === 0) {
     return (
-      <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-[#0f0f11]">
-        <div className="flex aspect-[4/3] items-center justify-center text-sm text-zinc-600">
+      <div className="overflow-hidden rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)]">
+        <div className="flex aspect-[4/3] items-center justify-center text-sm text-[var(--brand-text-secondary)]">
           No images uploaded
         </div>
       </div>
@@ -64,8 +66,8 @@ export function CharacterGalleryViewer({
 
   return (
     <div className="space-y-3">
-      <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-[#0f0f11]">
-        <div className="relative aspect-[4/3] bg-zinc-900">
+      <div className="overflow-hidden rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)]">
+        <div className="relative aspect-[4/3] bg-[var(--studio-empty-fill)]">
           {active.url ? (
             <Image
               src={active.url}
@@ -80,7 +82,7 @@ export function CharacterGalleryViewer({
               unoptimized
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-sm text-zinc-600">
+            <div className="flex h-full items-center justify-center text-sm text-[var(--brand-text-secondary)]">
               Image unavailable
             </div>
           )}
@@ -88,7 +90,7 @@ export function CharacterGalleryViewer({
       </div>
 
       {active.caption && (
-        <p className="text-center text-sm text-zinc-400">{active.caption}</p>
+        <p className="text-center text-sm text-[var(--brand-text-secondary)]">{active.caption}</p>
       )}
 
       {hasMultiple && (
@@ -114,7 +116,7 @@ export function CharacterGalleryViewer({
                 className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border transition ${
                   isSelected
                     ? "border-violet-500 ring-2 ring-violet-500/40"
-                    : "border-white/10 opacity-70 hover:border-white/20 hover:opacity-100"
+                    : "border-[var(--brand-border)] opacity-70 hover:border-white/20 hover:opacity-100"
                 }`}
               >
                 {image.url ? (
@@ -126,7 +128,7 @@ export function CharacterGalleryViewer({
                     unoptimized
                   />
                 ) : (
-                  <span className="flex h-full items-center justify-center text-[10px] text-zinc-600">
+                  <span className="flex h-full items-center justify-center text-[10px] text-[var(--brand-text-secondary)]">
                     —
                   </span>
                 )}

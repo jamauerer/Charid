@@ -1,20 +1,26 @@
-import Link from "next/link";
-import Image from "next/image";
+import { Suspense } from "react";
 import { redirect, notFound } from "next/navigation";
-import { getCharacterPhotoUrl } from "@/app/actions/characters";
-import { getCharactersByWorldId, getWorldById } from "@/app/actions/worlds";
-import {
-  getStoryById,
-  getStoryCharacters,
-} from "@/app/actions/stories";
 import { getChaptersByStoryId } from "@/app/actions/chapters";
-import { getStoryCoverUrl } from "@/app/actions/story-images";
+import { getScenesByStoryId } from "@/app/actions/scenes";
+import { getActiveSceneSuggestionBatch } from "@/app/actions/scene-suggestions";
+import { getStoryProjectContext } from "@/app/actions/projects";
+import { getStoryBibleBundle } from "@/app/actions/story-bible";
+import { getStoryWorkspaceContext } from "@/app/actions/story-workspace";
+import { getWorldById } from "@/app/actions/worlds";
 import { EditStoryForm } from "@/app/dashboard/EditStoryForm";
-import { StoryGalleryManager } from "@/components/gallery/StoryGalleryManager";
-import { NewChapterModal } from "@/app/dashboard/NewChapterModal";
-import { ChapterList } from "@/components/ChapterList";
-import { StoryCharacterSection } from "@/components/StoryCharacterSection";
+import { StoryBibleView } from "@/components/story-bible/StoryBibleView";
+import { StoryFinishPath } from "@/components/dashboard/StoryFinishPath";
+import { StoryChaptersPanel } from "@/components/dashboard/StoryChaptersPanel";
+import { StoryScenesPanel } from "@/components/scene-workspace/StoryScenesPanel";
+import { StoryAdvancedPlan } from "@/components/dashboard/StoryAdvancedPlan";
+import { StoryWelcomeBanner } from "@/components/dashboard/StoryWelcomeBanner";
+import { StoryCastConnectionsPanel } from "@/components/story-workspace/StoryCastConnectionsPanel";
+import { StorySettingPanel } from "@/components/story-workspace/StorySettingPanel";
+import { StoryFormatGuide } from "@/components/story-workspace/StoryFormatGuide";
 import { StoryStatusBadge } from "@/components/StoryStatusBadge";
+import { CreatorContextTrail } from "@/components/studio/CreatorContextTrail";
+import { resolveStoryFinishPath } from "@/lib/story-finish-path";
+import { studioSection } from "@/lib/visual-identity";
 
 type StoryDetailPageProps = {
   params: Promise<{ id: string; storyId: string }>;
@@ -31,125 +37,189 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
     notFound();
   }
 
-  const { story, error: storyError } = await getStoryById(worldId, storyId);
-  if (!story) {
-    notFound();
-  }
-  if (storyError) {
+  const { context, error: contextError } = await getStoryWorkspaceContext(
+    worldId,
+    storyId
+  );
+  if (!context) {
+    if (contextError?.includes("not found")) {
+      notFound();
+    }
     return (
-      <div className="mx-auto max-w-3xl px-4 py-10 text-sm text-amber-300">
-        {storyError}
+      <div className="mx-auto max-w-3xl px-4 py-10 text-sm text-[var(--status-info-text)]">
+        {contextError ?? "Could not load story workspace."}
       </div>
     );
   }
 
-  const { entries } = await getStoryCharacters(storyId);
-  const { characters: worldCharacters } = await getCharactersByWorldId(worldId);
-  const { chapters } = await getChaptersByStoryId(storyId);
-  const coverUrl = await getStoryCoverUrl(storyId);
+  const { story } = context;
 
-  const photoUrls: Record<string, string | null> = {};
-  await Promise.all(
-    entries.map(async ({ character }) => {
-      photoUrls[character.id] = await getCharacterPhotoUrl(character.photo_path);
-    })
-  );
+  const [{ bundle, error: bibleError }, { project: projectContext }] =
+    await Promise.all([
+      getStoryBibleBundle(storyId),
+      getStoryProjectContext(storyId, worldId),
+    ]);
+
+  if (!bundle) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-10">
+        <CreatorContextTrail
+          project={
+            projectContext
+              ? {
+                  label: projectContext.title,
+                  href: `/dashboard/projects/${projectContext.id}`,
+                }
+              : null
+          }
+          story={{ label: story.title }}
+          world={{
+            label: world.name,
+            href: `/dashboard/worlds/${worldId}`,
+          }}
+        />
+        <p className="mt-6 rounded-lg border border-[var(--status-info-border)] bg-[var(--status-info-bg)] px-3 py-2 text-sm text-[var(--status-info-text)]">
+          {bibleError ??
+            "Could not load story workspace. Run the story_bible migration in Supabase."}
+        </p>
+      </div>
+    );
+  }
+
+  const { chapters } = await getChaptersByStoryId(storyId);
+  const { scenes, error: scenesError } = await getScenesByStoryId(storyId);
+  const { batch: suggestionBatch, error: suggestionError } =
+    await getActiveSceneSuggestionBatch(storyId);
+
+  const finishPath = resolveStoryFinishPath({
+    worldId,
+    storyId,
+    projectType: story.project_type,
+    chapters,
+    characterCount: context.cast.length,
+    sceneCount: scenes.length,
+    locationCount: context.locations.length,
+    hasCoverImage: Boolean(story.featured_image_id ?? bundle.featuredImageId),
+  });
+
+  const migrationError =
+    bibleError?.includes("story_bible") ||
+    bibleError?.includes("story_image_slot_assignments")
+      ? bibleError
+      : context.worldbuildingError;
 
   return (
     <div className="mx-auto w-full max-w-[1280px]">
-      <div className="mb-6">
-        <Link
-          href={`/dashboard/worlds/${worldId}`}
-          className="inline-flex items-center gap-1 text-sm text-zinc-400 transition hover:text-zinc-200"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            className="h-4 w-4"
-            aria-hidden
-          >
-            <path
-              fillRule="evenodd"
-              d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Back to {world.name}
-        </Link>
+      <CreatorContextTrail
+        className="mb-6"
+        project={
+          projectContext
+            ? {
+                label: projectContext.title,
+                href: `/dashboard/projects/${projectContext.id}`,
+              }
+            : null
+        }
+        story={{ label: story.title }}
+        world={{
+          label: world.name,
+          href: `/dashboard/worlds/${worldId}`,
+        }}
+      />
+
+      <div className="mb-4 flex flex-wrap items-end gap-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl font-semibold tracking-tight text-[var(--brand-text-secondary)] sm:text-3xl">
+            {story.title}
+          </h1>
+        </div>
+        <StoryStatusBadge status={story.status} />
       </div>
 
-      <div className="mb-8 overflow-hidden rounded-xl border border-white/[0.06] bg-[#0f0f11]">
-        {coverUrl && (
-          <div className="relative aspect-[21/9] bg-zinc-900 sm:aspect-[3/1]">
-            <Image
-              src={coverUrl}
-              alt={story.title}
-              fill
-              className="object-cover"
-              priority
-              unoptimized
-            />
-          </div>
-        )}
-        <div className="p-5 sm:p-6">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-violet-400/80">
-            Story
-          </p>
-          <div className="mt-1 flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">
-              {story.title}
-            </h1>
-            <StoryStatusBadge status={story.status} />
-          </div>
-          {story.summary?.trim() ? (
-            <p className="mt-4 max-w-3xl whitespace-pre-wrap text-[15px] leading-relaxed text-zinc-300">
-              {story.summary}
-            </p>
-          ) : (
-            <p className="mt-4 text-sm italic text-zinc-600">No summary yet.</p>
-          )}
-        </div>
-      </div>
+      <StoryFormatGuide storyId={storyId} projectType={story.project_type} />
 
-      <section className="mb-10 rounded-xl border border-white/[0.06] bg-[#0f0f11] p-5 sm:p-6">
-        <StoryGalleryManager storyId={storyId} />
-      </section>
-
-      <section className="mb-10">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
-            Chapters
-          </h2>
-          <NewChapterModal worldId={worldId} storyId={storyId} />
+      {migrationError && (
+        <div className="mb-4 rounded-lg border border-[color-mix(in_srgb,var(--brand-warning)_25%,var(--brand-border))] bg-[color-mix(in_srgb,var(--brand-warning)_8%,var(--brand-surface))] px-3 py-2.5 text-sm text-[var(--foreground)]">
+          {migrationError}
         </div>
-        <ChapterList
-          worldId={worldId}
-          storyId={storyId}
-          chapters={chapters}
+      )}
+
+      <Suspense fallback={null}>
+        <StoryWelcomeBanner storyTitle={story.title} />
+      </Suspense>
+
+      <StoryFinishPath finishPath={finishPath} />
+
+      <StoryScenesPanel
+        worldId={worldId}
+        storyId={storyId}
+        storyTitle={story.title}
+        scenes={scenes}
+        cast={context.cast}
+        chapters={chapters}
+        locations={context.locations.map(({ location }) => ({
+          id: location.id,
+          name: location.name,
+        }))}
+        suggestionBatch={suggestionBatch}
+        scenesError={scenesError}
+        suggestionError={suggestionError}
+      />
+
+      <StoryChaptersPanel
+        worldId={worldId}
+        storyId={storyId}
+        chapters={chapters}
+        continueChapter={finishPath.continueChapter}
+      />
+
+      <StoryCastConnectionsPanel
+        storyId={storyId}
+        worldId={worldId}
+        worldName={world.name}
+        cast={context.cast}
+        castPhotoUrls={context.castPhotoUrls}
+        castBonds={context.castBonds}
+        bondPhotoUrls={context.bondPhotoUrls}
+      />
+
+      <StorySettingPanel
+        storyId={storyId}
+        worldId={worldId}
+        worldName={world.name}
+        locations={context.locations}
+        mapBundle={context.mapBundle}
+        moodboardBundle={context.moodboardBundle}
+      />
+
+      <StoryAdvancedPlan>
+        <StoryBibleView
+          bundle={{
+            story: bundle.story,
+            bible: bundle.bible,
+            images: bundle.images,
+            slotAssignments: bundle.slotAssignments,
+            featuredImageId: bundle.featuredImageId,
+            referenceGraph: bundle.referenceGraph,
+            scores: bundle.scores,
+            recommendations: bundle.recommendations,
+          }}
+          migrationError={
+            bibleError?.includes("story_bible") ||
+            bibleError?.includes("story_image_slot_assignments")
+              ? bibleError
+              : undefined
+          }
+          variant="advanced"
         />
-      </section>
+      </StoryAdvancedPlan>
 
-      <div className="mb-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,320px)]">
-        <section>
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">
-            Characters in this Story
-          </h2>
-          <StoryCharacterSection
-            storyId={storyId}
-            initialEntries={entries}
-            availableCharacters={worldCharacters}
-            photoUrls={photoUrls}
-          />
-        </section>
-
-        <aside className="rounded-xl border border-white/[0.06] bg-[#0f0f11] p-5">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">
-            Edit Details
-          </h2>
-          <EditStoryForm story={story} worldId={worldId} />
-        </aside>
-      </div>
+      <aside className={`${studioSection} mb-10`}>
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--brand-text-secondary)]">
+          Story details
+        </h2>
+        <EditStoryForm story={story} worldId={worldId} />
+      </aside>
     </div>
   );
 }

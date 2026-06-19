@@ -1,0 +1,860 @@
+"use server";
+
+import { randomUUID } from "crypto";
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
+import { getCharacterPhotoUrl } from "@/app/actions/characters";
+import { getStoryCoverUrls } from "@/app/actions/story-images";
+import { getWorldCoverUrl } from "@/app/actions/worlds";
+import { relationshipDisplayLabel } from "@/lib/relationship-types";
+import type { Character, CharacterRow } from "@/types/character";
+import { normalizeCharacter } from "@/types/character";
+import {
+  normalizeCharacterRelationship,
+  type CharacterRelationship,
+} from "@/types/character-relationship";
+import {
+  DEFAULT_PROJECT_SLUG,
+  DEFAULT_PROJECT_TITLE,
+  normalizeProject,
+  parseProjectWorkIntent,
+  slugifyProjectTitle,
+  type Project,
+  type ProjectRow,
+  type ProjectWithCounts,
+} from "@/types/project";
+import type { Story, StoryRow, StoryWithCounts } from "@/types/story";
+import { normalizeStory } from "@/types/story";
+import type { World, WorldRow, WorldWithCounts } from "@/types/world";
+import { normalizeWorld } from "@/types/world";
+import { scanSavedText } from "@/lib/moderation/scan-text";
+
+const BUCKET = "character-photos";
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+export type ProjectActionState = {
+  error?: string;
+  success?: boolean;
+  project?: Project;
+};
+
+export type RenameProjectState = {
+  error?: string;
+  success?: boolean;
+};
+
+export type ProjectsResult = {
+  projects: ProjectWithCounts[];
+  error?: string;
+};
+
+export type ProjectStoryEntry = {
+  story: StoryWithCounts;
+  world: { id: string; name: string };
+  coverUrl: string | null;
+};
+
+export type ProjectCharacterEntry = {
+  character: Character;
+  photoUrl: string | null;
+};
+
+export type ProjectWorldEntry = {
+  world: WorldWithCounts;
+  coverUrl: string | null;
+};
+
+export type ProjectRelationshipEntry = {
+  relationship: CharacterRelationship;
+  fromCharacter: { id: string; name: string; photo_path: string | null };
+  toCharacter: { id: string; name: string; photo_path: string | null };
+  label: string;
+};
+
+export type ProjectWorkspaceBundle = {
+  project: ProjectWithCounts;
+  coverUrl: string | null;
+};
+
+function formatProjectError(message: string, code?: string): string {
+  if (
+    code === "PGRST205" ||
+    message.includes("schema cache") ||
+    message.includes("Could not find")
+  ) {
+    return (
+      "The projects table is not exposed to the Supabase Data API yet. " +
+      "Run supabase/migrations/20250702000000_project_stage_1.sql and " +
+      "supabase/fix-projects-api.sql in the Supabase SQL Editor."
+    );
+  }
+  if (code === "23505" || message.includes("projects_user_id_slug_key")) {
+    return "That project slug is already in use on your account.";
+  }
+  return message;
+}
+
+function validateCover(file: File): string | null {
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return "Cover image must be a JPEG, PNG, or WebP file.";
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    return "Cover image must be 5 MB or smaller.";
+  }
+  return null;
+}
+
+function slugWithSuffix(base: string, suffix: number): string {
+  const suffixStr = String(suffix);
+  const maxBaseLen = 50 - suffixStr.length;
+  return `${base.slice(0, maxBaseLen)}${suffixStr}`;
+}
+
+async function isProjectSlugTaken(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  slug: string,
+  excludeProjectId?: string
+): Promise<boolean> {
+  let query = supabase
+    .from("projects")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("slug", slug);
+
+  if (excludeProjectId) {
+    query = query.neq("id", excludeProjectId);
+  }
+
+  const { data, error } = await query.maybeSingle();
+  if (error) throw new Error(error.message);
+  return data !== null;
+}
+
+async function resolveAvailableProjectSlug(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  title: string,
+  excludeProjectId?: string
+): Promise<string> {
+  const base = slugifyProjectTitle(title);
+
+  if (!(await isProjectSlugTaken(supabase, userId, base, excludeProjectId))) {
+    return base;
+  }
+
+  for (let n = 2; n <= 9999; n++) {
+    const candidate = slugWithSuffix(base, n);
+    if (
+      !(await isProjectSlugTaken(supabase, userId, candidate, excludeProjectId))
+    ) {
+      return candidate;
+    }
+  }
+
+  throw new Error("Unable to allocate a unique project slug.");
+}
+
+async function countForProject(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  table: "stories" | "characters" | "worlds" | "character_relationships",
+  projectId: string
+): Promise<number> {
+  const { count, error } = await supabase
+    .from(table)
+    .select("*", { count: "exact", head: true })
+    .eq("project_id", projectId);
+
+  if (error) return 0;
+  return count ?? 0;
+}
+
+async function attachProjectCounts(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  project: Project
+): Promise<ProjectWithCounts> {
+  const [story_count, character_count, world_count, relationship_count] =
+    await Promise.all([
+      countForProject(supabase, "stories", project.id),
+      countForProject(supabase, "characters", project.id),
+      countForProject(supabase, "worlds", project.id),
+      countForProject(supabase, "character_relationships", project.id),
+    ]);
+
+  return {
+    ...project,
+    story_count,
+    character_count,
+    world_count,
+    relationship_count,
+  };
+}
+
+function revalidateProjectPaths(projectId: string) {
+  revalidatePath("/dashboard/projects");
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  revalidatePath("/dashboard");
+}
+
+export async function getProjectCoverUrl(
+  coverPath: string | null
+): Promise<string | null> {
+  if (!coverPath) return null;
+
+  const supabase = await createClient();
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(coverPath);
+  return data.publicUrl ?? null;
+}
+
+/** Ensures the user has a default personal project (creates if missing). */
+export async function getOrCreateDefaultProject(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+): Promise<{ project: Project | null; error?: string }> {
+  const { data: existing, error: fetchError } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("is_default", true)
+    .maybeSingle();
+
+  if (fetchError) {
+    return {
+      project: null,
+      error: formatProjectError(fetchError.message, fetchError.code),
+    };
+  }
+
+  if (existing) {
+    return { project: normalizeProject(existing as ProjectRow) };
+  }
+
+  const { data: created, error: insertError } = await supabase
+    .from("projects")
+    .insert({
+      user_id: userId,
+      title: DEFAULT_PROJECT_TITLE,
+      slug: DEFAULT_PROJECT_SLUG,
+      is_default: true,
+    })
+    .select("*")
+    .single();
+
+  if (insertError || !created) {
+    return {
+      project: null,
+      error: formatProjectError(
+        insertError?.message ?? "Failed to create default project.",
+        insertError?.code
+      ),
+    };
+  }
+
+  return { project: normalizeProject(created as ProjectRow) };
+}
+
+export async function getProjects(): Promise<ProjectsResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { projects: [], error: "You must be logged in." };
+  }
+
+  const { data, error } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("is_default", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return { projects: [], error: formatProjectError(error.message, error.code) };
+  }
+
+  const projects = await Promise.all(
+    (data ?? []).map(async (row) =>
+      attachProjectCounts(supabase, normalizeProject(row as ProjectRow))
+    )
+  );
+
+  return { projects };
+}
+
+export async function getProjectById(
+  projectId: string
+): Promise<{ project: ProjectWithCounts | null; error?: string }> {
+  if (!projectId) {
+    return { project: null, error: "Project ID is required." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { project: null, error: "You must be logged in." };
+  }
+
+  const { data, error } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("id", projectId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    return {
+      project: null,
+      error: formatProjectError(error.message, error.code),
+    };
+  }
+  if (!data) {
+    return { project: null };
+  }
+
+  const project = await attachProjectCounts(
+    supabase,
+    normalizeProject(data as ProjectRow)
+  );
+  return { project };
+}
+
+export async function getProjectWorkspaceBundle(
+  projectId: string
+): Promise<{ bundle: ProjectWorkspaceBundle | null; error?: string }> {
+  const { project, error } = await getProjectById(projectId);
+  if (error || !project) {
+    return { bundle: null, error: error ?? "Project not found." };
+  }
+
+  const coverUrl = await getProjectCoverUrl(project.cover_image_path);
+  return { bundle: { project, coverUrl } };
+}
+
+export async function getProjectStories(
+  projectId: string
+): Promise<{ entries: ProjectStoryEntry[]; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { entries: [], error: "You must be logged in." };
+  }
+
+  const { data: stories, error } = await supabase
+    .from("stories")
+    .select("*")
+    .eq("project_id", projectId)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return {
+      entries: [],
+      error: formatProjectError(error.message, error.code),
+    };
+  }
+
+  const normalized = (stories ?? []).map((row) => normalizeStory(row as StoryRow));
+  const worldIds = [...new Set(normalized.map((s) => s.world_id))];
+
+  const { data: worlds } = await supabase
+    .from("worlds")
+    .select("id, name")
+    .in("id", worldIds.length > 0 ? worldIds : ["00000000-0000-0000-0000-000000000000"]);
+
+  const worldMap = new Map(
+    (worlds ?? []).map((w) => [w.id as string, { id: w.id as string, name: w.name as string }])
+  );
+
+  const { data: rosterCounts } = await supabase
+    .from("story_characters")
+    .select("story_id")
+    .in(
+      "story_id",
+      normalized.length > 0
+        ? normalized.map((s) => s.id)
+        : ["00000000-0000-0000-0000-000000000000"]
+    );
+
+  const countMap = new Map<string, number>();
+  for (const row of rosterCounts ?? []) {
+    const sid = row.story_id as string;
+    countMap.set(sid, (countMap.get(sid) ?? 0) + 1);
+  }
+
+  const coverUrls = await getStoryCoverUrls(normalized.map((s) => s.id));
+
+  const entries: ProjectStoryEntry[] = [];
+  for (const story of normalized) {
+    const world = worldMap.get(story.world_id);
+    if (!world) continue;
+
+    entries.push({
+      story: { ...story, character_count: countMap.get(story.id) ?? 0 },
+      world,
+      coverUrl: coverUrls[story.id] ?? null,
+    });
+  }
+
+  return { entries };
+}
+
+export async function getProjectCharacters(
+  projectId: string
+): Promise<{ entries: ProjectCharacterEntry[]; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { entries: [], error: "You must be logged in." };
+  }
+
+  const { data, error } = await supabase
+    .from("characters")
+    .select("*")
+    .eq("project_id", projectId)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return {
+      entries: [],
+      error: formatProjectError(error.message, error.code),
+    };
+  }
+
+  const characters = (data ?? []).map((row) =>
+    normalizeCharacter(row as CharacterRow)
+  );
+
+  const entries = await Promise.all(
+    characters.map(async (character) => ({
+      character,
+      photoUrl: await getCharacterPhotoUrl(character.photo_path),
+    }))
+  );
+
+  return { entries };
+}
+
+export async function getProjectWorlds(
+  projectId: string
+): Promise<{ entries: ProjectWorldEntry[]; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { entries: [], error: "You must be logged in." };
+  }
+
+  const { data: worlds, error } = await supabase
+    .from("worlds")
+    .select("*")
+    .eq("project_id", projectId)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return {
+      entries: [],
+      error: formatProjectError(error.message, error.code),
+    };
+  }
+
+  const normalized = (worlds ?? []).map((row) => normalizeWorld(row as WorldRow));
+  const worldIds = normalized.map((w) => w.id);
+
+  const { data: charCounts } = await supabase
+    .from("characters")
+    .select("world_id")
+    .in(
+      "world_id",
+      worldIds.length > 0 ? worldIds : ["00000000-0000-0000-0000-000000000000"]
+    );
+
+  const countMap = new Map<string, number>();
+  for (const row of charCounts ?? []) {
+    const wid = row.world_id as string | null;
+    if (!wid) continue;
+    countMap.set(wid, (countMap.get(wid) ?? 0) + 1);
+  }
+
+  const entries = await Promise.all(
+    normalized.map(async (world) => ({
+      world: {
+        ...world,
+        character_count: countMap.get(world.id) ?? 0,
+      },
+      coverUrl: await getWorldCoverUrl(world.cover_image_path),
+    }))
+  );
+
+  return { entries };
+}
+
+export async function getProjectRelationships(
+  projectId: string
+): Promise<{ entries: ProjectRelationshipEntry[]; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { entries: [], error: "You must be logged in." };
+  }
+
+  const { data, error } = await supabase
+    .from("character_relationships")
+    .select("*")
+    .eq("project_id", projectId)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    return {
+      entries: [],
+      error: formatProjectError(error.message, error.code),
+    };
+  }
+
+  const relationships = (data ?? []).map(normalizeCharacterRelationship);
+  const characterIds = [
+    ...new Set(
+      relationships.flatMap((r) => [r.from_character_id, r.to_character_id])
+    ),
+  ];
+
+  const { data: characters } = await supabase
+    .from("characters")
+    .select("id, name, photo_path")
+    .in(
+      "id",
+      characterIds.length > 0
+        ? characterIds
+        : ["00000000-0000-0000-0000-000000000000"]
+    );
+
+  const characterMap = new Map(
+    (characters ?? []).map((c) => [
+      c.id as string,
+      {
+        id: c.id as string,
+        name: c.name as string,
+        photo_path: (c.photo_path as string | null) ?? null,
+      },
+    ])
+  );
+
+  const entries: ProjectRelationshipEntry[] = [];
+  for (const relationship of relationships) {
+    const fromCharacter = characterMap.get(relationship.from_character_id);
+    const toCharacter = characterMap.get(relationship.to_character_id);
+    if (!fromCharacter || !toCharacter) continue;
+
+    entries.push({
+      relationship,
+      fromCharacter,
+      toCharacter,
+      label: relationshipDisplayLabel(
+        relationship.relationship_type,
+        relationship.custom_label,
+        "outgoing"
+      ),
+    });
+  }
+
+  return { entries };
+}
+
+export async function createProject(
+  _prev: ProjectActionState,
+  formData: FormData
+): Promise<ProjectActionState> {
+  const title = String(formData.get("title") ?? "").trim();
+  const description =
+    String(formData.get("description") ?? "").trim() || null;
+  const workIntentRaw = String(formData.get("work_intent") ?? "").trim();
+  const workIntent = parseProjectWorkIntent(workIntentRaw || null);
+
+  if (!title) {
+    return { error: "Project title is required." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be logged in." };
+  }
+
+  let slug: string;
+  try {
+    slug = await resolveAvailableProjectSlug(supabase, user.id, title);
+  } catch (err) {
+    return {
+      error:
+        err instanceof Error ? err.message : "Failed to generate project slug.",
+    };
+  }
+
+  const projectId = randomUUID();
+  const cover = formData.get("cover");
+  let coverPath: string | null = null;
+
+  if (cover instanceof File && cover.size > 0) {
+    const coverError = validateCover(cover);
+    if (coverError) {
+      return { error: coverError };
+    }
+
+    const extension = cover.type.split("/")[1] ?? "jpg";
+    coverPath = `${user.id}/projects/${projectId}/cover.${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET)
+      .upload(coverPath, cover, {
+        contentType: cover.type,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      return { error: `Failed to upload cover image: ${uploadError.message}` };
+    }
+  }
+
+  const { data: created, error: insertError } = await supabase
+    .from("projects")
+    .insert({
+      id: projectId,
+      user_id: user.id,
+      title,
+      slug,
+      description,
+      cover_image_path: coverPath,
+      work_intent: workIntent,
+      is_default: false,
+    })
+    .select("*")
+    .single();
+
+  if (insertError || !created) {
+    if (coverPath) {
+      await supabase.storage.from(BUCKET).remove([coverPath]);
+    }
+    return {
+      error: formatProjectError(
+        insertError?.message ?? "Failed to create project.",
+        insertError?.code
+      ),
+    };
+  }
+
+  const project = normalizeProject(created as ProjectRow);
+  revalidateProjectPaths(project.id);
+
+  void scanSavedText({
+    supabase,
+    userId: user.id,
+    entityType: "project",
+    entityId: projectId,
+    fields: { title, description },
+  });
+
+  return { success: true, project };
+}
+
+export async function renameProjectTitle(
+  _prev: RenameProjectState,
+  formData: FormData
+): Promise<RenameProjectState> {
+  const projectId = String(formData.get("project_id") ?? "").trim();
+  const title = String(formData.get("title") ?? "").trim();
+
+  if (!projectId) {
+    return { error: "Project ID is required." };
+  }
+  if (!title) {
+    return { error: "Project title is required." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be logged in." };
+  }
+
+  let slug: string;
+  try {
+    slug = await resolveAvailableProjectSlug(
+      supabase,
+      user.id,
+      title,
+      projectId
+    );
+  } catch (err) {
+    return {
+      error:
+        err instanceof Error ? err.message : "Failed to generate project slug.",
+    };
+  }
+
+  const { error: updateError } = await supabase
+    .from("projects")
+    .update({
+      title,
+      slug,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", projectId)
+    .eq("user_id", user.id);
+
+  if (updateError) {
+    return {
+      error: formatProjectError(updateError.message, updateError.code),
+    };
+  }
+
+  revalidateProjectPaths(projectId);
+  revalidatePath("/dashboard");
+
+  return { success: true };
+}
+
+/** Links a story to its primary world in story_worlds (dual-model support). */
+export async function ensurePrimaryStoryWorldLink(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  storyId: string,
+  worldId: string
+): Promise<void> {
+  const { error } = await supabase.from("story_worlds").upsert(
+    {
+      story_id: storyId,
+      world_id: worldId,
+      role: "primary",
+      sort_order: 0,
+    },
+    { onConflict: "story_id,world_id" }
+  );
+
+  if (error) {
+    console.error("Failed to upsert story_worlds link:", error.message);
+  }
+}
+
+export async function resolveProjectIdForWorld(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  worldId: string | null,
+  formProjectId?: string | null
+): Promise<{ projectId: string | null; error?: string }> {
+  if (formProjectId) {
+    const { data } = await supabase
+      .from("projects")
+      .select("id")
+      .eq("id", formProjectId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (data) return { projectId: data.id as string };
+  }
+
+  if (worldId) {
+    const { data: world } = await supabase
+      .from("worlds")
+      .select("project_id")
+      .eq("id", worldId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (world?.project_id) {
+      return { projectId: world.project_id as string };
+    }
+  }
+
+  const defaultResult = await getOrCreateDefaultProject(supabase, userId);
+  return {
+    projectId: defaultResult.project?.id ?? null,
+    error: defaultResult.error,
+  };
+}
+
+export type StoryProjectContext = {
+  id: string;
+  title: string;
+};
+
+export async function getStoryProjectContext(
+  storyId: string,
+  worldId?: string
+): Promise<{ project: StoryProjectContext | null; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { project: null, error: "You must be logged in." };
+  }
+
+  const { data: story } = await supabase
+    .from("stories")
+    .select("project_id, world_id")
+    .eq("id", storyId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!story) {
+    return { project: null };
+  }
+
+  let projectId = (story.project_id as string | null) ?? null;
+
+  if (!projectId) {
+    const resolvedWorldId = worldId ?? (story.world_id as string);
+    const resolve = await resolveProjectIdForWorld(
+      supabase,
+      user.id,
+      resolvedWorldId,
+      null
+    );
+    projectId = resolve.projectId;
+  }
+
+  if (!projectId) {
+    return { project: null };
+  }
+
+  const { data: project } = await supabase
+    .from("projects")
+    .select("id, title")
+    .eq("id", projectId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!project) {
+    return { project: null };
+  }
+
+  return {
+    project: {
+      id: project.id as string,
+      title: project.title as string,
+    },
+  };
+}

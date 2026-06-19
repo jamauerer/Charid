@@ -6,9 +6,17 @@ import { createClient } from "@/lib/supabase/server";
 import {
   normalizeStoryImage,
   parseStoryAssetType,
+  isStorySlotRole,
   type StoryImage,
   type StoryImageWithUrl,
 } from "@/types/story-image";
+import {
+  normalizeStorySlotAssignment,
+  type StoryAssetSource,
+  type StoryImageSlotAssignment,
+} from "@/types/story-image-slot";
+import { scanUploadedImage } from "@/lib/moderation/scan-image";
+import { scanSavedText } from "@/lib/moderation/scan-text";
 
 const BUCKET = "character-photos";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -22,7 +30,9 @@ export type StoryImageActionResult = {
 export type StoryImagesResult = {
   images: StoryImageWithUrl[];
   featuredImageId: string | null;
+  slotAssignments: StoryImageSlotAssignment[];
   error?: string;
+  slotError?: string;
 };
 
 function validatePhoto(file: File): string | null {
@@ -45,6 +55,21 @@ function formatImageError(message: string, code?: string): string {
       "The story_images table is not exposed to the Supabase Data API yet. " +
       "Run supabase/migrations/20250622000000_story_images.sql and " +
       "supabase/fix-story-images-api.sql in the Supabase SQL Editor."
+    );
+  }
+  return message;
+}
+
+function formatStorySlotError(message: string, code?: string): string {
+  if (
+    code === "PGRST205" ||
+    message.includes("schema cache") ||
+    message.includes("Could not find")
+  ) {
+    return (
+      "The story_image_slot_assignments table is not exposed to the Supabase Data API yet. " +
+      "Run supabase/migrations/20250631000000_story_bible.sql and " +
+      "supabase/fix-story-bible-api.sql in the Supabase SQL Editor."
     );
   }
   return message;
@@ -155,12 +180,165 @@ async function attachUrls(
   );
 }
 
+async function fetchSlotAssignments(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  storyId: string
+): Promise<{ assignments: StoryImageSlotAssignment[]; error?: string }> {
+  const { data, error } = await supabase
+    .from("story_image_slot_assignments")
+    .select("*")
+    .eq("story_id", storyId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    return {
+      assignments: [],
+      error: formatStorySlotError(error.message, error.code),
+    };
+  }
+
+  return {
+    assignments: (data ?? []).map((row) =>
+      normalizeStorySlotAssignment(row as StoryImageSlotAssignment)
+    ),
+  };
+}
+
+async function upsertStorySlotAssignment(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  storyId: string,
+  imageId: string,
+  slotRole: string,
+  source: StoryAssetSource
+) {
+  const { error } = await supabase
+    .from("story_image_slot_assignments")
+    .upsert(
+      {
+        story_id: storyId,
+        image_id: imageId,
+        slot_role: slotRole,
+        source,
+      },
+      { onConflict: "story_id,slot_role" }
+    );
+
+  if (error) {
+    throw new Error(formatStorySlotError(error.message, error.code));
+  }
+}
+
+export async function assignStoryImageToSlot(
+  storyId: string,
+  imageId: string,
+  slotRole: string,
+  source: StoryAssetSource = "assigned"
+): Promise<StoryImageActionResult> {
+  if (!isStorySlotRole(slotRole)) {
+    return { error: "Invalid slot role." };
+  }
+
+  const auth = await assertStoryOwner(storyId);
+  if (auth.error || !auth.supabase || !auth.user || !auth.story) {
+    return { error: auth.error ?? "Unauthorized." };
+  }
+
+  const { data: image, error: imageError } = await auth.supabase
+    .from("story_images")
+    .select("id")
+    .eq("id", imageId)
+    .eq("story_id", storyId)
+    .maybeSingle();
+
+  if (imageError || !image) {
+    return { error: "Image not found on this story." };
+  }
+
+  try {
+    await upsertStorySlotAssignment(
+      auth.supabase,
+      storyId,
+      imageId,
+      slotRole,
+      source
+    );
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "Failed to assign image.",
+    };
+  }
+
+  if (slotRole === "cover") {
+    await syncFeaturedImage(auth.supabase, storyId, imageId);
+  }
+
+  await revalidateStoryImagePaths(
+    auth.supabase,
+    auth.user.id,
+    auth.story.world_id,
+    { id: auth.story.id, slug: auth.story.slug }
+  );
+  return { success: true };
+}
+
+export async function removeStoryImageFromSlot(
+  storyId: string,
+  imageId: string,
+  slotRole: string
+): Promise<StoryImageActionResult> {
+  if (!isStorySlotRole(slotRole)) {
+    return { error: "Invalid slot role." };
+  }
+
+  const auth = await assertStoryOwner(storyId);
+  if (auth.error || !auth.supabase || !auth.user || !auth.story) {
+    return { error: auth.error ?? "Unauthorized." };
+  }
+
+  const { data: assignment, error: fetchError } = await auth.supabase
+    .from("story_image_slot_assignments")
+    .select("id, image_id")
+    .eq("story_id", storyId)
+    .eq("slot_role", slotRole)
+    .maybeSingle();
+
+  if (fetchError) {
+    return { error: formatStorySlotError(fetchError.message, fetchError.code) };
+  }
+
+  if (!assignment || assignment.image_id !== imageId) {
+    return { error: "This image is not assigned to that role." };
+  }
+
+  const { error: deleteError } = await auth.supabase
+    .from("story_image_slot_assignments")
+    .delete()
+    .eq("id", assignment.id);
+
+  if (deleteError) {
+    return { error: formatStorySlotError(deleteError.message, deleteError.code) };
+  }
+
+  await revalidateStoryImagePaths(
+    auth.supabase,
+    auth.user.id,
+    auth.story.world_id,
+    { id: auth.story.id, slug: auth.story.slug }
+  );
+  return { success: true };
+}
+
 export async function getStoryImages(
   storyId: string
 ): Promise<StoryImagesResult> {
   const auth = await assertStoryOwner(storyId);
   if (auth.error || !auth.supabase || !auth.story) {
-    return { images: [], featuredImageId: null, error: auth.error ?? undefined };
+    return {
+      images: [],
+      featuredImageId: null,
+      slotAssignments: [],
+      error: auth.error ?? undefined,
+    };
   }
 
   const { data, error } = await auth.supabase
@@ -174,6 +352,7 @@ export async function getStoryImages(
     return {
       images: [],
       featuredImageId: auth.story.featured_image_id,
+      slotAssignments: [],
       error: formatImageError(error.message, error.code),
     };
   }
@@ -182,9 +361,13 @@ export async function getStoryImages(
     normalizeStoryImage(row as StoryImage)
   );
 
+  const slotResult = await fetchSlotAssignments(auth.supabase, storyId);
+
   return {
     images: await attachUrls(images),
     featuredImageId: auth.story.featured_image_id,
+    slotAssignments: slotResult.assignments,
+    slotError: slotResult.error,
   };
 }
 
@@ -292,6 +475,7 @@ export async function uploadStoryImage(
   const file = formData.get("image");
   const caption = String(formData.get("caption") ?? "").trim() || null;
   const assetType = parseStoryAssetType(formData.get("asset_type"));
+  const requestedRole = String(formData.get("asset_role") ?? "").trim();
 
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Please choose an image to upload." };
@@ -345,12 +529,46 @@ export async function uploadStoryImage(
     await syncFeaturedImage(auth.supabase, storyId, imageId);
   }
 
+  const slotRole =
+    requestedRole && isStorySlotRole(requestedRole) ? requestedRole : null;
+
+  if (slotRole) {
+    try {
+      await upsertStorySlotAssignment(
+        auth.supabase,
+        storyId,
+        imageId,
+        slotRole,
+        "uploaded"
+      );
+    } catch (err) {
+      return {
+        error:
+          err instanceof Error ? err.message : "Failed to assign uploaded image.",
+      };
+    }
+    if (slotRole === "cover") {
+      await syncFeaturedImage(auth.supabase, storyId, imageId);
+    }
+  }
+
   await revalidateStoryImagePaths(
     auth.supabase,
     auth.user.id,
     auth.story.world_id,
     { id: auth.story.id, slug: auth.story.slug }
   );
+
+  void scanUploadedImage({
+    supabase: auth.supabase,
+    userId: auth.user.id,
+    entityType: "story_image",
+    entityId: imageId,
+    storageBucket: BUCKET,
+    storagePath: imagePath,
+    mimeType: file.type,
+  });
+
   return { success: true };
 }
 
@@ -383,6 +601,14 @@ export async function updateStoryImageCaption(
   if (error) {
     return { error: formatImageError(error.message, error.code) };
   }
+
+  void scanSavedText({
+    supabase: auth.supabase,
+    userId: auth.user.id,
+    entityType: "image_caption",
+    entityId: imageId,
+    fields: { caption },
+  });
 
   await revalidateStoryImagePaths(
     auth.supabase,

@@ -25,7 +25,7 @@ export function normalizeWorld(row: WorldRow): World {
     slug: row.slug,
     description: row.description ?? null,
     cover_image_path: row.cover_image_path ?? null,
-    is_public: row.is_public ?? true,
+    is_public: row.is_public ?? false,
     created_at: row.created_at,
   };
 }

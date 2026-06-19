@@ -7,7 +7,7 @@ export default async function PortfolioPage() {
   if (error || !profile) {
     return (
       <div className="mx-auto max-w-2xl">
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+        <div className="rounded-lg border border-[var(--status-info-border)] bg-[var(--status-info-bg)] px-3 py-2 text-sm text-[var(--status-info-text)]">
           {error ?? "Unable to load your portfolio profile."}
         </div>
       </div>

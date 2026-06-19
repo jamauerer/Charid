@@ -1,10 +1,11 @@
 import type { StoryStatus } from "@/types/story";
+import { dsStatusInfo, dsStatusSuccess, dsChip } from "@/lib/design-system";
 
 const STATUS_STYLES: Record<StoryStatus, string> = {
-  Idea: "bg-zinc-500/15 text-zinc-400",
-  Planning: "bg-violet-500/15 text-violet-300",
-  "In Progress": "bg-amber-500/15 text-amber-300",
-  Complete: "bg-emerald-500/15 text-emerald-300",
+  Idea: dsChip,
+  Planning: dsStatusInfo,
+  "In Progress": dsStatusInfo,
+  Complete: dsStatusSuccess,
 };
 
 type StoryStatusBadgeProps = {

@@ -1,0 +1,198 @@
+"use client";
+
+import { useMemo, useRef, useState, useTransition } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import {
+  assignWorldImageToSlot,
+  uploadWorldImage,
+} from "@/app/actions/world-images";
+import { ImagePickerModal } from "@/components/image-picker/ImagePickerModal";
+import { labelForWorldAssetRole } from "@/lib/world-asset-role-labels";
+import { worldImagesToPickerItems } from "@/lib/image-picker-world";
+import type { WorldSlotAssignmentMap } from "@/lib/world-slot-assignments";
+import { WORLD_ASSET_SOURCE_LABELS } from "@/types/world-image-slot";
+import type { WorldAssetSource } from "@/types/world-image-slot";
+import type { WorldImageWithUrl } from "@/types/world-image";
+
+type WorldReferenceSlotCardProps = {
+  worldId: string;
+  slotRole: string;
+  hint?: string;
+  image: WorldImageWithUrl | null;
+  assignmentSource?: WorldAssetSource | null;
+  galleryImages: WorldImageWithUrl[];
+  slotMap: WorldSlotAssignmentMap;
+  onUpdated: () => void;
+  compact?: boolean;
+};
+
+export function WorldReferenceSlotCard({
+  worldId,
+  slotRole,
+  hint,
+  image,
+  assignmentSource,
+  galleryImages,
+  slotMap,
+  onUpdated,
+  compact = false,
+}: WorldReferenceSlotCardProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
+  const router = useRouter();
+
+  const pickerItems = useMemo(
+    () =>
+      worldImagesToPickerItems(
+        galleryImages,
+        slotMap,
+        slotRole,
+        image?.id ?? null
+      ),
+    [galleryImages, slotMap, slotRole, image?.id]
+  );
+
+  function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.set("image", file);
+    formData.set("asset_role", slotRole);
+
+    startTransition(async () => {
+      const result = await uploadWorldImage(worldId, formData);
+      if (!result.error) {
+        setPickerOpen(false);
+        onUpdated();
+        router.refresh();
+      }
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    });
+  }
+
+  function handleAssign(imageId: string) {
+    startTransition(async () => {
+      const result = await assignWorldImageToSlot(
+        worldId,
+        imageId,
+        slotRole,
+        "assigned"
+      );
+      if (!result.error) {
+        setPickerOpen(false);
+        onUpdated();
+        router.refresh();
+      }
+    });
+  }
+
+  const slotLabel = labelForWorldAssetRole(slotRole);
+
+  return (
+    <>
+      <div
+        className={`rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] ${
+          compact ? "p-3" : "p-4"
+        }`}
+        data-bible-target={`slot-${slotRole}`}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <p className="text-sm font-medium text-[var(--brand-text-secondary)]">{slotLabel}</p>
+            {hint && !compact && (
+              <p className="mt-1 text-xs leading-relaxed text-[var(--brand-text-secondary)]">
+                {hint}
+              </p>
+            )}
+          </div>
+          {image ? (
+            <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-emerald-400">
+              Set
+            </span>
+          ) : (
+            <span className="rounded bg-zinc-500/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-[var(--brand-text-secondary)]">
+              Missing
+            </span>
+          )}
+        </div>
+
+        <div className={`mt-3 ${compact ? "flex items-start gap-3" : ""}`}>
+          <div
+            className={`relative overflow-hidden rounded-md border border-[var(--brand-border)] bg-[var(--studio-empty-fill)] ${
+              compact ? "h-16 w-16 shrink-0" : "mx-auto aspect-square max-w-[200px]"
+            }`}
+          >
+            {image?.url ? (
+              <Image
+                src={image.url}
+                alt=""
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            ) : (
+              <div className="flex h-full min-h-[4rem] flex-col items-center justify-center gap-1 text-[var(--brand-text-secondary)]">
+                <span className="text-2xl" aria-hidden>
+                  ○
+                </span>
+                {!compact && (
+                  <span className="text-[10px]">No image assigned</span>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className={`space-y-2 ${compact ? "min-w-0 flex-1" : "mt-3"}`}>
+            {image && assignmentSource && (
+              <p className="text-[10px] text-[var(--brand-text-secondary)]">
+                Source: {WORLD_ASSET_SOURCE_LABELS[assignmentSource]}
+              </p>
+            )}
+
+            <div className="flex flex-wrap gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleUpload}
+                disabled={pending}
+                className="hidden"
+                id={`upload-${worldId}-${slotRole}`}
+              />
+              <label
+                htmlFor={`upload-${worldId}-${slotRole}`}
+                className={`cursor-pointer rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2.5 py-1.5 text-[11px] font-medium text-[var(--brand-text-secondary)] transition hover:border-violet-400/40 hover:text-violet-200 ${
+                  pending ? "pointer-events-none opacity-60" : ""
+                }`}
+              >
+                Upload
+              </label>
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => setPickerOpen(true)}
+                className="rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2.5 py-1.5 text-[11px] font-medium text-[var(--brand-text-secondary)] transition hover:border-violet-400/40 hover:text-violet-200 disabled:opacity-60"
+              >
+                Assign Existing
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ImagePickerModal
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        title={`Assign image to ${slotLabel}`}
+        subtitle="Pick from your world gallery — best matches appear first."
+        items={pickerItems}
+        currentImageId={image?.id ?? null}
+        onConfirm={handleAssign}
+        pending={pending}
+      />
+    </>
+  );
+}

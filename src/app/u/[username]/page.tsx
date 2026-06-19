@@ -12,18 +12,24 @@ import {
 
 type PublicPortfolioPageProps = {
   params: Promise<{ username: string }>;
+  searchParams: Promise<{ preview?: string }>;
 };
 
 export default async function PublicPortfolioPage({
   params,
+  searchParams,
 }: PublicPortfolioPageProps) {
   const { username } = await params;
-  const { data, error } = await getPublicPortfolio(username);
+  const { preview } = await searchParams;
+  const ownerPreview = preview === "1";
+  const { data, error, isOwnerPreview } = await getPublicPortfolio(username, {
+    ownerPreview,
+  });
 
   if (error) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-background px-4 font-sans text-zinc-100">
-        <p className="text-sm text-amber-300">{error}</p>
+      <div className="flex min-h-dvh items-center justify-center bg-background px-4 font-sans text-[var(--brand-text-secondary)]">
+        <p className="text-sm text-[var(--status-info-text)]">{error}</p>
       </div>
     );
   }
@@ -39,14 +45,27 @@ export default async function PublicPortfolioPage({
   const hasCustomBio = Boolean(profile.bio?.trim());
 
   return (
-    <div className="min-h-dvh bg-background font-sans text-zinc-100">
+    <div className="min-h-dvh bg-background font-sans text-[var(--brand-text-secondary)]">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_80%_40%_at_50%_-10%,rgba(120,119,198,0.08),transparent)]" />
 
       <PublicSiteHeader />
 
+      {isOwnerPreview && (
+        <div className="relative border-b border-[var(--status-info-border)] bg-[var(--status-info-bg)] px-4 py-3 text-center">
+          <p className="text-sm text-[var(--status-info-text)]">
+            <span className="font-medium">Preview mode</span> — your portfolio
+            is private. Visitors cannot see this page until you publish.
+          </p>
+          <p className="mt-1 text-xs text-[var(--status-info-text)]">
+            Showing only your public worlds and characters, exactly as visitors
+            would see after you go live.
+          </p>
+        </div>
+      )}
+
       <main className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12">
         <div className="mb-10 text-center">
-          <div className="mx-auto mb-5 h-28 w-28 overflow-hidden rounded-full border-2 border-white/10 bg-zinc-900 sm:h-32 sm:w-32">
+          <div className="mx-auto mb-5 h-28 w-28 overflow-hidden rounded-full border-2 border-[var(--brand-border)] bg-[var(--studio-empty-fill)] sm:h-32 sm:w-32">
             {avatarUrl ? (
               <Image
                 src={avatarUrl}
@@ -58,21 +77,21 @@ export default async function PublicPortfolioPage({
                 unoptimized
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-3xl font-bold text-zinc-600">
+              <div className="flex h-full w-full items-center justify-center text-3xl font-bold text-[var(--brand-text-secondary)]">
                 {displayName.charAt(0).toUpperCase()}
               </div>
             )}
           </div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet-400/80">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
             Character Portfolio
           </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-100 sm:text-3xl">
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--brand-text-secondary)] sm:text-3xl">
             {displayName}
           </h1>
-          <p className="mt-1 text-sm text-zinc-500">@{profile.username}</p>
+          <p className="mt-1 text-sm text-[var(--brand-text-secondary)]">@{profile.username}</p>
           <p
             className={`mx-auto mt-4 max-w-xl text-sm leading-relaxed ${
-              hasCustomBio ? "text-zinc-400" : "italic text-zinc-600"
+              hasCustomBio ? "text-[var(--brand-text-secondary)]" : "italic text-[var(--brand-text-secondary)]"
             }`}
           >
             {bio}
@@ -81,7 +100,7 @@ export default async function PublicPortfolioPage({
 
         {worlds.length > 0 && (
           <section className="mb-10">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--brand-text-secondary)]">
               Worlds
             </h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
@@ -98,17 +117,17 @@ export default async function PublicPortfolioPage({
         )}
 
         {characters.length === 0 && worlds.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-5 py-10 text-center">
-            <p className="text-sm font-medium text-zinc-400">
+          <div className="rounded-xl border border-dashed border-[var(--brand-border)] bg-[var(--brand-surface)] px-5 py-10 text-center">
+            <p className="text-sm font-medium text-[var(--brand-text-secondary)]">
               No public content yet
             </p>
-            <p className="mt-1 text-xs text-zinc-600">
+            <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
               When this creator publishes worlds and characters, they will appear here.
             </p>
           </div>
         ) : characters.length > 0 ? (
           <>
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--brand-text-secondary)]">
               Characters
             </h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
@@ -125,11 +144,11 @@ export default async function PublicPortfolioPage({
         ) : null}
 
         <section className="mt-10">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--brand-text-secondary)]">
             Stories
           </h2>
-          <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-5 py-8 text-center">
-            <p className="text-sm text-zinc-600">Coming Soon</p>
+          <div className="rounded-xl border border-dashed border-[var(--brand-border)] bg-[var(--brand-surface)] px-5 py-8 text-center">
+            <p className="text-sm text-[var(--brand-text-secondary)]">Coming Soon</p>
           </div>
         </section>
       </main>

@@ -5,9 +5,18 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
   normalizeCharacterImage,
+  parseAssetRole,
+  isSlotAssetRole,
   type CharacterImage,
   type CharacterImageWithUrl,
 } from "@/types/character-image";
+import {
+  normalizeSlotAssignment,
+  type AssetSource,
+  type CharacterImageSlotAssignment,
+} from "@/types/character-image-slot";
+import { scanUploadedImage } from "@/lib/moderation/scan-image";
+import { scanSavedText } from "@/lib/moderation/scan-text";
 
 const BUCKET = "character-photos";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -21,7 +30,9 @@ export type CharacterImageActionResult = {
 export type CharacterImagesResult = {
   images: CharacterImageWithUrl[];
   featuredImageId: string | null;
+  slotAssignments: CharacterImageSlotAssignment[];
   error?: string;
+  slotError?: string;
 };
 
 function validatePhoto(file: File): string | null {
@@ -44,6 +55,21 @@ function formatImageError(message: string, code?: string): string {
       "The character_images table is not exposed to the Supabase Data API yet. " +
       "Run supabase/migrations/20250617000000_character_images.sql and " +
       "supabase/fix-character-images-api.sql in the Supabase SQL Editor."
+    );
+  }
+  return message;
+}
+
+function formatSlotError(message: string, code?: string): string {
+  if (
+    code === "PGRST205" ||
+    message.includes("schema cache") ||
+    message.includes("Could not find")
+  ) {
+    return (
+      "The character_image_slot_assignments table is not exposed to the Supabase Data API yet. " +
+      "Run supabase/migrations/20250626000000_character_image_slot_assignments.sql and " +
+      "supabase/fix-character-bible-api.sql in the Supabase SQL Editor."
     );
   }
   return message;
@@ -122,12 +148,47 @@ async function syncPhotoPathFromFeatured(
     .eq("id", characterId);
 }
 
+async function upsertSlotAssignment(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  characterId: string,
+  imageId: string,
+  slotRole: string,
+  source: AssetSource
+) {
+  const { error } = await supabase
+    .from("character_image_slot_assignments")
+    .upsert(
+      {
+        character_id: characterId,
+        image_id: imageId,
+        slot_role: slotRole,
+        source,
+      },
+      { onConflict: "character_id,slot_role" }
+    );
+
+  if (error) {
+    throw new Error(formatSlotError(error.message, error.code));
+  }
+}
+
+async function assignCanonicalRole(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  characterId: string,
+  imageId: string,
+  source: AssetSource = "assigned"
+) {
+  await upsertSlotAssignment(supabase, characterId, imageId, "canonical", source);
+  await syncPhotoPathFromFeatured(supabase, characterId, imageId);
+}
+
 async function revalidateCharacterPaths(
   supabase: Awaited<ReturnType<typeof createClient>>,
   characterId: string,
   userId: string
 ) {
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/characters");
   revalidatePath(`/dashboard/characters/${characterId}`);
   revalidatePath("/dashboard/portfolio");
 
@@ -154,12 +215,148 @@ async function attachUrls(
   );
 }
 
+async function fetchSlotAssignments(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  characterId: string
+): Promise<{ assignments: CharacterImageSlotAssignment[]; error?: string }> {
+  const { data, error } = await supabase
+    .from("character_image_slot_assignments")
+    .select("*")
+    .eq("character_id", characterId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    return {
+      assignments: [],
+      error: formatSlotError(error.message, error.code),
+    };
+  }
+
+  return {
+    assignments: (data ?? []).map((row) =>
+      normalizeSlotAssignment(row as CharacterImageSlotAssignment)
+    ),
+  };
+}
+
+export async function getCharacterSlotAssignments(
+  characterId: string
+): Promise<{ assignments: CharacterImageSlotAssignment[]; error?: string }> {
+  const auth = await assertCharacterOwner(characterId);
+  if (auth.error || !auth.supabase) {
+    return { assignments: [], error: auth.error ?? undefined };
+  }
+
+  return fetchSlotAssignments(auth.supabase, characterId);
+}
+
+export async function assignImageToSlot(
+  characterId: string,
+  imageId: string,
+  slotRole: string,
+  source: AssetSource = "assigned"
+): Promise<CharacterImageActionResult> {
+  const role = parseAssetRole(slotRole);
+  if (!isSlotAssetRole(role)) {
+    return { error: "Invalid slot role." };
+  }
+
+  const auth = await assertCharacterOwner(characterId);
+  if (auth.error || !auth.supabase || !auth.user) {
+    return { error: auth.error ?? "Unauthorized." };
+  }
+
+  const { data: image, error: imageError } = await auth.supabase
+    .from("character_images")
+    .select("id")
+    .eq("id", imageId)
+    .eq("character_id", characterId)
+    .maybeSingle();
+
+  if (imageError || !image) {
+    return { error: "Image not found on this character." };
+  }
+
+  try {
+    if (role === "canonical") {
+      await assignCanonicalRole(auth.supabase, characterId, imageId, source);
+    } else {
+      await upsertSlotAssignment(
+        auth.supabase,
+        characterId,
+        imageId,
+        role,
+        source
+      );
+    }
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "Failed to assign image.",
+    };
+  }
+
+  await revalidateCharacterPaths(auth.supabase, characterId, auth.user.id);
+  return { success: true };
+}
+
+export async function removeImageFromSlot(
+  characterId: string,
+  imageId: string,
+  slotRole: string
+): Promise<CharacterImageActionResult> {
+  const role = parseAssetRole(slotRole);
+  if (!isSlotAssetRole(role)) {
+    return { error: "Invalid slot role." };
+  }
+
+  const auth = await assertCharacterOwner(characterId);
+  if (auth.error || !auth.supabase || !auth.user || !auth.character) {
+    return { error: auth.error ?? "Unauthorized." };
+  }
+
+  const { data: assignment, error: fetchError } = await auth.supabase
+    .from("character_image_slot_assignments")
+    .select("id, image_id")
+    .eq("character_id", characterId)
+    .eq("slot_role", role)
+    .maybeSingle();
+
+  if (fetchError) {
+    return { error: formatSlotError(fetchError.message, fetchError.code) };
+  }
+
+  if (!assignment || assignment.image_id !== imageId) {
+    return { error: "This image is not assigned to that role." };
+  }
+
+  const { error: deleteError } = await auth.supabase
+    .from("character_image_slot_assignments")
+    .delete()
+    .eq("id", assignment.id);
+
+  if (deleteError) {
+    return { error: formatSlotError(deleteError.message, deleteError.code) };
+  }
+
+  if (role === "canonical" && auth.character.featured_image_id === imageId) {
+    await syncPhotoPathFromFeatured(auth.supabase, characterId, null);
+  }
+
+  await revalidateCharacterPaths(auth.supabase, characterId, auth.user.id);
+  return { success: true };
+}
+
 export async function getCharacterImages(
   characterId: string
 ): Promise<CharacterImagesResult> {
   const auth = await assertCharacterOwner(characterId);
   if (auth.error || !auth.supabase || !auth.character) {
-    return { images: [], featuredImageId: null, error: auth.error ?? undefined };
+    return {
+      images: [],
+      featuredImageId: null,
+      slotAssignments: [],
+      error: auth.error ?? undefined,
+    };
   }
 
   const { data, error } = await auth.supabase
@@ -173,6 +370,7 @@ export async function getCharacterImages(
     return {
       images: [],
       featuredImageId: auth.character.featured_image_id,
+      slotAssignments: [],
       error: formatImageError(error.message, error.code),
     };
   }
@@ -181,9 +379,13 @@ export async function getCharacterImages(
     normalizeCharacterImage(row as CharacterImage)
   );
 
+  const slotResult = await fetchSlotAssignments(auth.supabase, characterId);
+
   return {
     images: await attachUrls(images),
     featuredImageId: auth.character.featured_image_id,
+    slotAssignments: slotResult.assignments,
+    slotError: slotResult.error,
   };
 }
 
@@ -217,6 +419,7 @@ export async function uploadCharacterImage(
 ): Promise<CharacterImageActionResult> {
   const file = formData.get("image");
   const caption = String(formData.get("caption") ?? "").trim() || null;
+  const requestedRole = String(formData.get("asset_role") ?? "").trim();
 
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Please choose an image to upload." };
@@ -250,7 +453,9 @@ export async function uploadCharacterImage(
     .eq("character_id", characterId);
 
   const sortOrder = count ?? 0;
-  const isFirst = sortOrder === 0;
+  const slotRole = requestedRole && isSlotAssetRole(requestedRole)
+    ? requestedRole
+    : null;
 
   const { error: insertError } = await auth.supabase
     .from("character_images")
@@ -260,6 +465,7 @@ export async function uploadCharacterImage(
       image_path: imagePath,
       caption,
       sort_order: sortOrder,
+      asset_role: "reference",
     });
 
   if (insertError) {
@@ -267,11 +473,45 @@ export async function uploadCharacterImage(
     return { error: formatImageError(insertError.message, insertError.code) };
   }
 
-  if (isFirst || !auth.character.featured_image_id) {
-    await syncPhotoPathFromFeatured(auth.supabase, characterId, imageId);
+  if (slotRole) {
+    try {
+      if (slotRole === "canonical") {
+        await assignCanonicalRole(
+          auth.supabase,
+          characterId,
+          imageId,
+          "uploaded"
+        );
+      } else {
+        await upsertSlotAssignment(
+          auth.supabase,
+          characterId,
+          imageId,
+          slotRole,
+          "uploaded"
+        );
+      }
+    } catch (err) {
+      await auth.supabase.from("character_images").delete().eq("id", imageId);
+      await auth.supabase.storage.from(BUCKET).remove([imagePath]);
+      return {
+        error: err instanceof Error ? err.message : "Failed to assign slot.",
+      };
+    }
   }
 
   await revalidateCharacterPaths(auth.supabase, characterId, auth.user.id);
+
+  void scanUploadedImage({
+    supabase: auth.supabase,
+    userId: auth.user.id,
+    entityType: "character_image",
+    entityId: imageId,
+    storageBucket: BUCKET,
+    storagePath: imagePath,
+    mimeType: file.type,
+  });
+
   return { success: true };
 }
 
@@ -305,6 +545,14 @@ export async function updateCharacterImageCaption(
     return { error: formatImageError(error.message, error.code) };
   }
 
+  void scanSavedText({
+    supabase: auth.supabase,
+    userId: auth.user.id,
+    entityType: "image_caption",
+    entityId: imageId,
+    fields: { caption },
+  });
+
   await revalidateCharacterPaths(auth.supabase, image.character_id, auth.user.id);
   return { success: true };
 }
@@ -316,7 +564,7 @@ export async function deleteCharacterImage(
 
   const { data: image, error: fetchError } = await supabase
     .from("character_images")
-    .select("id, character_id, image_path")
+    .select("id, character_id, image_path, asset_role")
     .eq("id", imageId)
     .single();
 
@@ -358,7 +606,13 @@ export async function deleteCharacterImage(
     newFeaturedId = remaining?.[0]?.id ?? null;
   }
 
-  await syncPhotoPathFromFeatured(auth.supabase, image.character_id, newFeaturedId);
+  if (auth.character.featured_image_id === imageId) {
+    if (newFeaturedId) {
+      await assignCanonicalRole(auth.supabase, image.character_id, newFeaturedId);
+    } else {
+      await syncPhotoPathFromFeatured(auth.supabase, image.character_id, null);
+    }
+  }
 
   const { data: remainingImages } = await auth.supabase
     .from("character_images")
@@ -441,8 +695,63 @@ export async function setFeaturedCharacterImage(
     return { error: "Image not found on this character." };
   }
 
-  await syncPhotoPathFromFeatured(auth.supabase, characterId, imageId);
+  await assignCanonicalRole(auth.supabase, characterId, imageId);
   await revalidateCharacterPaths(auth.supabase, characterId, auth.user.id);
+  return { success: true };
+}
+
+export async function updateCharacterImageRole(
+  imageId: string,
+  assetRole: string,
+  assetRoleLabel?: string | null
+): Promise<CharacterImageActionResult> {
+  const role = parseAssetRole(assetRole);
+
+  if (isSlotAssetRole(role)) {
+    const supabase = await createClient();
+    const { data: image, error: fetchError } = await supabase
+      .from("character_images")
+      .select("id, character_id")
+      .eq("id", imageId)
+      .single();
+
+    if (fetchError || !image) {
+      return { error: "Image not found." };
+    }
+
+    return assignImageToSlot(image.character_id, imageId, role, "assigned");
+  }
+
+  const supabase = await createClient();
+
+  const { data: image, error: fetchError } = await supabase
+    .from("character_images")
+    .select("id, character_id, asset_role")
+    .eq("id", imageId)
+    .single();
+
+  if (fetchError || !image) {
+    return { error: "Image not found." };
+  }
+
+  const auth = await assertCharacterOwner(image.character_id);
+  if (auth.error || !auth.supabase || !auth.user) {
+    return { error: auth.error ?? "Unauthorized." };
+  }
+
+  const { error } = await auth.supabase
+    .from("character_images")
+    .update({
+      asset_role: role,
+      asset_role_label: assetRoleLabel?.trim() || null,
+    })
+    .eq("id", imageId);
+
+  if (error) {
+    return { error: formatImageError(error.message, error.code) };
+  }
+
+  await revalidateCharacterPaths(auth.supabase, image.character_id, auth.user.id);
   return { success: true };
 }
 
@@ -460,13 +769,14 @@ export async function createCharacterImageFromPath(
     image_path: imagePath,
     caption: "Main Portrait",
     sort_order: 0,
+    asset_role: "reference",
   });
 
   if (insertError) {
     return { error: insertError.message };
   }
 
-  await syncPhotoPathFromFeatured(supabase, characterId, imageId);
+  await assignCanonicalRole(supabase, characterId, imageId, "uploaded");
   return { imageId };
 }
 

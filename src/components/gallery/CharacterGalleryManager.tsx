@@ -149,27 +149,27 @@ export function CharacterGalleryManager({
   if (loading) {
     return (
       <fieldset className="space-y-3">
-        <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-violet-400/80">
+        <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
           Gallery
         </legend>
-        <p className="text-sm text-zinc-500">Loading gallery…</p>
+        <p className="text-sm text-[var(--brand-text-secondary)]">Loading gallery…</p>
       </fieldset>
     );
   }
 
   return (
     <fieldset className="space-y-4">
-      <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-violet-400/80">
+      <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
         Gallery
       </legend>
 
       {images.length === 0 ? (
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-[var(--brand-text-secondary)]">
           No gallery images yet. Upload one below.
         </p>
       ) : (
         <div className="space-y-3">
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-[var(--brand-text-secondary)]">
             Drag to reorder. The first image is featured unless you choose
             another.
           </p>
@@ -185,15 +185,15 @@ export function CharacterGalleryManager({
                   onDragStart={() => handleDragStart(index)}
                   onDragOver={(e) => handleDragOver(e, index)}
                   onDragEnd={handleDragEnd}
-                  className={`rounded-lg border bg-white/[0.02] transition ${
+                  className={`rounded-lg border bg-[var(--brand-surface)] transition ${
                     isDragging
                       ? "border-violet-500/50 opacity-60"
-                      : "border-white/[0.06]"
+                      : "border-[var(--brand-border)]"
                   }`}
                 >
                   <div className="flex gap-3 p-3">
                     <div
-                      className="flex shrink-0 cursor-grab flex-col items-center justify-center gap-1 px-1 text-zinc-600 active:cursor-grabbing"
+                      className="flex shrink-0 cursor-grab flex-col items-center justify-center gap-1 px-1 text-[var(--brand-text-secondary)] active:cursor-grabbing"
                       aria-hidden
                     >
                       <svg
@@ -206,7 +206,7 @@ export function CharacterGalleryManager({
                       </svg>
                     </div>
 
-                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md border border-white/10 bg-zinc-900">
+                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md border border-[var(--brand-border)] bg-[var(--studio-empty-fill)]">
                       {image.url ? (
                         <Image
                           src={image.url}
@@ -216,7 +216,7 @@ export function CharacterGalleryManager({
                           unoptimized
                         />
                       ) : (
-                        <span className="flex h-full items-center justify-center text-xs text-zinc-600">
+                        <span className="flex h-full items-center justify-center text-xs text-[var(--brand-text-secondary)]">
                           —
                         </span>
                       )}
@@ -236,7 +236,7 @@ export function CharacterGalleryManager({
                           handleCaptionBlur(image.id, e.target.value)
                         }
                         disabled={pending}
-                        className="w-full rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-violet-500/50 focus:outline-none focus:ring-1 focus:ring-violet-500/30 disabled:opacity-60"
+                        className="w-full rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2.5 py-1.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-violet-500/50 focus:outline-none focus:ring-1 focus:ring-violet-500/30 disabled:opacity-60"
                       />
                       <div className="flex flex-wrap gap-2">
                         {!isFeatured && (
@@ -244,7 +244,7 @@ export function CharacterGalleryManager({
                             type="button"
                             onClick={() => handleSetFeatured(image.id)}
                             disabled={pending}
-                            className="rounded-md border border-violet-500/30 px-2 py-1 text-xs font-medium text-violet-300 transition hover:bg-violet-500/10 disabled:opacity-60"
+                            className="rounded-md border border-violet-500/30 px-2 py-1 text-xs font-medium text-neutral-600 transition hover:bg-violet-500/10 disabled:opacity-60"
                           >
                             Set as Featured
                           </button>
@@ -253,7 +253,7 @@ export function CharacterGalleryManager({
                           type="button"
                           onClick={() => handleDelete(image.id)}
                           disabled={pending}
-                          className="rounded-md border border-red-500/20 px-2 py-1 text-xs font-medium text-red-300 transition hover:bg-red-500/10 disabled:opacity-60"
+                          className="rounded-md border border-red-500/20 px-2 py-1 text-xs font-medium text-[var(--status-danger-text)] transition hover:bg-red-500/10 disabled:opacity-60"
                         >
                           Delete
                         </button>
@@ -267,15 +267,15 @@ export function CharacterGalleryManager({
         </div>
       )}
 
-      <div className="space-y-2 border-t border-white/[0.06] pt-4">
-        <p className="text-xs font-medium text-zinc-400">Upload New Image</p>
+      <div className="space-y-2 border-t border-[var(--brand-border)] pt-4">
+        <p className="text-xs font-medium text-[var(--brand-text-secondary)]">Upload New Image</p>
         <input
           ref={fileInputRef}
           type="file"
           accept="image/jpeg,image/png,image/webp"
           onChange={handleUpload}
           disabled={pending}
-          className="w-full text-sm text-zinc-400 file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-violet-600/20 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-violet-300 file:transition hover:file:bg-violet-600/30 disabled:opacity-60"
+          className="w-full text-sm text-[var(--brand-text-secondary)] file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-violet-600/20 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-600 file:transition hover:file:bg-violet-600/30 disabled:opacity-60"
         />
         <input
           type="text"
@@ -283,15 +283,15 @@ export function CharacterGalleryManager({
           onChange={(e) => setUploadCaption(e.target.value)}
           placeholder="Optional caption for new image"
           disabled={pending}
-          className="w-full rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-violet-500/50 focus:outline-none focus:ring-1 focus:ring-violet-500/30 disabled:opacity-60"
+          className="w-full rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2.5 py-1.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-violet-500/50 focus:outline-none focus:ring-1 focus:ring-violet-500/30 disabled:opacity-60"
         />
-        <p className="text-xs text-zinc-600">
+        <p className="text-xs text-[var(--brand-text-secondary)]">
           JPEG, PNG, or WebP up to 5 MB.
         </p>
       </div>
 
       {error && (
-        <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+        <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-[var(--status-danger-text)]">
           {error}
         </p>
       )}

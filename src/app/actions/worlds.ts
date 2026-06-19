@@ -10,6 +10,9 @@ import { getPublicStoriesByWorld } from "@/app/actions/stories";
 import { getStoryCoverUrls } from "@/app/actions/story-images";
 import type { World, WorldRow, WorldWithCounts } from "@/types/world";
 import { normalizeWorld, slugifyWorldName } from "@/types/world";
+import { scanUploadedImage } from "@/lib/moderation/scan-image";
+import { scanSavedText } from "@/lib/moderation/scan-text";
+import { getOrCreateDefaultProject } from "@/app/actions/projects";
 
 const BUCKET = "character-photos";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -154,6 +157,7 @@ async function revalidateWorldPaths(
   oldSlug?: string
 ) {
   revalidatePath("/dashboard/worlds");
+  revalidatePath("/dashboard");
   if (world) {
     revalidatePath(`/dashboard/worlds/${world.id}`);
   }
@@ -317,7 +321,7 @@ export async function createWorld(
   const name = String(formData.get("name") ?? "").trim();
   const description =
     String(formData.get("description") ?? "").trim() || null;
-  const isPublic = formData.get("is_public") !== "false";
+  const isPublic = formData.get("is_public") === "true";
   const cover = formData.get("cover");
 
   if (!name) {
@@ -331,6 +335,29 @@ export async function createWorld(
 
   if (!user) {
     return { error: "You must be logged in." };
+  }
+
+  const formProjectId = String(formData.get("project_id") ?? "").trim();
+  let projectId: string | null = null;
+
+  if (formProjectId) {
+    const { data: projectRow } = await supabase
+      .from("projects")
+      .select("id")
+      .eq("id", formProjectId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (projectRow) {
+      projectId = projectRow.id as string;
+    }
+  }
+
+  if (!projectId) {
+    const defaultProject = await getOrCreateDefaultProject(supabase, user.id);
+    if (defaultProject.error && !defaultProject.project) {
+      return { error: defaultProject.error };
+    }
+    projectId = defaultProject.project?.id ?? null;
   }
 
   let slug: string;
@@ -372,6 +399,7 @@ export async function createWorld(
     .insert({
       id: worldId,
       user_id: user.id,
+      project_id: projectId,
       name,
       slug,
       description,
@@ -395,6 +423,32 @@ export async function createWorld(
 
   const world = normalizeWorld(created as WorldRow);
   await revalidateWorldPaths(supabase, user.id, world);
+
+  if (projectId) {
+    revalidatePath(`/dashboard/projects/${projectId}`);
+    revalidatePath("/dashboard/projects");
+  }
+
+  void scanSavedText({
+    supabase,
+    userId: user.id,
+    entityType: "world",
+    entityId: worldId,
+    fields: { name, description },
+  });
+
+  if (coverPath) {
+    void scanUploadedImage({
+      supabase,
+      userId: user.id,
+      entityType: "world_cover",
+      entityId: worldId,
+      storageBucket: BUCKET,
+      storagePath: coverPath,
+      mimeType: cover instanceof File ? cover.type : undefined,
+    });
+  }
+
   return { success: true, world };
 }
 
@@ -406,7 +460,7 @@ export async function updateWorld(
   const name = String(formData.get("name") ?? "").trim();
   const description =
     String(formData.get("description") ?? "").trim() || null;
-  const isPublic = formData.get("is_public") !== "false";
+  const isPublic = formData.get("is_public") === "true";
   const cover = formData.get("cover");
   const removeCover = formData.get("remove_cover") === "true";
 
@@ -517,6 +571,27 @@ export async function updateWorld(
 
   const world = normalizeWorld(updated as WorldRow);
   await revalidateWorldPaths(supabase, user.id, world, oldSlug);
+
+  void scanSavedText({
+    supabase,
+    userId: user.id,
+    entityType: "world",
+    entityId: worldId,
+    fields: { name, description },
+  });
+
+  if (newlyUploadedPath) {
+    void scanUploadedImage({
+      supabase,
+      userId: user.id,
+      entityType: "world_cover",
+      entityId: worldId,
+      storageBucket: BUCKET,
+      storagePath: newlyUploadedPath,
+      mimeType: cover instanceof File ? cover.type : undefined,
+    });
+  }
+
   return { success: true, world };
 }
 

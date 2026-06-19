@@ -7,11 +7,13 @@ import type { Character } from "@/types/character";
 
 type CharacterDetailActionsProps = {
   character: Character;
+  bibleAge?: string | null;
   photoUrl: string | null;
 };
 
 export function CharacterDetailActions({
   character,
+  bibleAge,
   photoUrl,
 }: CharacterDetailActionsProps) {
   const router = useRouter();
@@ -22,7 +24,7 @@ export function CharacterDetailActions({
       <button
         type="button"
         onClick={() => setShowEdit(true)}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm shadow-violet-500/15 transition hover:from-violet-500 hover:to-indigo-500"
+        className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm shadow-violet-500/15 transition hover:bg-[var(--brand-accent-hover)]"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -39,6 +41,7 @@ export function CharacterDetailActions({
 
       <EditCharacterModal
         character={character}
+        bibleAge={bibleAge}
         photoUrl={photoUrl}
         open={showEdit}
         onClose={() => setShowEdit(false)}

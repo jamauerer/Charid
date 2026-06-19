@@ -1,9 +1,10 @@
-import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { getChapterById } from "@/app/actions/chapters";
+import { getStoryProjectContext } from "@/app/actions/projects";
 import { getStoryById } from "@/app/actions/stories";
 import { getWorldById } from "@/app/actions/worlds";
 import { ChapterEditorForm } from "@/app/dashboard/ChapterEditorForm";
+import { CreatorContextTrail } from "@/components/studio/CreatorContextTrail";
 
 type ChapterEditorPageProps = {
   params: Promise<{ id: string; storyId: string; chapterId: string }>;
@@ -28,7 +29,7 @@ export default async function ChapterEditorPage({
   }
   if (storyError) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-10 text-sm text-amber-300">
+      <div className="mx-auto max-w-3xl px-4 py-10 text-sm text-[var(--status-info-text)]">
         {storyError}
       </div>
     );
@@ -43,46 +44,46 @@ export default async function ChapterEditorPage({
   }
   if (chapterError) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-10 text-sm text-amber-300">
+      <div className="mx-auto max-w-3xl px-4 py-10 text-sm text-[var(--status-info-text)]">
         {chapterError}
       </div>
     );
   }
 
+  const { project: projectContext } = await getStoryProjectContext(
+    storyId,
+    worldId
+  );
+
+  const storyHref = `/dashboard/worlds/${worldId}/stories/${storyId}`;
+
   return (
     <div className="mx-auto w-full max-w-3xl">
-      <div className="mb-6">
-        <Link
-          href={`/dashboard/worlds/${worldId}/stories/${storyId}`}
-          className="inline-flex items-center gap-1 text-sm text-zinc-400 transition hover:text-zinc-200"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            className="h-4 w-4"
-            aria-hidden
-          >
-            <path
-              fillRule="evenodd"
-              d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Back to {story.title}
-        </Link>
-      </div>
+      <CreatorContextTrail
+        className="mb-6"
+        project={
+          projectContext
+            ? {
+                label: projectContext.title,
+                href: `/dashboard/projects/${projectContext.id}`,
+              }
+            : null
+        }
+        story={{ label: story.title, href: storyHref }}
+        current={{ label: chapter.title }}
+        world={{
+          label: world.name,
+          href: `/dashboard/worlds/${worldId}`,
+        }}
+      />
 
       <div className="mb-6">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-violet-400/80">
-          Chapter
-        </p>
-        <h1 className="mt-1 text-xl font-semibold tracking-tight text-zinc-100">
+        <h1 className="text-xl font-semibold tracking-tight text-[var(--brand-text-secondary)]">
           {chapter.title}
         </h1>
       </div>
 
-      <div className="rounded-xl border border-white/[0.06] bg-[#0f0f11] p-5 sm:p-6">
+      <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] p-5 sm:p-6">
         <ChapterEditorForm
           chapter={chapter}
           storyId={storyId}

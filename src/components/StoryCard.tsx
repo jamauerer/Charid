@@ -3,6 +3,8 @@ import Link from "next/link";
 import type { StoryWithCounts } from "@/types/story";
 import { StoryStatusBadge } from "@/components/StoryStatusBadge";
 import { StoryProjectTypeBadge } from "@/components/StoryProjectTypeBadge";
+import { CardCoverPlaceholder } from "@/components/studio/CardCoverPlaceholder";
+import { studioCardSurface } from "@/lib/visual-identity";
 
 type StoryCardProps = {
   worldId: string;
@@ -14,9 +16,9 @@ export function StoryCard({ worldId, story, coverUrl }: StoryCardProps) {
   return (
     <Link
       href={`/dashboard/worlds/${worldId}/stories/${story.id}`}
-      className="block overflow-hidden rounded-xl border border-white/[0.06] bg-[#0f0f11] transition hover:border-white/10 hover:bg-[#111113]"
+      className={`block ${studioCardSurface}`}
     >
-      <div className="relative aspect-[16/9] bg-zinc-900">
+      <div className="relative aspect-video overflow-hidden bg-[var(--studio-empty-fill)]">
         {coverUrl ? (
           <Image
             src={coverUrl}
@@ -26,30 +28,24 @@ export function StoryCard({ worldId, story, coverUrl }: StoryCardProps) {
             unoptimized
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-violet-950/20 to-zinc-900 text-xs text-zinc-600">
-            No cover
-          </div>
+          <CardCoverPlaceholder title="No cover yet" />
         )}
       </div>
-      <div className="p-4">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <h3 className="text-sm font-semibold text-zinc-100">{story.title}</h3>
-          <div className="flex flex-wrap items-center gap-1.5">
+      <div className="px-2.5 py-2">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="truncate text-sm font-medium text-[var(--foreground)]">
+            {story.title}
+          </h3>
+          <div className="flex shrink-0 items-center gap-1">
             <StoryProjectTypeBadge projectType={story.project_type} />
             <StoryStatusBadge status={story.status} />
           </div>
         </div>
-        {story.summary ? (
-          <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-zinc-400">
+        {story.summary && (
+          <p className="mt-1 line-clamp-1 text-[11px] text-[var(--brand-text-muted)]">
             {story.summary}
           </p>
-        ) : (
-          <p className="mt-2 text-xs italic text-zinc-600">No summary yet</p>
         )}
-        <p className="mt-3 text-[11px] text-zinc-500">
-          {story.character_count}{" "}
-          {story.character_count === 1 ? "character" : "characters"}
-        </p>
       </div>
     </Link>
   );

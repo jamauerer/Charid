@@ -14,6 +14,7 @@ const initialState: UpdateCharacterResult = {};
 
 type EditCharacterFormProps = {
   character: Character;
+  bibleAge?: string | null;
   photoUrl: string | null;
   onSuccess?: (character: Character, photoUrl: string | null) => void;
   onCancel?: () => void;
@@ -21,6 +22,7 @@ type EditCharacterFormProps = {
 
 export function EditCharacterForm({
   character,
+  bibleAge,
   photoUrl: _photoUrl,
   onSuccess,
   onCancel,
@@ -42,44 +44,44 @@ export function EditCharacterForm({
     <form ref={formRef} action={formAction} className="space-y-5">
       <input type="hidden" name="character_id" value={character.id} />
 
-      <CharacterFormFields character={character} idPrefix="edit-" />
+      <CharacterFormFields character={character} ageDefault={bibleAge} idPrefix="edit-" />
 
       <WorldSelectField character={character} idPrefix="edit-" />
 
       <fieldset className="space-y-3">
-        <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-violet-400/80">
+        <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
           Visibility
         </legend>
-        <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-white/[0.06] px-3 py-2.5 transition hover:bg-white/[0.03]">
+        <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-[var(--brand-border)] px-3 py-2.5 transition hover:bg-[var(--brand-surface)]">
           <input
             type="radio"
             name="is_public"
             value="true"
-            defaultChecked={character.is_public !== false}
-            className="accent-violet-500"
+            defaultChecked={character.is_public === true}
+            className="accent-[var(--brand-accent)]"
           />
           <span>
-            <span className="block text-sm font-medium text-zinc-200">
+            <span className="block text-sm font-medium text-[var(--brand-text-secondary)]">
               Public
             </span>
-            <span className="block text-xs text-zinc-500">
+            <span className="block text-xs text-[var(--brand-text-secondary)]">
               Visible on your public portfolio
             </span>
           </span>
         </label>
-        <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-white/[0.06] px-3 py-2.5 transition hover:bg-white/[0.03]">
+        <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-[var(--brand-border)] px-3 py-2.5 transition hover:bg-[var(--brand-surface)]">
           <input
             type="radio"
             name="is_public"
             value="false"
-            defaultChecked={character.is_public === false}
-            className="accent-violet-500"
+            defaultChecked={character.is_public !== true}
+            className="accent-[var(--brand-accent)]"
           />
           <span>
-            <span className="block text-sm font-medium text-zinc-200">
+            <span className="block text-sm font-medium text-[var(--brand-text-secondary)]">
               Private
             </span>
-            <span className="block text-xs text-zinc-500">
+            <span className="block text-xs text-[var(--brand-text-secondary)]">
               Only visible to you in the dashboard
             </span>
           </span>
@@ -89,7 +91,7 @@ export function EditCharacterForm({
       <CharacterGalleryManager characterId={character.id} />
 
       {state.error && (
-        <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+        <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-[var(--status-danger-text)]">
           {state.error}
         </p>
       )}
@@ -99,14 +101,14 @@ export function EditCharacterForm({
           type="button"
           onClick={onCancel}
           disabled={pending}
-          className="rounded-lg border border-white/10 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-lg border border-[var(--brand-border)] px-4 py-2.5 text-sm font-medium text-[var(--brand-text-secondary)] transition hover:bg-[var(--brand-surface)] disabled:cursor-not-allowed disabled:opacity-60"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-500/20 transition hover:from-violet-500 hover:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-500/20 transition hover:bg-[var(--brand-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {pending ? "Saving..." : "Save changes"}
         </button>

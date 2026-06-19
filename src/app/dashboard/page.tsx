@@ -1,20 +1,7 @@
-import { getCharacters, getCharacterPhotoUrl } from "@/app/actions/characters";
-import { DashboardCharactersView } from "./DashboardCharactersView";
+import { getHomePageData } from "@/app/actions/home-page";
+import { DashboardHomeView } from "./DashboardHomeView";
 
 export default async function DashboardPage() {
-  const { characters, error } = await getCharacters();
-
-  const charactersWithPhotos = await Promise.all(
-    characters.map(async (character) => ({
-      character,
-      photoUrl: await getCharacterPhotoUrl(character.photo_path),
-    }))
-  );
-
-  return (
-    <DashboardCharactersView
-      initialCharacters={charactersWithPhotos}
-      error={error}
-    />
-  );
+  const data = await getHomePageData();
+  return <DashboardHomeView {...data} />;
 }

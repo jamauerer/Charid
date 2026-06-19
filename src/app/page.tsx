@@ -1,15 +1,11 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { MarketingHeader } from "@/components/marketing/MarketingHeader";
+import { HomePageContent } from "@/components/marketing/HomePageContent";
 
-export default async function HomePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user) {
-    redirect("/dashboard");
-  }
-
-  redirect("/login");
+export default function HomePage() {
+  return (
+    <div className="min-h-dvh bg-background font-sans text-foreground">
+      <MarketingHeader />
+      <HomePageContent />
+    </div>
+  );
 }

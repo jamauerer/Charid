@@ -25,19 +25,23 @@ export function PortfolioPreview({
   const previewBio = bio.trim() || profile.bio || "Your bio will appear here.";
 
   return (
-    <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-[#0f0f11]">
-      <div className="border-b border-white/[0.06] px-4 py-3">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-violet-400/80">
-          Live Preview
+    <div className="overflow-hidden rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)]">
+      <div className="border-b border-[var(--brand-border)] px-4 py-3">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+          Workspace preview
+        </p>
+        <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
+          Profile header only — not the full public page.
         </p>
         {!isPublic && (
-          <p className="mt-1 text-xs text-amber-400/90">
-            Portfolio is private — only you can see this page.
+          <p className="mt-1 text-xs text-neutral-500">
+            Portfolio is private — use Preview Public Portfolio above to see the
+            full visitor view.
           </p>
         )}
       </div>
       <div className="p-5 text-center">
-        <div className="mx-auto mb-4 h-24 w-24 overflow-hidden rounded-full border-2 border-white/10 bg-zinc-900">
+        <div className="mx-auto mb-4 h-24 w-24 overflow-hidden rounded-full border-2 border-[var(--brand-border)] bg-[var(--studio-empty-fill)]">
           {previewAvatar ? (
             <Image
               src={previewAvatar}
@@ -48,14 +52,14 @@ export function PortfolioPreview({
               unoptimized
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-zinc-600">
+            <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-[var(--brand-text-secondary)]">
               {name.charAt(0).toUpperCase()}
             </div>
           )}
         </div>
-        <h3 className="text-lg font-semibold text-zinc-100">{name}</h3>
-        <p className="mt-0.5 text-sm text-zinc-500">@{profile.username}</p>
-        <p className="mx-auto mt-3 max-w-xs text-sm leading-relaxed text-zinc-400">
+        <h3 className="text-lg font-semibold text-[var(--brand-text-secondary)]">{name}</h3>
+        <p className="mt-0.5 text-sm text-[var(--brand-text-secondary)]">@{profile.username}</p>
+        <p className="mx-auto mt-3 max-w-xs text-sm leading-relaxed text-[var(--brand-text-secondary)]">
           {previewBio}
         </p>
       </div>

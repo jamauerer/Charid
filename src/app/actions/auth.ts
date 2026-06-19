@@ -3,6 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import {
+  formatPasswordValidationError,
+  validatePassword,
+} from "@/lib/password-policy";
 
 export type AuthActionState = {
   error?: string;
@@ -46,14 +50,31 @@ export async function signup(
     return { error: "Passwords do not match." };
   }
 
-  if (password.length < 6) {
-    return { error: "Password must be at least 6 characters." };
+  const passwordResult = validatePassword(password);
+  if (!passwordResult.valid) {
+    return { error: formatPasswordValidationError(passwordResult) };
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
+    "http://localhost:3000";
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${siteUrl}/auth/callback`,
+    },
+  });
 
   if (error) {
+    if (error.message.toLowerCase().includes("weak password")) {
+      return {
+        error:
+          "Password must contain:\n• 8+ characters\n• Uppercase letter\n• Lowercase letter\n• Number\n• Special character",
+      };
+    }
     return { error: error.message };
   }
 

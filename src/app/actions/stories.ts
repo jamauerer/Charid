@@ -12,9 +12,14 @@ import {
   slugifyStoryTitle,
 } from "@/types/story";
 import { deleteAllStoryImageFiles, getPublicStoryImages } from "@/app/actions/story-images";
+import { scanSavedText } from "@/lib/moderation/scan-text";
 import type { StoryImageWithUrl } from "@/types/story-image";
 import type { World, WorldRow } from "@/types/world";
 import { normalizeWorld } from "@/types/world";
+import {
+  ensurePrimaryStoryWorldLink,
+  resolveProjectIdForWorld,
+} from "@/app/actions/projects";
 
 export type StoryActionState = {
   error?: string;
@@ -31,6 +36,11 @@ export type StoryCharacterEntry = {
 export type CharacterStoryEntry = {
   story: Story;
   worldId: string;
+};
+
+export type UserStoryEntry = {
+  story: StoryWithCounts;
+  world: { id: string; name: string };
 };
 
 function formatStoryError(message: string, code?: string): string {
@@ -174,6 +184,7 @@ async function revalidateStoryPaths(
   worldSlug?: string,
   story?: { id: string; slug: string }
 ): Promise<void> {
+  revalidatePath("/dashboard/stories");
   revalidatePath(`/dashboard/worlds/${worldId}`);
   if (story) {
     revalidatePath(`/dashboard/worlds/${worldId}/stories/${story.id}`);
@@ -191,6 +202,21 @@ async function revalidateStoryPaths(
         `/u/${profile.username}/worlds/${worldSlug}/stories/${story.slug}`
       );
     }
+  }
+}
+
+/** Revalidates all story workspace pages linked to a world (V3 read aggregates). */
+export async function revalidateStoryWorkspacePagesForWorld(
+  worldId: string
+): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("stories")
+    .select("id")
+    .eq("world_id", worldId);
+
+  for (const row of data ?? []) {
+    revalidatePath(`/dashboard/worlds/${worldId}/stories/${row.id as string}`);
   }
 }
 
@@ -226,6 +252,57 @@ export async function getStoriesByWorldId(
 
   const stories = (data ?? []).map((row) => normalizeStory(row as StoryRow));
   return { stories: await attachCharacterCounts(supabase, stories) };
+}
+
+export async function getStoriesForUser(): Promise<{
+  entries: UserStoryEntry[];
+  error?: string;
+}> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { entries: [], error: "You must be logged in." };
+  }
+
+  const { data, error } = await supabase
+    .from("stories")
+    .select("*, worlds(id, name)")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return {
+      entries: [],
+      error: formatStoryError(error.message, error.code),
+    };
+  }
+
+  const stories = (data ?? []).map((row) => {
+    const { worlds: worldRow, ...storyRow } = row as StoryRow & {
+      worlds: { id: string; name: string } | null;
+    };
+    return {
+      story: normalizeStory(storyRow),
+      world: worldRow ?? { id: storyRow.world_id, name: "Unknown world" },
+    };
+  });
+
+  const storyList = stories.map((entry) => entry.story);
+  const withCounts = await attachCharacterCounts(supabase, storyList);
+  const countById = new Map(withCounts.map((story) => [story.id, story.character_count]));
+
+  return {
+    entries: stories.map((entry) => ({
+      story: {
+        ...entry.story,
+        character_count: countById.get(entry.story.id) ?? 0,
+      },
+      world: entry.world,
+    })),
+  };
 }
 
 export async function getStoryById(
@@ -287,6 +364,16 @@ export async function createStory(
     return { error: worldCheck.error ?? "World not found." };
   }
 
+  const projectResolve = await resolveProjectIdForWorld(
+    supabase,
+    user.id,
+    worldId,
+    String(formData.get("project_id") ?? "").trim() || null
+  );
+  if (projectResolve.error && !projectResolve.projectId) {
+    return { error: projectResolve.error };
+  }
+
   let slug: string;
   try {
     slug = await resolveAvailableStorySlug(supabase, worldId, title);
@@ -302,6 +389,7 @@ export async function createStory(
     .insert({
       world_id: worldId,
       user_id: user.id,
+      project_id: projectResolve.projectId,
       title,
       slug,
       summary,
@@ -321,10 +409,26 @@ export async function createStory(
   }
 
   const story = normalizeStory(created as StoryRow);
+  await ensurePrimaryStoryWorldLink(supabase, story.id, worldId);
+
+  if (projectResolve.projectId) {
+    revalidatePath(`/dashboard/projects/${projectResolve.projectId}`);
+    revalidatePath("/dashboard/projects");
+  }
+
   await revalidateStoryPaths(supabase, worldId, worldCheck.world.slug, {
     id: story.id,
     slug: story.slug,
   });
+
+  void scanSavedText({
+    supabase,
+    userId: user.id,
+    entityType: "story",
+    entityId: story.id,
+    fields: { title, summary },
+  });
+
   return { success: true, story };
 }
 
@@ -390,6 +494,15 @@ export async function updateStory(
     worldRow?.slug,
     { id: story.id, slug: story.slug }
   );
+
+  void scanSavedText({
+    supabase,
+    userId: user.id,
+    entityType: "story",
+    entityId: storyId,
+    fields: { title, summary },
+  });
+
   return { success: true, story };
 }
 
@@ -558,6 +671,137 @@ export async function addCharacterToStory(
   );
   revalidatePath(`/dashboard/characters/${characterId}`);
   return {};
+}
+
+export async function addCharactersToStory(
+  storyId: string,
+  characterIds: string[]
+): Promise<{ error?: string; addedCount?: number }> {
+  const uniqueIds = [...new Set(characterIds.filter(Boolean))];
+  if (uniqueIds.length === 0) {
+    return { error: "Select at least one character." };
+  }
+
+  let addedCount = 0;
+  for (const characterId of uniqueIds) {
+    const result = await addCharacterToStory(storyId, characterId);
+    if (result.error) {
+      if (result.error.includes("already in this story")) {
+        continue;
+      }
+      return { error: result.error, addedCount };
+    }
+    addedCount += 1;
+  }
+
+  if (addedCount === 0) {
+    return { error: "No characters were added to this story." };
+  }
+
+  return { addedCount };
+}
+
+export async function changeStoryWorld(
+  storyId: string,
+  newWorldId: string
+): Promise<{ error?: string; worldId?: string; storyId?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be logged in." };
+  }
+
+  const storyCheck = await assertStoryOwner(supabase, storyId, user.id);
+  if (storyCheck.error || !storyCheck.story) {
+    return { error: storyCheck.error ?? "Story not found." };
+  }
+
+  const story = storyCheck.story;
+  if (story.world_id === newWorldId) {
+    return { worldId: newWorldId, storyId: story.id };
+  }
+
+  const worldCheck = await assertWorldOwner(supabase, newWorldId, user.id);
+  if (worldCheck.error || !worldCheck.world) {
+    return { error: worldCheck.error ?? "World not found." };
+  }
+
+  const { data: links } = await supabase
+    .from("story_characters")
+    .select("character_id")
+    .eq("story_id", storyId);
+
+  const linkedIds = (links ?? []).map((link) => link.character_id);
+  if (linkedIds.length > 0) {
+    const { data: characters } = await supabase
+      .from("characters")
+      .select("id, world_id")
+      .in("id", linkedIds)
+      .eq("user_id", user.id);
+
+    const incompatible = (characters ?? []).filter(
+      (character) => character.world_id !== newWorldId
+    );
+
+    if (incompatible.length > 0) {
+      const removeIds = incompatible.map((character) => character.id);
+      await supabase
+        .from("story_characters")
+        .delete()
+        .eq("story_id", storyId)
+        .in("character_id", removeIds);
+    }
+  }
+
+  let slug = story.slug;
+  if (await isStorySlugTaken(supabase, newWorldId, slug, storyId)) {
+    slug = await resolveAvailableStorySlug(supabase, newWorldId, story.title);
+  }
+
+  const oldWorldId = story.world_id;
+
+  const { error: updateError } = await supabase
+    .from("stories")
+    .update({ world_id: newWorldId, slug })
+    .eq("id", storyId)
+    .eq("user_id", user.id);
+
+  if (updateError) {
+    return {
+      error: formatStoryError(updateError.message, updateError.code),
+    };
+  }
+
+  await supabase
+    .from("story_worlds")
+    .delete()
+    .eq("story_id", storyId)
+    .eq("world_id", oldWorldId);
+
+  await ensurePrimaryStoryWorldLink(supabase, storyId, newWorldId);
+
+  const { data: oldWorldRow } = await supabase
+    .from("worlds")
+    .select("slug")
+    .eq("id", oldWorldId)
+    .maybeSingle();
+
+  await revalidateStoryPaths(supabase, oldWorldId, oldWorldRow?.slug, {
+    id: story.id,
+    slug: story.slug,
+  });
+
+  await revalidateStoryPaths(supabase, newWorldId, worldCheck.world.slug, {
+    id: story.id,
+    slug,
+  });
+
+  revalidatePath("/dashboard/stories");
+
+  return { worldId: newWorldId, storyId: story.id };
 }
 
 export async function removeCharacterFromStory(

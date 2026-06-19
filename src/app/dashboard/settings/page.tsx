@@ -1,10 +1,5 @@
-import { PlaceholderPage } from "@/components/dashboard/PlaceholderPage";
+import { SettingsView } from "./SettingsView";
 
 export default function SettingsPage() {
-  return (
-    <PlaceholderPage
-      title="Settings"
-      description="Account and studio preferences will be available here."
-    />
-  );
+  return <SettingsView />;
 }

@@ -74,7 +74,7 @@ export function EditWorldForm({ world, coverUrl: initialCoverUrl }: EditWorldFor
       <input type="hidden" name="world_id" value={world.id} />
 
       {state.error && (
-        <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+        <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-[var(--status-danger-text)]">
           {state.error}
         </p>
       )}
@@ -85,7 +85,7 @@ export function EditWorldForm({ world, coverUrl: initialCoverUrl }: EditWorldFor
       )}
 
       <div>
-        <label htmlFor="edit-world-name" className="mb-1.5 block text-xs font-medium text-zinc-400">
+        <label htmlFor="edit-world-name" className="mb-1.5 block text-xs font-medium text-[var(--brand-text-secondary)]">
           Name
         </label>
         <input
@@ -96,12 +96,12 @@ export function EditWorldForm({ world, coverUrl: initialCoverUrl }: EditWorldFor
           maxLength={200}
           defaultValue={displayWorld.name}
           key={`name-${displayWorld.id}-${displayWorld.name}`}
-          className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-violet-500/50 focus:outline-none focus:ring-1 focus:ring-violet-500/30"
+          className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-violet-500/50 focus:outline-none focus:ring-1 focus:ring-violet-500/30"
         />
       </div>
 
       <div>
-        <label htmlFor="edit-world-description" className="mb-1.5 block text-xs font-medium text-zinc-400">
+        <label htmlFor="edit-world-description" className="mb-1.5 block text-xs font-medium text-[var(--brand-text-secondary)]">
           Description
         </label>
         <textarea
@@ -110,41 +110,41 @@ export function EditWorldForm({ world, coverUrl: initialCoverUrl }: EditWorldFor
           rows={4}
           defaultValue={displayWorld.description ?? ""}
           key={`desc-${displayWorld.id}-${displayWorld.description ?? ""}`}
-          className="w-full resize-y rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-violet-500/50 focus:outline-none focus:ring-1 focus:ring-violet-500/30"
+          className="w-full resize-y rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-violet-500/50 focus:outline-none focus:ring-1 focus:ring-violet-500/30"
           placeholder="Describe this world..."
         />
       </div>
 
       <fieldset className="space-y-3">
-        <legend className="mb-2 text-xs font-semibold uppercase tracking-wider text-violet-400/80">
+        <legend className="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
           Visibility
         </legend>
-        <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-white/[0.06] px-3 py-2.5 transition hover:bg-white/[0.03]">
+        <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-[var(--brand-border)] px-3 py-2.5 transition hover:bg-[var(--brand-surface)]">
           <input
             type="radio"
             name="is_public"
             value="true"
             defaultChecked={displayWorld.is_public}
-            className="accent-violet-500"
+            className="accent-[var(--brand-accent)]"
           />
           <span>
-            <span className="block text-sm font-medium text-zinc-200">Public</span>
-            <span className="block text-xs text-zinc-500">
+            <span className="block text-sm font-medium text-[var(--brand-text-secondary)]">Public</span>
+            <span className="block text-xs text-[var(--brand-text-secondary)]">
               Visible on your public portfolio
             </span>
           </span>
         </label>
-        <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-white/[0.06] px-3 py-2.5 transition hover:bg-white/[0.03]">
+        <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-[var(--brand-border)] px-3 py-2.5 transition hover:bg-[var(--brand-surface)]">
           <input
             type="radio"
             name="is_public"
             value="false"
             defaultChecked={!displayWorld.is_public}
-            className="accent-violet-500"
+            className="accent-[var(--brand-accent)]"
           />
           <span>
-            <span className="block text-sm font-medium text-zinc-200">Private</span>
-            <span className="block text-xs text-zinc-500">
+            <span className="block text-sm font-medium text-[var(--brand-text-secondary)]">Private</span>
+            <span className="block text-xs text-[var(--brand-text-secondary)]">
               Only visible to you in the dashboard
             </span>
           </span>
@@ -152,10 +152,10 @@ export function EditWorldForm({ world, coverUrl: initialCoverUrl }: EditWorldFor
       </fieldset>
 
       <div>
-        <label htmlFor="edit-world-cover" className="mb-1.5 block text-xs font-medium text-zinc-400">
+        <label htmlFor="edit-world-cover" className="mb-1.5 block text-xs font-medium text-[var(--brand-text-secondary)]">
           Cover image
         </label>
-        <div className="mb-3 overflow-hidden rounded-lg border border-white/10 bg-white/[0.02]">
+        <div className="mb-3 overflow-hidden rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)]">
           {coverPreview ? (
             <div className="relative aspect-[16/9] w-full">
               <Image
@@ -177,8 +177,8 @@ export function EditWorldForm({ world, coverUrl: initialCoverUrl }: EditWorldFor
               />
             </div>
           ) : (
-            <div className="flex aspect-[16/9] items-center justify-center text-sm text-zinc-600">
-              No cover image
+            <div className="flex aspect-[16/9] items-center justify-center text-sm text-[var(--brand-text-secondary)]">
+              No cover yet
             </div>
           )}
         </div>
@@ -190,17 +190,17 @@ export function EditWorldForm({ world, coverUrl: initialCoverUrl }: EditWorldFor
           accept="image/jpeg,image/png,image/webp"
           onChange={handleCoverChange}
           disabled={removeCover}
-          className="w-full text-sm text-zinc-400 file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-violet-600/20 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-violet-300 file:transition hover:file:bg-violet-600/30 disabled:opacity-50"
+          className="w-full text-sm text-[var(--brand-text-secondary)] file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-violet-600/20 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-600 file:transition hover:file:bg-violet-600/30 disabled:opacity-50"
         />
         {(initialCoverUrl || world.cover_image_path) && (
-          <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-zinc-400">
+          <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-[var(--brand-text-secondary)]">
             <input
               type="checkbox"
               name="remove_cover"
               value="true"
               checked={removeCover}
               onChange={(e) => handleRemoveCoverChange(e.target.checked)}
-              className="accent-violet-500"
+              className="accent-[var(--brand-accent)]"
             />
             Remove cover image
           </label>
@@ -210,7 +210,7 @@ export function EditWorldForm({ world, coverUrl: initialCoverUrl }: EditWorldFor
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-500/20 transition hover:from-violet-500 hover:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-500/20 transition hover:bg-[var(--brand-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Saving..." : "Save World"}
       </button>

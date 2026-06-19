@@ -11,9 +11,17 @@ const initialState: CharacterActionState = {};
 
 type CharacterFormProps = {
   onSuccess?: () => void;
+  onCreated?: (characterId: string) => void;
+  defaultWorldId?: string;
+  projectId?: string;
 };
 
-export function CharacterForm({ onSuccess }: CharacterFormProps) {
+export function CharacterForm({
+  onSuccess,
+  onCreated,
+  defaultWorldId,
+  projectId,
+}: CharacterFormProps) {
   const [state, formAction, pending] = useActionState(
     createCharacter,
     initialState
@@ -23,22 +31,31 @@ export function CharacterForm({ onSuccess }: CharacterFormProps) {
   useEffect(() => {
     if (state.success) {
       formRef.current?.reset();
+      if (state.characterId) {
+        onCreated?.(state.characterId);
+      }
       onSuccess?.();
     }
-  }, [state.success, onSuccess]);
+  }, [state.success, state.characterId, onSuccess, onCreated]);
 
   return (
     <form ref={formRef} action={formAction} className="space-y-5">
+      {defaultWorldId && (
+        <input type="hidden" name="world_id" value={defaultWorldId} />
+      )}
+      {projectId && (
+        <input type="hidden" name="project_id" value={projectId} />
+      )}
       <CharacterFormFields />
 
       <fieldset className="space-y-4">
-        <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-violet-400/80">
+        <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
           Photo
         </legend>
         <div>
           <label
             htmlFor="photo"
-            className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-500"
+            className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-[var(--brand-text-secondary)]"
           >
             Photo (optional)
           </label>
@@ -47,16 +64,16 @@ export function CharacterForm({ onSuccess }: CharacterFormProps) {
             name="photo"
             type="file"
             accept="image/jpeg,image/png,image/webp"
-            className="w-full text-sm text-zinc-400 file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-violet-600/20 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-violet-300 file:transition hover:file:bg-violet-600/30"
+            className="w-full text-sm text-[var(--brand-text-secondary)] file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-violet-600/20 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-600 file:transition hover:file:bg-violet-600/30"
           />
-          <p className="mt-1.5 text-xs text-zinc-600">
+          <p className="mt-1.5 text-xs text-[var(--brand-text-secondary)]">
             JPEG, PNG, or WebP up to 5 MB
           </p>
         </div>
       </fieldset>
 
       {state.error && (
-        <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+        <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-[var(--status-danger-text)]">
           {state.error}
         </p>
       )}
@@ -64,7 +81,7 @@ export function CharacterForm({ onSuccess }: CharacterFormProps) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-500/20 transition hover:from-violet-500 hover:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-500/20 transition hover:bg-[var(--brand-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Saving..." : "Save character"}
       </button>

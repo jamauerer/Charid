@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { NewCharacterModal } from "@/app/dashboard/NewCharacterModal";
+import { CreateModal } from "@/components/dashboard/CreateModal";
 import { LogoutButton } from "@/components/LogoutButton";
-import { CharIDLogo } from "@/components/brand/CharIDLogo";
+import { BrandLogoSlot } from "@/components/brand/BrandLogoSlot";
 import { DashboardNavItem } from "./DashboardNavItem";
 
 type DashboardSidebarProps = {
   userEmail: string;
+  isAdmin?: boolean;
   onNavigate?: () => void;
   className?: string;
 };
@@ -30,41 +31,89 @@ function NavIcon({ children }: { children: ReactNode }) {
 
 export function DashboardSidebar({
   userEmail,
+  isAdmin = false,
   onNavigate,
   className = "",
 }: DashboardSidebarProps) {
   const pathname = usePathname();
 
+  const isHome = pathname === "/dashboard";
+  const isProjects =
+    pathname === "/dashboard/projects" ||
+    pathname.startsWith("/dashboard/projects/");
+  const isStories =
+    pathname === "/dashboard/stories" ||
+    pathname.startsWith("/dashboard/stories/");
   const isCharacters =
-    pathname === "/dashboard" || pathname.startsWith("/dashboard/characters/");
+    pathname === "/dashboard/characters" ||
+    pathname.startsWith("/dashboard/characters/");
+  const isWorlds =
+    pathname === "/dashboard/worlds" ||
+    pathname.startsWith("/dashboard/worlds/");
+  const isAdminSection = pathname.startsWith("/dashboard/admin");
+  const isModerationSection = pathname.startsWith("/dashboard/admin/moderation");
 
   return (
     <aside
-      className={`flex h-full w-[260px] shrink-0 flex-col border-r border-white/[0.06] bg-[#0c0c0e] ${className}`}
+      className={`flex h-full w-[260px] shrink-0 flex-col border-r border-[var(--brand-border)] bg-[var(--brand-background)] ${className}`}
     >
       <div className="flex items-center gap-2.5 px-4 py-4">
         <Link
           href="/dashboard"
           onClick={onNavigate}
-          className="flex items-center gap-2.5 transition hover:opacity-90"
+          className="flex flex-col gap-0.5 transition hover:opacity-90"
         >
-          <CharIDLogo size="md" />
-          <div>
-            <p className="text-sm font-semibold leading-none tracking-tight text-zinc-100">
-              CharID
-            </p>
-            <p className="mt-0.5 text-[10px] text-zinc-500">Character Studio</p>
-          </div>
+          <BrandLogoSlot size="md" showWordmark />
+          <p className="pl-10 text-[10px] text-[var(--brand-text-muted)]">
+            Creative workspace
+          </p>
         </Link>
       </div>
 
       <div className="px-3 pb-2">
-        <NewCharacterModal variant="sidebar" />
+        <CreateModal variant="sidebar" />
       </div>
 
       <nav className="flex-1 space-y-0.5 px-3 py-2" aria-label="Main navigation">
         <DashboardNavItem
           href="/dashboard"
+          label="Home"
+          active={isHome}
+          onNavigate={onNavigate}
+          icon={
+            <NavIcon>
+              <path d="M10.707 2.293a1 1 0 0 0-1.414 0l-7 7A1 1 0 0 0 3 10v6a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 0-.293-.707l-7-7Z" />
+            </NavIcon>
+          }
+        />
+        <DashboardNavItem
+          href="/dashboard/projects"
+          label="Projects"
+          active={isProjects}
+          onNavigate={onNavigate}
+          icon={
+            <NavIcon>
+              <path d="M2 4.25A2.25 2.25 0 0 1 4.25 2h3.027A2.25 2.25 0 0 1 9.25 3.5h1.5A2.25 2.25 0 0 1 13 5.75v9.5A2.25 2.25 0 0 1 10.75 17.5h-8.5A2.25 2.25 0 0 1 0 15.25V4.25Zm4.25-.75a.75.75 0 0 0-.75.75v12.5c0 .414.336.75.75.75h8.5a.75.75 0 0 0 .75-.75v-9.5a.75.75 0 0 0-.75-.75h-1.5a.75.75 0 0 1-.707-.473L9.22 4.72A.75.75 0 0 0 8.5 4.25H6.25Z" />
+            </NavIcon>
+          }
+        />
+        <DashboardNavItem
+          href="/dashboard/stories"
+          label="Stories"
+          active={isStories}
+          onNavigate={onNavigate}
+          icon={
+            <NavIcon>
+              <path
+                fillRule="evenodd"
+                d="M2 3.5A1.5 1.5 0 0 1 3.5 2h9A1.5 1.5 0 0 1 14 3.5v11.75A2.75 2.75 0 0 0 16.75 18h-12A2.75 2.75 0 0 1 2 15.25V3.5Zm3.75 7a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5Zm0 3a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5ZM3.5 9.75a.75.75 0 0 1 .75-.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1-.75-.75Zm.75 2.25a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5Z"
+                clipRule="evenodd"
+              />
+            </NavIcon>
+          }
+        />
+        <DashboardNavItem
+          href="/dashboard/characters"
           label="Characters"
           active={isCharacters}
           onNavigate={onNavigate}
@@ -77,10 +126,7 @@ export function DashboardSidebar({
         <DashboardNavItem
           href="/dashboard/worlds"
           label="Worlds"
-          active={
-            pathname === "/dashboard/worlds" ||
-            pathname.startsWith("/dashboard/worlds/")
-          }
+          active={isWorlds}
           onNavigate={onNavigate}
           icon={
             <NavIcon>
@@ -123,11 +169,45 @@ export function DashboardSidebar({
             </NavIcon>
           }
         />
+        {isAdmin && (
+          <>
+            <DashboardNavItem
+              href="/dashboard/admin"
+              label="Admin"
+              active={isAdminSection && !isModerationSection}
+              onNavigate={onNavigate}
+              icon={
+                <NavIcon>
+                  <path
+                    fillRule="evenodd"
+                    d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1Zm3 8V5.5a3 3 0 1 0-6 0V9h6Z"
+                    clipRule="evenodd"
+                  />
+                </NavIcon>
+              }
+            />
+            <DashboardNavItem
+              href="/dashboard/admin/moderation"
+              label="Moderation"
+              active={isModerationSection}
+              onNavigate={onNavigate}
+              icon={
+                <NavIcon>
+                  <path
+                    fillRule="evenodd"
+                    d="M10 1a5.002 5.002 0 0 0-4.899 4.096.5.5 0 0 0 .353.604l.353.07V11.5a.5.5 0 0 0 .146.354l4 4a.5.5 0 0 0 .708-.708L6.707 11.793 10.293 8.207a1 1 0 0 0 .293-.707V6.57l.353-.07a.5.5 0 0 0 .354-.604A5.002 5.002 0 0 0 10 1Zm0 2a3 3 0 0 1 2.83 2H7.17A3 3 0 0 1 10 3Z"
+                    clipRule="evenodd"
+                  />
+                </NavIcon>
+              }
+            />
+          </>
+        )}
       </nav>
 
-      <div className="mt-auto border-t border-white/[0.06] px-3 py-3">
+      <div className="mt-auto border-t border-[var(--brand-border)] px-3 py-3">
         <p
-          className="truncate px-2.5 pb-2 text-[11px] text-zinc-500"
+          className="truncate px-2.5 pb-2 text-[11px] text-[var(--brand-text-muted)]"
           title={userEmail}
         >
           {userEmail}

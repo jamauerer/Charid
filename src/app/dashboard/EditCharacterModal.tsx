@@ -6,6 +6,7 @@ import type { Character } from "@/types/character";
 
 type EditCharacterModalProps = {
   character: Character;
+  bibleAge?: string | null;
   photoUrl: string | null;
   open: boolean;
   onClose: () => void;
@@ -14,6 +15,7 @@ type EditCharacterModalProps = {
 
 export function EditCharacterModal({
   character,
+  bibleAge,
   photoUrl,
   open,
   onClose,
@@ -34,24 +36,24 @@ export function EditCharacterModal({
       <button
         type="button"
         aria-label="Close dialog"
-        className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
         onClick={onClose}
       />
       <div className="flex min-h-full items-start justify-center p-4 sm:items-center sm:p-6">
-        <div className="relative z-10 flex w-full max-w-2xl max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-xl border border-white/10 bg-[#141416] shadow-2xl sm:max-h-[calc(100dvh-3rem)]">
-          <div className="shrink-0 flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
+        <div className="relative z-10 flex w-full max-w-2xl max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] shadow-lg sm:max-h-[calc(100dvh-3rem)]">
+          <div className="shrink-0 flex items-center justify-between border-b border-[var(--brand-border)] px-5 py-4">
             <div>
-              <h2 className="text-base font-semibold text-zinc-100">
+              <h2 className="text-base font-semibold text-[var(--brand-text-secondary)]">
                 Edit Character
               </h2>
-              <p className="mt-0.5 text-xs text-zinc-500">
+              <p className="mt-0.5 text-xs text-[var(--brand-text-secondary)]">
                 Update {character.name}&rsquo;s profile
               </p>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md p-1.5 text-zinc-500 transition hover:bg-white/[0.06] hover:text-zinc-300"
+              className="rounded-md p-1.5 text-[var(--brand-text-secondary)] transition hover:bg-[var(--brand-surface-elevated)] hover:text-[var(--brand-text-secondary)]"
               aria-label="Close"
             >
               <svg
@@ -68,6 +70,7 @@ export function EditCharacterModal({
           <div className="overflow-y-auto p-5">
             <EditCharacterForm
               character={character}
+              bibleAge={bibleAge}
               photoUrl={photoUrl}
               onSuccess={handleSuccess}
               onCancel={onClose}

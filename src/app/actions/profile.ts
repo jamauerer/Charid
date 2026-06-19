@@ -3,9 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getPublicCharacterImages } from "@/app/actions/character-images";
+import { getPublicCharacterBibleAge } from "@/app/actions/character-bible";
 import { getPublicWorlds } from "@/app/actions/worlds";
-import type { Character, CharacterRow } from "@/types/character";
-import { normalizeCharacter } from "@/types/character";
+import type { Character, CharacterDisplay, CharacterRow } from "@/types/character";
+import { normalizeCharacter, withBibleAge } from "@/types/character";
 import type { CharacterImageWithUrl } from "@/types/character-image";
 import type { World } from "@/types/world";
 import type { Profile, ProfileRow } from "@/types/profile";
@@ -14,6 +15,8 @@ import {
   sanitizeUsername,
   USERNAME_PATTERN,
 } from "@/types/profile";
+import { scanUploadedImage } from "@/lib/moderation/scan-image";
+import { scanSavedText } from "@/lib/moderation/scan-text";
 
 const BUCKET = "character-photos";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -183,7 +186,7 @@ export async function getOrCreateProfile(): Promise<{
       id: user.id,
       username,
       display_name: user.email?.split("@")[0] ?? null,
-      is_public: true,
+      is_public: false,
     })
     .select()
     .single();
@@ -303,12 +306,37 @@ export async function updateProfile(
   revalidatePath(`/u/${existing.username}`);
   revalidatePath(`/u/${profile.username}`);
 
+  void scanSavedText({
+    supabase,
+    userId: user.id,
+    entityType: "profile",
+    entityId: user.id,
+    fields: { display_name: displayName, bio },
+  });
+
+  if (newlyUploadedPath) {
+    void scanUploadedImage({
+      supabase,
+      userId: user.id,
+      entityType: "avatar",
+      entityId: user.id,
+      storageBucket: BUCKET,
+      storagePath: newlyUploadedPath,
+      mimeType: avatar instanceof File ? avatar.type : undefined,
+    });
+  }
+
   return { success: true, profile, avatarUrl };
 }
 
 export async function getPublicPortfolio(
-  username: string
-): Promise<{ data: PublicPortfolio | null; error?: string }> {
+  username: string,
+  options?: { ownerPreview?: boolean }
+): Promise<{
+  data: PublicPortfolio | null;
+  error?: string;
+  isOwnerPreview?: boolean;
+}> {
   const normalizedUsername = sanitizeUsername(username);
   if (!normalizedUsername) {
     return { data: null };
@@ -329,7 +357,17 @@ export async function getPublicPortfolio(
     };
   }
 
-  if (!profileRow || !profileRow.is_public) {
+  if (!profileRow) {
+    return { data: null };
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isOwner = user?.id === profileRow.id;
+  const ownerPreview = Boolean(options?.ownerPreview && isOwner);
+
+  if (!profileRow.is_public && !ownerPreview) {
     return { data: null };
   }
 
@@ -377,12 +415,13 @@ export async function getPublicPortfolio(
       characterPhotos,
       worldCovers,
     },
+    isOwnerPreview: ownerPreview && !profileRow.is_public,
   };
 }
 
 export type PublicCharacterView = {
   profile: Profile;
-  character: Character;
+  character: CharacterDisplay;
   photoUrl: string | null;
   avatarUrl: string | null;
   images: CharacterImageWithUrl[];
@@ -439,6 +478,8 @@ export async function getPublicCharacter(
   }
 
   const character = normalizeCharacter(characterRow as CharacterRow);
+  const bibleAge = await getPublicCharacterBibleAge(characterId);
+  const characterDisplay = withBibleAge(character, bibleAge);
   const photoUrl = await getSignedStorageUrl(character.photo_path);
   const avatarUrl = await getSignedStorageUrl(profile.avatar_url);
   const images = await getPublicCharacterImages(characterId);
@@ -446,7 +487,7 @@ export async function getPublicCharacter(
   return {
     data: {
       profile,
-      character,
+      character: characterDisplay,
       photoUrl,
       avatarUrl,
       images,

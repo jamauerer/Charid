@@ -2,37 +2,47 @@
 
 import { useActionState, useEffect } from "react";
 import { createStory, type StoryActionState } from "@/app/actions/stories";
-import { STORY_STATUSES, STORY_PROJECT_TYPES, STORY_PROJECT_TYPE_LABELS } from "@/types/story";
+import { STORY_STATUSES, STORY_PROJECT_TYPES, STORY_PROJECT_TYPE_LABELS, type StoryProjectType } from "@/types/story";
+import type { Story } from "@/types/story";
+import { selectClassName } from "@/components/CharacterFormFields";
 
 type StoryFormProps = {
   worldId: string;
-  onSuccess?: () => void;
+  projectId?: string;
+  defaultProjectType?: StoryProjectType;
+  onSuccess?: (story: Story) => void;
 };
 
-export function StoryForm({ worldId, onSuccess }: StoryFormProps) {
+export function StoryForm({
+  worldId,
+  projectId,
+  defaultProjectType = "novel",
+  onSuccess,
+}: StoryFormProps) {
   const [state, formAction, pending] = useActionState<StoryActionState, FormData>(
     createStory,
     {}
   );
 
   useEffect(() => {
-    if (state.success) {
-      onSuccess?.();
+    if (state.success && state.story) {
+      onSuccess?.(state.story);
     }
-  }, [state.success, onSuccess]);
+  }, [state.success, state.story, onSuccess]);
 
   return (
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="world_id" value={worldId} />
+      {projectId && <input type="hidden" name="project_id" value={projectId} />}
 
       {state.error && (
-        <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+        <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-[var(--status-danger-text)]">
           {state.error}
         </p>
       )}
 
       <div>
-        <label htmlFor="story-title" className="mb-1.5 block text-xs font-medium text-zinc-400">
+        <label htmlFor="story-title" className="mb-1.5 block text-xs font-medium text-[var(--brand-text-secondary)]">
           Title
         </label>
         <input
@@ -42,12 +52,12 @@ export function StoryForm({ worldId, onSuccess }: StoryFormProps) {
           required
           maxLength={200}
           placeholder="The Burning Forest"
-          className="w-full rounded-lg border border-white/10 bg-[#141416] px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-violet-500/50"
+          className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none placeholder:text-[var(--brand-text-secondary)] focus:border-violet-500/50"
         />
       </div>
 
       <div>
-        <label htmlFor="story-summary" className="mb-1.5 block text-xs font-medium text-zinc-400">
+        <label htmlFor="story-summary" className="mb-1.5 block text-xs font-medium text-[var(--brand-text-secondary)]">
           Summary
         </label>
         <textarea
@@ -56,19 +66,19 @@ export function StoryForm({ worldId, onSuccess }: StoryFormProps) {
           rows={4}
           maxLength={2000}
           placeholder="A brief overview of this story plan…"
-          className="w-full resize-y rounded-lg border border-white/10 bg-[#141416] px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-violet-500/50"
+          className="w-full resize-y rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none placeholder:text-[var(--brand-text-secondary)] focus:border-violet-500/50"
         />
       </div>
 
       <div>
-        <label htmlFor="story-status" className="mb-1.5 block text-xs font-medium text-zinc-400">
+        <label htmlFor="story-status" className="mb-1.5 block text-xs font-medium text-[var(--brand-text-secondary)]">
           Status
         </label>
         <select
           id="story-status"
           name="status"
           defaultValue="Idea"
-          className="w-full rounded-lg border border-white/10 bg-[#141416] px-3 py-2 text-sm text-zinc-200 outline-none focus:border-violet-500/50"
+          className={selectClassName}
         >
           {STORY_STATUSES.map((status) => (
             <option key={status} value={status}>
@@ -79,14 +89,14 @@ export function StoryForm({ worldId, onSuccess }: StoryFormProps) {
       </div>
 
       <div>
-        <label htmlFor="story-project-type" className="mb-1.5 block text-xs font-medium text-zinc-400">
-          Project type
+        <label htmlFor="story-project-type" className="mb-1.5 block text-xs font-medium text-[var(--brand-text-secondary)]">
+          Story format
         </label>
         <select
           id="story-project-type"
           name="project_type"
-          defaultValue="novel"
-          className="w-full rounded-lg border border-white/10 bg-[#141416] px-3 py-2 text-sm text-zinc-200 outline-none focus:border-violet-500/50"
+          defaultValue={defaultProjectType}
+          className={selectClassName}
         >
           {STORY_PROJECT_TYPES.map((type) => (
             <option key={type} value={type}>
@@ -99,7 +109,7 @@ export function StoryForm({ worldId, onSuccess }: StoryFormProps) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-violet-500/15 transition hover:from-violet-500 hover:to-indigo-500 disabled:opacity-50"
+        className="w-full rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-violet-500/15 transition hover:bg-[var(--brand-accent-hover)] disabled:opacity-50"
       >
         {pending ? "Creating..." : "Create Story"}
       </button>
