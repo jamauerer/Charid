@@ -413,8 +413,7 @@ California Coast Surf Stories → How I Surf — understood from **project scree
 |----------|------|
 | **This doc** | Locked product direction |
 | [CANON_V1_SCHEMA.md](./CANON_V1_SCHEMA.md) | Hidden canon layer schema |
-| [CANON_SCOPE_PRECEDENCE.md](./CANON_SCOPE_PRECEDENCE.md) | Scope precedence & conflict resolution |
+| [CANON_SCOPE_PRECEDENCE.md](./CANON_SCOPE_PRECEDENCE.md) | Scope precedence & conflict resolution (locked — June 2026) |
 | [PROJECT_WORKSPACE_V1.md](./PROJECT_WORKSPACE_V1.md) | Workspace layout & migration |
 | [CREATOR_FLOW_CONSOLIDATION.md](./CREATOR_FLOW_CONSOLIDATION.md) | Story-level UX consolidation |
-| Canon V1 | [CANON_V1_SCHEMA.md](./CANON_V1_SCHEMA.md) — hidden canon schema |
-| Continuity V1 *(next)* | Visible continuity schema — requires [CANON_SCOPE_PRECEDENCE.md](./CANON_SCOPE_PRECEDENCE.md) |
+| Continuity V1 *(next)* | Visible continuity schema — requires [CANON_SCOPE_PRECEDENCE.md §1–§4](./CANON_SCOPE_PRECEDENCE.md#1-canon-authority-model) |

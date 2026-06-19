@@ -1,295 +1,198 @@
 # Canon Scope & Precedent
 
-**Status:** Design only — **no implementation**  
-**Date:** 2026-06-14  
-**Purpose:** Conflict resolution rules between [CANON_V1_SCHEMA.md](./CANON_V1_SCHEMA.md) and Continuity V1  
-**Prerequisite for:** Continuity V1 schema design
+**Status:** Locked — June 2026  
+**Design only.** No implementation, no migrations, no code.
+
+This document sits between [CANON_V1_SCHEMA.md](./CANON_V1_SCHEMA.md) and Continuity V1. It defines what happens when sources of truth disagree — the precedence rule Canon V1 named but did not specify, and the prerequisite Continuity V1 needs before it can define real warnings.
 
 **Authority:** [CANON_V1_SCHEMA.md](./CANON_V1_SCHEMA.md) · [PROJECT_FIRST_CREATIVE_STUDIO_V1.md](./PROJECT_FIRST_CREATIVE_STUDIO_V1.md) · [COLLABORATIVE_CREATION_PRINCIPLE.md](./COLLABORATIVE_CREATION_PRINCIPLE.md) · [REFERENCE_IMAGE_STRATEGY.md](./REFERENCE_IMAGE_STRATEGY.md)
 
 ---
 
-## Summary
-
-When Canon slices disagree, CharID must behave predictably **before** a creator reviews the issue.
-
-```text
-Canon wins provisionally  →  system uses established Canon in assembly & generation
-Creator wins finally     →  only explicit creator action resolves or supersedes
-Continuity makes it visible  →  ⚠ alerts; never silent fixes
-```
-
-This document defines **which Canon slice applies**, **what happens while unresolved**, and **how creators clear conflicts** — without exposing Canon infrastructure.
-
----
-
 ## 1. Canon authority model
 
-### Two-layer authority
+**Rule: Canon wins provisionally. Creator wins finally.**
 
-| Layer | Role |
-|-------|------|
-| **Canon (provisional)** | Active facts in the memory layer — authoritative for assembly and generation **until** creator resolves a flagged conflict |
-| **Creator (final)** | Only path to merge, supersede, or promote conflicting truths into stable Canon |
+Canon is the authoritative source of truth at all times *except* when a creator actively overrides it through review.
 
-**Rule:** Canon wins provisionally. Creator wins finally.
+Until a conflict is reviewed:
 
-### While a conflict is open
+- AI context packets assemble using the **Canon value**, not the conflicting value.
+- The conflicting value (e.g. a scene line, a generated image) is never silently adopted into Canon.
+- The conflict is surfaced as a Continuity alert, not resolved by the system.
 
-| System | Behavior |
-|--------|----------|
-| **Context assembly** | Uses **Canon-preferred** side per scope rules (§2–§3); contested facet may be **excluded** if no safe preference |
-| **Generation** | Proceeds only on **non-contested** Canon; identity mismatches → Continuity warning, not hidden fix |
-| **Continuity** | Surfaces ⚠; does not auto-pick a winner |
-| **AI** | Never invents resolution; may **Suggest** a fix as proposal only |
+```text
+Conflict Detected
+↓
+Canon value used in assembly (provisional)
+↓
+Continuity warning surfaced
+↓
+Creator reviews
+↓
+Update Canon | Update Source | Ignore
+↓
+Canon value finalized (or conflict marked resolved/ignored)
+```
 
-### After creator resolves
-
-| Resolution | Effect |
-|------------|--------|
-| Edit entity / fact | User-defined truth → active; conflicting fact **deprecated** |
-| Approve proposal | Inferred → user-confirmed → active |
-| Dismiss (explicit) | Conflict marked **acknowledged**; provisional rule unchanged until edited |
-| Promote scene delta | Scene-only state → Character or Story Canon (explicit promotion) |
-
-Unresolved conflicts **do not block** editing or manual creation. They **do** constrain how AI uses contested facets.
+The system never decides. It defaults to Canon and waits.
 
 ---
 
 ## 2. Scope precedence
 
-Five Canon slices. Precedent answers: *for this question, which slice speaks first?*
-
-### Precedent stack (default)
-
-For **narrative moment truth** (who, what, where in this beat):
+Pre precedence order, most to least authoritative:
 
 ```text
-Scene Canon  →  moment (highest specificity)
-Character Canon  →  identity of people present
-Setting Canon  →  place rules & linked location
-Story Canon  →  arc framing, tone, roster emphasis
-Style Canon  →  rendering only (lowest narrative authority)
+Character Canon
+Story Canon
+Setting Canon
+Scene Canon
+Style Canon
 ```
 
-For **identity truth** (persistent traits):
+This order determines **which value populates the AI context packet** when two Canon layers disagree about the same fact, and **which side of a conflict is treated as Canon** when a non-Canon source (a scene, a generated asset) contradicts it.
 
-```text
-Character Canon  →  always first
-Style Canon  →  may reinterpret look, not identity
-Scene Canon  →  state deltas only; do not override identity without promotion
-Story Canon  →  role notes, not appearance
-Setting Canon  →  no effect on character identity
-```
+Notes:
 
-For **place truth**:
-
-```text
-Setting Canon (location + world)  →  rules of place
-Scene Canon  →  which place this moment uses
-Story Canon  →  key locations (planning text), not moment override
-```
-
-For **visual generation** (assembly order, not conflict winner):
-
-```text
-Character identity refs → Setting place refs → Style refs → Scene beat text
-```
-
-(See [REFERENCE_IMAGE_STRATEGY.md](./REFERENCE_IMAGE_STRATEGY.md).)
-
-### Cross-scope rules
-
-| Situation | Winner (provisional) | Notes |
-|----------|----------------------|-------|
-| Scene beat vs Story tone | Both apply — no conflict unless scene contradicts established tone | Tone conflict → Story vs Scene workflow (§4) |
-| Scene cast vs Character existence | Character must exist | Scene cannot invent character without approve |
-| Scene location vs Setting type | Scene picks **instance**; Setting owns **rules** | “Interior only” location + exterior scene → Setting vs Scene |
-| Story roster vs Scene cast | Scene cast ⊆ story-linked cast (soft) | Extra character in scene → alert, not auto-remove |
-| Project style vs Story style override | Story override if flagged | Else Project Style Canon |
-| Scene style flag vs Project style | Scene for that beat only | Identity refs unchanged |
-
-### Same scope, same facet
-
-Latest **user-defined** edit at that scope wins. Tie between user-defined text and approved image → **conflict** (no automatic preference).
-
-### Inferred vs established
-
-Unapproved inferred facts **never** beat active Canon. They do not participate in provisional wins.
+- Pre precedence governs *defaults during assembly*, not who is "right." A lower-pre precedence source contradicting a higher one is always a Continuity conflict, never a silent override — see Section 1.
+- Style Canon sits lowest because it governs rendering, not facts. See Section 3 for the specific Identity vs. Style relationship, which is a stronger rule than ordinary precedence.
 
 ---
 
-## 3. Identity vs Style
+## 3. Identity vs. Style
 
-**Identity Canon outranks Style Canon.**
+**Identity Canon outranks Style Canon. Always. Not just by precedence order — by kind.**
 
-| Identity Canon | Style Canon |
-|----------------|-------------|
-| Who: species, face, body, hair, scars | How drawn: linework, palette, medium |
-| Approved identity reference slots | Style presets, moodboard, style refs |
-| Persistent across project | May vary by story/scene **only** with explicit override |
+Identity Canon includes:
 
-### Rules
+```text
+Name
+Age
+Hair
+Eyes
+Distinctive traits
+Core appearance
+```
 
-| Rule | Meaning |
-|------|---------|
-| **Style may reinterpret** | Same character in watercolor vs ink — identity facts unchanged |
-| **Style may not redefine** | Style cannot change hair color, age, species, name |
-| **Conflict** | Generated image matches style but violates identity → identity violation (§6) |
-| **Provisional assembly** | Identity refs always included if approved; style refs layered on top |
-| **Contested identity** | Exclude facet or use Character Canon text/refs only — never style guess |
+Style Canon includes:
 
-Style-only conflicts (e.g. project cartoon vs scene dream-sequence painterly) use **Style override flag** on scene; Continuity informational unless identity also contested.
+```text
+Rendering
+Lighting
+Color treatment
+Brushwork
+Line style
+Visual medium
+```
+
+**Style may reinterpret. Style may not redefine.**
+
+A watercolor, comic, or realistic rendering of Jake may look different in texture and treatment — but it must still be recognizably Jake's stated identity facts. If a generated asset changes an identity fact (not just its rendering), that is an identity violation, not an acceptable stylistic interpretation.
 
 ---
 
 ## 4. Conflict workflows
 
-Each pair: **provisional behavior** · **Continuity alert** · **creator options**
+For each conflict type: provisional behavior, alert behavior, resolution options.
 
----
-
-### Character vs Scene
-
-**Example:** Character Canon: healthy leg. Scene: Jake walks with a cast. No prior injury scene.
-
-| Phase | Behavior |
-|-------|----------|
-| **Provisional** | Scene Canon wins **for this moment** (cast, beat). Character Canon unchanged globally. |
-| **Assembly (scene job)** | Include scene beat + character identity; **omit** or footnote injury if unresolved. |
-| **Continuity** | ⚠ *“Jake’s injury in [scene] isn’t in character profile — permanent or this scene only?”* |
-| **Creator options** | (a) Edit scene (b) Add character note (c) **Promote** to Character Canon (d) Mark one-scene only / dismiss |
-
----
-
-### Character vs Style
-
-**Example:** Character: red hair in bible. Style ref / generation: blonde in painterly test.
-
-| Phase | Behavior |
-|-------|----------|
-| **Provisional** | **Character identity** wins for hair color in context packet. |
-| **Assembly** | Identity refs + text hair color; style refs without hair override. |
-| **Continuity** | ⚠ *“Style reference may conflict with [character] hair color”* |
-| **Creator options** | (a) Update style ref (b) Confirm intentional reinterpret (story override) (c) Regenerate with identity-weighted prompt (d) Edit character if blonde is intended |
-
-**Rule:** Never silently recolor to match style.
-
----
-
-### Setting vs Scene
-
-**Example:** Location Canon: *Pleasure Point — indoor café only*. Scene: surfers on the beach @ Pleasure Point.
-
-| Phase | Behavior |
-|-------|----------|
-| **Provisional** | Scene **moment place** used for beat text; Setting **rules** flag violation. |
-| **Assembly** | Scene location label + Setting canon for linked location; contested environment facts **excluded** from place refs. |
-| **Continuity** | ⚠ *“Pleasure Point needs a setting profile”* or *“Scene place conflicts with location rules”* |
-| **Creator options** | (a) Change scene location (b) Split location (outdoor vs indoor) (c) Edit location rules (d) Approve exception note on scene |
-
----
-
-### Story vs Scene
-
-**Example:** Story tone: lighthearted children’s book. Scene summary: implied death / heavy violence.
-
-| Phase | Behavior |
-|-------|----------|
-| **Provisional** | **Scene beat** is true for moment; Story tone remains for framing elsewhere. |
-| **Assembly (scene)** | Full scene summary; story tone included as context — no auto-censorship. |
-| **Continuity** | ⚠ *“This scene may not match story tone”* (severity by project type) |
-| **Creator options** | (a) Edit scene (b) Edit story tone/summary (c) Mark intentional shift (d) Dismiss |
-
-**Rule:** Continuity **warns**; does not block save. Creator owns tone choices.
-
----
-
-### Workflow summary
+### Character vs. Scene
 
 ```text
-Detect conflict
-  → Apply provisional precedence (§2–§3)
-  → Surface Continuity ⚠
-  → Optional Suggest (proposal)
-  → Creator: Edit | Promote | Approve proposal | Dismiss
-  → Deprecate loser / confirm winner → conflict cleared
+Provisional: Character Canon value used in assembly
+Alert: "⚠ Continuity Conflict — Character Canon says X, Scene says Y"
+Resolution: Update Canon | Update Scene | Ignore
 ```
 
-All fixes via **Suggest → Review → Approve** when system-initiated.
+### Character vs. Style (Identity violation)
+
+```text
+Provisional: Character Canon identity facts used in assembly
+Alert: "⚠ Identity Continuity Warning — Generated output appears
+        inconsistent with Character Canon"
+Resolution: Update Canon | Regenerate manually | Ignore
+Note: No auto-reject, no silent regeneration, no hidden correction.
+```
+
+### Setting vs. Scene
+
+```text
+Provisional: Setting Canon value used in assembly
+Alert: "⚠ Continuity Conflict — Setting Canon says X, Scene says Y"
+Resolution: Update Canon | Update Scene | Ignore
+```
+
+### Story vs. Scene
+
+```text
+Provisional: Story Canon value used in assembly
+Alert: "⚠ Continuity Conflict — Story Canon says X, Scene says Y"
+Resolution: Update Canon | Update Scene | Ignore
+```
+
+All workflows follow the same shape. There is one philosophy, applied consistently — not a special case per conflict type.
 
 ---
 
 ## 5. AI assembly behavior
 
-### Unresolved conflicts in context packets
+**Rule: Contested facts are Canon-preferred. AI never invents conflict resolution.**
 
-| Rule | Behavior |
-|------|----------|
-| **Canon-preferred** | Include winning side per §2 provisional rules |
-| **Contested facet** | **Exclude** both values, or include **non-contested** Character/Setting identity only |
-| **Never invent** | AI must not merge, average, or guess (e.g. “brownish” hair) |
-| **Flag in packet metadata** | Internal `conflictsPresent: true` — not shown to creator as Canon |
-| **Combined jobs** | Multi-character: per-character identity; omit contested scene deltas |
-
-### Packet inclusion matrix
-
-| Conflict type | Typical assembly |
-|---------------|------------------|
-| Character vs Scene (injury) | Identity + scene title/summary; **exclude** injury from character block until promoted |
-| Character vs Style | Identity text + refs; style refs **without** contested attribute |
-| Setting vs Scene | Scene place string; **omit** conflicting location image refs |
-| Story vs Scene | Both strings; no automatic rewrite |
-
-### Suggest path
-
-AI may propose resolution text → **staging only** → same approval workflow as scene suggestions. Proposal **does not** enter packet as Canon until approved.
+- While a conflict is unresolved, the context packet contains the Canon value (per Section 1 and Section 2).
+- The AI is never given both conflicting values and asked to pick — that would reintroduce silent decision-making at a different layer.
+- Once a creator resolves a conflict, the next context packet reflects the resolution. Context packets are snapshots; they do not need to be aware of conflict *history*, only the current resolved (or provisionally defaulted) state.
 
 ---
 
 ## 6. Generation behavior
 
-### Identity violations
+**Identity violations become Continuity warnings. Nothing more, nothing less.**
 
-When output **likely contradicts** active Character or Setting identity Canon:
+- No auto-reject of generated assets.
+- No silent regeneration.
+- No hidden AI correction of identity facts.
 
-| Step | Behavior |
-|------|----------|
-| 1 | Generation may complete (creator may want draft) |
-| 2 | **Continuity warning** — not auto-rejection |
-| 3 | Asset **not** promoted to reference slot without creator approve |
-| 4 | No silent regeneration to “fix” identity |
-| 5 | No hidden correction in post-processing |
-
-### Style vs identity in generation
-
-- Provider prompt: identity anchors **required** when refs exist
-- Style modifiers **appended**, not substituted
-- Mismatch → ⚠ *“Generated image may not match [character] references”*
-
-### Forbidden
-
-| Forbidden | |
-|-----------|---|
-| Auto-reject generation | |
-| Auto-regenerate until match | |
-| Auto-assign to canonical slot | |
-| Silent text “correction” in scene/character rows | |
+A generated image that violates Identity Canon is treated exactly like any other Continuity conflict: surfaced, reviewed, resolved by the creator. This keeps generation-time behavior consistent with every other conflict workflow in this document — no special-casing for image generation just because it happens at a different stage of the pipeline.
 
 ---
 
 ## 7. Design principles
 
-| Principle | Implication |
-|-----------|------------|
-| **Canon is hidden** | Creators see Continuity alerts, not fact IDs or graphs |
-| **Continuity is visible** | Every provisional conflict has a human-readable ⚠ |
-| **Canon is authoritative until reviewed** | Assembly uses precedence rules; not “empty until fixed” |
-| **Creator owns truth** | Only explicit edit or approve changes active Canon |
-| **Suggest → Review → Approve** | System never silently resolves |
-| **Identity beats style** | Rendering serves identity, not reverse |
-| **Scene beats moment; Character persists** | Promotion required to merge scene delta into identity |
-| **Deprecation over erase** | Resolved conflicts leave audit trail |
+```text
+Suggest → Review → Approve
+Creator owns truth.
+Canon is authoritative until reviewed.
+Continuity is visible. Canon is hidden.
+The system defaults. It never decides.
+```
+
+---
+
+## Explicitly out of scope for this document
+
+- **Timeline conflict resolution** — deferred to future phases (Continuity V1 Tier 3 and beyond). Not a precedence question; a much harder reasoning problem and not part of this design.
+- **Fact lifecycle audit / recoverability** — deferred; not relevant pre-launch with no real user data at stake.
+- **Omitted-facet UI treatment** — deferred; not relevant without a live UI surfacing it yet.
+
+---
+
+## Status
+
+This document is a **prerequisite for Continuity V1**, not a replacement for it. Continuity V1 should now be written assuming:
+
+- Scope precedence is fixed (Section 2)
+- Canon-wins-provisionally is the default assembly behavior (Section 1)
+- Identity violations are a defined alert type, not an open question (Sections 3, 4, 6)
+
+```text
+Canon V1
+↓
+Canon Scope Precedence (this document)
+↓
+Continuity V1
+↓
+Project Workspace V1
+```
 
 ---
 
@@ -297,27 +200,7 @@ When output **likely contradicts** active Character or Setting identity Canon:
 
 | Document | Role |
 |----------|------|
-| [CANON_V1_SCHEMA.md](./CANON_V1_SCHEMA.md) | What Canon is; fact lifecycle; high-level conflicts |
-| **This doc** | Scope precedence & provisional resolution — **input to Continuity V1** |
-| Continuity V1 *(next)* | Alert types, severity, placement, dismissal |
-| [COLLABORATIVE_CREATION_PRINCIPLE.md](./COLLABORATIVE_CREATION_PRINCIPLE.md) | Approval workflow |
-
----
-
-## Out of scope
-
-- Alert copy and UI placement
-- Storage for conflict records
-- Timeline / simultaneity engine
-- Implementation tasks
-
----
-
-## Success criteria
-
-Continuity V1 can be designed when this doc answers:
-
-1. Which side wins **provisionally** for each conflict pair?  
-2. What goes **in or out** of context packets while ⚠ is open?  
-3. What may generation do **without** creator approve?  
-4. What options does the creator get **in plain language**?
+| [CANON_V1_SCHEMA.md](./CANON_V1_SCHEMA.md) | Hidden Canon layer |
+| **This document** | Scope precedence & provisional resolution |
+| Continuity V1 *(next)* | Visible alerts derived from this doc |
+| [PROJECT_WORKSPACE_V1.md](./PROJECT_WORKSPACE_V1.md) | Project command center UI |

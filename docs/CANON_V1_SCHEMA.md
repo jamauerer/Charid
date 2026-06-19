@@ -5,7 +5,7 @@
 **Goal:** Define Canon as the hidden consistency layer of CharID  
 **Authority:** [PROJECT_FIRST_CREATIVE_STUDIO_V1.md](./PROJECT_FIRST_CREATIVE_STUDIO_V1.md) · [COLLABORATIVE_CREATION_PRINCIPLE.md](./COLLABORATIVE_CREATION_PRINCIPLE.md) · [REFERENCE_IMAGE_STRATEGY.md](./REFERENCE_IMAGE_STRATEGY.md) · [AI_PROVIDER_ARCHITECTURE.md](./AI_PROVIDER_ARCHITECTURE.md)
 
-**Companion (future):** [Continuity V1 schema](./CONTINUITY_V1_SCHEMA.md) — visible alerts derived from Canon; requires [CANON_SCOPE_PRECEDENCE.md](./CANON_SCOPE_PRECEDENCE.md).
+**Companion (future):** [Continuity V1 schema](./CONTINUITY_V1_SCHEMA.md) — visible alerts derived from Canon; requires [CANON_SCOPE_PRECEDENCE.md](./CANON_SCOPE_PRECEDENCE.md) (locked — June 2026).
 
 ---
 
@@ -65,18 +65,18 @@ Project Canon is **not a creator-facing object**. It is assembled on demand for:
 
 ### Scope hierarchy
 
-When facts at different scopes conflict, **narrower scope wins for specificity**; **higher scope wins for defaults**:
+Each Canon slice owns a **domain of facts**. This describes *what each layer contains* — not who wins when sources disagree. **Conflict precedence and provisional assembly** are defined in [CANON_SCOPE_PRECEDENCE.md](./CANON_SCOPE_PRECEDENCE.md) (locked — June 2026), [§2 Scope precedence](./CANON_SCOPE_PRECEDENCE.md#2-scope-precedence).
 
 ```text
-Project  →  default style, global setting rules, shared cast traits
-Story    →  tone, themes, roster emphasis, story-level style override
-Scene    →  moment truth: who, what, where, when, damage state
+Project   →  default style, global setting rules, shared cast traits
+Story     →  tone, themes, roster emphasis
+Scene     →  moment content: who, what, where for this beat
 Character →  identity: appearance, personality, persistent traits
-Setting  →  place rules: geography, culture, map position
-Style    →  rendering intent (may override at story/scene for one sequence)
+Setting   →  place rules: geography, culture, map position
+Style     →  rendering intent
 ```
 
-**Resolution order for assembly:** Character identity → Setting place → Scene moment → Story tone → Project style default.
+**Assembly note:** When a non-Canon source (scene line, generated asset) contradicts Canon, the **Canon value** is used provisionally until the creator resolves the conflict — see [§1 Canon authority model](./CANON_SCOPE_PRECEDENCE.md#1-canon-authority-model).
 
 ### Rollup (conceptual)
 
@@ -462,7 +462,7 @@ Canon feeds AI **only through assembled context packets** ([AI_PROVIDER_ARCHITEC
 
 ## 11. Canon conflict resolution rules
 
-**Detailed precedence and provisional behavior:** [CANON_SCOPE_PRECEDENCE.md](./CANON_SCOPE_PRECEDENCE.md) — prerequisite for Continuity V1.
+**Detailed precedence and provisional behavior:** [CANON_SCOPE_PRECEDENCE.md](./CANON_SCOPE_PRECEDENCE.md) (locked — June 2026) — prerequisite for Continuity V1. See [§1](./CANON_SCOPE_PRECEDENCE.md#1-canon-authority-model), [§2](./CANON_SCOPE_PRECEDENCE.md#2-scope-precedence), [§4](./CANON_SCOPE_PRECEDENCE.md#4-conflict-workflows).
 
 A **conflict** exists when two **active** facts assert incompatible truths for the same subject + facet at the same or overlapping scope.
 
@@ -478,16 +478,19 @@ A **conflict** exists when two **active** facts assert incompatible truths for t
 
 ### Resolution precedence
 
-When assembling Canon or Continuity checks:
+**Authoritative rules live in [CANON_SCOPE_PRECEDENCE.md](./CANON_SCOPE_PRECEDENCE.md).** Do not reinterpret here. Summary only:
 
 ```text
-1. Explicit user-defined fact beats unapproved inferred
-2. Narrower scope beats wider (scene > story > project) for moment truth
+1. Unapproved inferred facts never beat active Canon
+2. Canon wins provisionally until creator resolves
+   (Character > Story > Setting > Scene > Style; Identity beats Style by kind)
 3. User-defined at same scope: latest intentional edit wins
-4. Visual slot assignment beats free-text appearance when both “active” → Continuity alert (not silent pick)
+4. Text vs approved image both active → Continuity alert (not silent pick)
 5. Deprecated facts never participate
-6. Unresolved → Continuity surfaces ⚠; AI packet omits contested facet or uses only user-defined side
+6. Unresolved → Continuity ⚠; context packet uses Canon value per Scope Precedent
 ```
+
+Per conflict-type provisional behavior and alert copy: [§4 Conflict workflows](./CANON_SCOPE_PRECEDENCE.md#4-conflict-workflows).
 
 ### Automatic resolution (forbidden)
 
@@ -576,6 +579,7 @@ Canon V1 design succeeds if engineering and product can answer:
 |----------|------|
 | [PROJECT_FIRST_CREATIVE_STUDIO_V1.md](./PROJECT_FIRST_CREATIVE_STUDIO_V1.md) | Locked product direction |
 | **This doc** | Hidden Canon layer schema |
-| Continuity V1 *(next)* | Visible alerts derived from Canon |
+| [CANON_SCOPE_PRECEDENCE.md](./CANON_SCOPE_PRECEDENCE.md) | Scope precedence & provisional resolution (locked — June 2026) |
+| Continuity V1 *(next)* | Visible alerts — requires Scope Precedent |
 | [COLLABORATIVE_CREATION_PRINCIPLE.md](./COLLABORATIVE_CREATION_PRINCIPLE.md) | Approval workflow authority |
 | [REFERENCE_IMAGE_STRATEGY.md](./REFERENCE_IMAGE_STRATEGY.md) | Visual Canon evidence rules |
