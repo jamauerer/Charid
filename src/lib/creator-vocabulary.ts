@@ -25,19 +25,19 @@ export const CONSISTENCY_TIER_LABELS: Record<AiReadinessTier, string> = {
   ai_ready: "Ready to create",
 };
 
-/** Creator-facing labels for world workspace metrics and headers. */
+/** Creator-facing labels for setting workspace metrics and headers. */
 export const CREATOR_WORLD = {
-  workspaceLabel: "World workspace",
+  workspaceLabel: "Setting workspace",
   referenceChecklistTitle: "Reference checklist",
   referenceChecklistHint:
     "See what's complete at a glance — click a row to jump to assign or upload.",
-  sectionsNavLabel: "World sections",
+  sectionsNavLabel: "Setting sections",
   guideImpactLabel: "Creative impact",
 } as const;
 
 export const CREATOR_WORLD_METRICS = {
-  worldComplete: "World profile complete",
-  worldConsistency: "World consistency",
+  worldComplete: "Setting profile complete",
+  worldConsistency: "Setting consistency",
   referenceCoverage: "Reference coverage",
   consistencyScore: "Consistency score",
 } as const;
@@ -79,4 +79,14 @@ export const CREATOR_STORY_METRICS = {
   storyConsistency: "Story consistency",
   referenceCoverage: "Reference coverage",
   consistencyScore: "Consistency score",
+} as const;
+
+/** Creator-facing labels for project workspace. */
+export const CREATOR_PROJECT = {
+  whatsNextLabel: "What's next",
+  whatsNextHint: "One clear step to keep this project moving.",
+  styleReferencesTitle: "Style & References",
+  styleReferencesHint:
+    "Your cover and reference images help keep art consistent across the project.",
+  sectionsNavLabel: "Project sections",
 } as const;

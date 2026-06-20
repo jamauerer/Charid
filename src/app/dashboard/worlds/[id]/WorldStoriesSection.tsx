@@ -26,7 +26,7 @@ export function WorldStoriesSection({
 
       {stories.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[var(--brand-border)] bg-[var(--brand-surface)] px-5 py-10 text-center">
-          <p className="text-sm text-[var(--brand-text-secondary)]">No stories in this world yet.</p>
+          <p className="text-sm text-[var(--brand-text-secondary)]">No stories in this setting yet.</p>
           <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
             Create a story to organize characters into narrative plans.
           </p>

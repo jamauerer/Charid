@@ -15,7 +15,7 @@ const KIND_LABELS: Record<HomeCreativeMoment["kind"], string> = {
   chapter: "Chapter",
   story: "Story",
   character: "Character",
-  world: "World",
+  world: "Setting",
 };
 
 export function HomeCreativeMoments({ moments }: HomeCreativeMomentsProps) {

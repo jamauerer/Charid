@@ -82,7 +82,7 @@ export function ProjectForm({ onSuccess, onCreated }: ProjectFormProps) {
           name="description"
           rows={3}
           className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-violet-500/50 focus:outline-none focus:ring-1 focus:ring-violet-500/30"
-          placeholder="Everything needed to finish this work — characters, worlds, stories…"
+          placeholder="Everything needed to finish this work — characters, settings, stories…"
         />
       </div>
 

@@ -27,7 +27,7 @@ export function NewWorldModal({ onCreated }: NewWorldModalProps) {
         >
           <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
         </svg>
-        Create World
+        Create Setting
       </button>
 
       {open && (
@@ -44,7 +44,7 @@ export function NewWorldModal({ onCreated }: NewWorldModalProps) {
                 <div className="shrink-0 flex items-center justify-between border-b border-[var(--brand-border)] px-5 py-4">
                   <div>
                     <h2 className="text-base font-semibold text-[var(--brand-text-secondary)]">
-                      Create World
+                      Create Setting
                     </h2>
                     <p className="mt-0.5 text-xs text-[var(--brand-text-secondary)]">
                       A home for your characters and future stories

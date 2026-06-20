@@ -124,8 +124,28 @@ export function DashboardSidebar({
           }
         />
         <DashboardNavItem
+          href="/dashboard/explore"
+          label="Explore"
+          active={pathname === "/dashboard/explore"}
+          onNavigate={onNavigate}
+          icon={
+            <NavIcon>
+              <path
+                fillRule="evenodd"
+                d="M8.5 3.75a4.75 4.75 0 1 0 0 9.5 4.75 4.75 0 0 0 0-9.5ZM2.25 8.5a6.25 6.25 0 1 1 12.5 0 6.25 6.25 0 0 1-12.5 0Zm9.28 8.03a.75.75 0 0 1 1.06 0l2.5 2.5a.75.75 0 1 1-1.06 1.06l-2.5-2.5a.75.75 0 0 1 0-1.06Z"
+                clipRule="evenodd"
+              />
+            </NavIcon>
+          }
+        />
+
+        <div className="my-2 border-t border-[var(--brand-border)]" />
+        <p className="px-2.5 pb-1 pt-2 text-[10px] font-medium uppercase tracking-wide text-[var(--brand-text-muted)]">
+          Library
+        </p>
+        <DashboardNavItem
           href="/dashboard/worlds"
-          label="Worlds"
+          label="All settings"
           active={isWorlds}
           onNavigate={onNavigate}
           icon={
@@ -149,21 +169,6 @@ export function DashboardSidebar({
               <path
                 fillRule="evenodd"
                 d="M4 2a2 2 0 0 0-2 2v11a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3V4a2 2 0 0 0-2-2H4Zm3 2h6v4H7V4Zm7 0h3v11a1.5 1.5 0 0 1-1.5 1.5H17V4h-3Zm-5 6H7v4h2V10Zm2 0h2v4h-2v-4Z"
-                clipRule="evenodd"
-              />
-            </NavIcon>
-          }
-        />
-        <DashboardNavItem
-          href="/dashboard/explore"
-          label="Explore"
-          active={pathname === "/dashboard/explore"}
-          onNavigate={onNavigate}
-          icon={
-            <NavIcon>
-              <path
-                fillRule="evenodd"
-                d="M8.5 3.75a4.75 4.75 0 1 0 0 9.5 4.75 4.75 0 0 0 0-9.5ZM2.25 8.5a6.25 6.25 0 1 1 12.5 0 6.25 6.25 0 0 1-12.5 0Zm9.28 8.03a.75.75 0 0 1 1.06 0l2.5 2.5a.75.75 0 1 1-1.06 1.06l-2.5-2.5a.75.75 0 0 1 0-1.06Z"
                 clipRule="evenodd"
               />
             </NavIcon>

@@ -436,7 +436,7 @@ export function StartNewProjectWizard({
     if (followUpMode === "world") {
       return (
         <WizardShell
-          title="Create your first world"
+          title="Create your setting"
           subtitle={createdProject.title}
           onClose={handleClose}
         >
@@ -450,7 +450,7 @@ export function StartNewProjectWizard({
     }
 
     if (followUpMode === "artwork" || followUpMode === "story") {
-      if (followUpWorldId && followUpMode === "story") {
+      if (followUpMode === "story" && followUpWorldId) {
         return (
           <WizardShell
             title="Start your story"
@@ -467,12 +467,28 @@ export function StartNewProjectWizard({
         );
       }
 
+      if (followUpMode === "story" && workIntent !== "worldbuilding") {
+        return (
+          <WizardShell
+            title="Start your story"
+            subtitle={createdProject.title}
+            onClose={handleClose}
+          >
+            <StoryForm
+              projectId={projectId}
+              defaultProjectType={defaultStoryType}
+              onSuccess={handleStoryCreated}
+            />
+          </WizardShell>
+        );
+      }
+
       return (
         <WizardShell
           title={
             followUpMode === "artwork"
-              ? "Add a world for your artwork"
-              : "Create a world for your story"
+              ? "Add a setting for your artwork"
+              : "Create your setting"
           }
           subtitle={createdProject.title}
           onClose={handleClose}

@@ -1,6 +1,7 @@
 export type World = {
   id: string;
   user_id: string;
+  project_id: string | null;
   name: string;
   slug: string;
   description: string | null;
@@ -21,6 +22,7 @@ export function normalizeWorld(row: WorldRow): World {
   return {
     id: row.id,
     user_id: row.user_id,
+    project_id: row.project_id ?? null,
     name: row.name,
     slug: row.slug,
     description: row.description ?? null,

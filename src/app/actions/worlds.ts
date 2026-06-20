@@ -13,6 +13,8 @@ import { normalizeWorld, slugifyWorldName } from "@/types/world";
 import { scanUploadedImage } from "@/lib/moderation/scan-image";
 import { scanSavedText } from "@/lib/moderation/scan-text";
 import { getOrCreateDefaultProject } from "@/app/actions/projects";
+import { shouldShowWorldInSettingsIndex } from "@/lib/project-setting";
+import type { ProjectWorkIntent } from "@/types/project";
 
 const BUCKET = "character-photos";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -209,8 +211,44 @@ export async function getWorlds(): Promise<WorldsResult> {
   }
 
   const worlds = (data ?? []).map((row) => normalizeWorld(row as WorldRow));
+
+  const projectIds = [
+    ...new Set(
+      worlds
+        .map((world) => world.project_id)
+        .filter((id): id is string => Boolean(id))
+    ),
+  ];
+
+  const projectMap = new Map<
+    string,
+    { title: string; work_intent: ProjectWorkIntent | null }
+  >();
+
+  if (projectIds.length > 0) {
+    const { data: projects } = await supabase
+      .from("projects")
+      .select("id, title, work_intent")
+      .eq("user_id", user.id)
+      .in("id", projectIds);
+
+    for (const row of projects ?? []) {
+      projectMap.set(row.id as string, {
+        title: row.title as string,
+        work_intent: (row.work_intent as ProjectWorkIntent | null) ?? null,
+      });
+    }
+  }
+
+  const visibleWorlds = worlds.filter((world) =>
+    shouldShowWorldInSettingsIndex(
+      world,
+      world.project_id ? projectMap.get(world.project_id) ?? null : null
+    )
+  );
+
   return {
-    worlds: await attachCharacterCounts(supabase, user.id, worlds),
+    worlds: await attachCharacterCounts(supabase, user.id, visibleWorlds),
   };
 }
 

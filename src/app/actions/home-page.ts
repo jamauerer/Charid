@@ -5,6 +5,7 @@ import { getCharacterPhotoUrl, getCharacters } from "@/app/actions/characters";
 import { getStoryCoverUrls } from "@/app/actions/story-images";
 import { getStoriesForUser } from "@/app/actions/stories";
 import { getWorldCoverUrl, getWorlds } from "@/app/actions/worlds";
+import { isAutoProvisionedSetting } from "@/lib/project-setting";
 import { createClient } from "@/lib/supabase/server";
 import type { ProjectWithCounts } from "@/types/project";
 
@@ -114,7 +115,7 @@ async function fetchCreativeMoments(): Promise<HomeCreativeMoment[]> {
       id: story.id,
       kind: "story",
       title: story.title,
-      subtitle: world.name,
+      subtitle: isAutoProvisionedSetting(world) ? null : world.name,
       imageUrl: storyCoverUrls[story.id] ?? null,
       href: `/dashboard/worlds/${world.id}/stories/${story.id}`,
       sortKey: story.created_at,

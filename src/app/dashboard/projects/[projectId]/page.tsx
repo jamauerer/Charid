@@ -5,27 +5,23 @@ import {
   getProjectById,
   getProjectCharacters,
   getProjectCoverUrl,
+  getProjectProgressCounts,
   getProjectRelationships,
+  getProjectSceneRollup,
   getProjectStories,
+  getProjectStoryProgress,
   getProjectWorlds,
 } from "@/app/actions/projects";
-import {
-  PROJECT_TABS,
-  ProjectWorkspaceView,
-  type ProjectTab,
-} from "@/components/project/ProjectWorkspaceView";
+import { getWorldImages } from "@/app/actions/world-images";
+import { getWorldMoodboardBundle } from "@/app/actions/world-moodboards";
+import { ProjectWorkspaceView } from "@/components/project/ProjectWorkspaceView";
+import { resolveProjectFinishPath } from "@/lib/project-finish-path";
+import { isProjectTab, projectTabToSectionHash } from "@/lib/project-tabs";
 
 type ProjectPageProps = {
   params: Promise<{ projectId: string }>;
   searchParams: Promise<{ tab?: string }>;
 };
-
-function parseTab(value: string | undefined): ProjectTab {
-  if (value && PROJECT_TABS.includes(value as ProjectTab)) {
-    return value as ProjectTab;
-  }
-  return "overview";
-}
 
 export default async function ProjectPage({
   params,
@@ -33,7 +29,10 @@ export default async function ProjectPage({
 }: ProjectPageProps) {
   const { projectId } = await params;
   const { tab: tabParam } = await searchParams;
-  const activeTab = parseTab(tabParam);
+  const initialScrollSection =
+    tabParam && isProjectTab(tabParam)
+      ? projectTabToSectionHash(tabParam)
+      : null;
 
   const { project, error: projectError } = await getProjectById(projectId);
   if (!project) {
@@ -51,47 +50,88 @@ export default async function ProjectPage({
 
   const coverUrl = await getProjectCoverUrl(project.cover_image_path);
 
-  const [storiesResult, charactersResult, worldsResult, relationshipsResult] =
-    await Promise.all([
-      activeTab === "stories" || activeTab === "overview"
-        ? getProjectStories(projectId)
-        : Promise.resolve({ entries: [] }),
-      activeTab === "characters" || activeTab === "overview"
-        ? getProjectCharacters(projectId)
-        : Promise.resolve({ entries: [] }),
-      activeTab === "worlds" || activeTab === "overview"
-        ? getProjectWorlds(projectId)
-        : Promise.resolve({ entries: [] }),
-      activeTab === "relationships"
-        ? getProjectRelationships(projectId)
-        : Promise.resolve({ entries: [] }),
-    ]);
+  const [
+    storiesResult,
+    charactersResult,
+    worldsResult,
+    relationshipsResult,
+    storyProgressResult,
+    progressCountsResult,
+    sceneRollupResult,
+  ] = await Promise.all([
+    getProjectStories(projectId),
+    getProjectCharacters(projectId),
+    getProjectWorlds(projectId),
+    getProjectRelationships(projectId),
+    getProjectStoryProgress(projectId),
+    getProjectProgressCounts(projectId),
+    getProjectSceneRollup(projectId),
+  ]);
 
   const relationshipPhotoUrls: Record<string, string | null> = {};
-  if (activeTab === "relationships") {
-    for (const entry of relationshipsResult.entries) {
-      if (!(entry.fromCharacter.id in relationshipPhotoUrls)) {
-        relationshipPhotoUrls[entry.fromCharacter.id] =
-          await getCharacterPhotoUrl(entry.fromCharacter.photo_path);
-      }
-      if (!(entry.toCharacter.id in relationshipPhotoUrls)) {
-        relationshipPhotoUrls[entry.toCharacter.id] =
-          await getCharacterPhotoUrl(entry.toCharacter.photo_path);
-      }
+  for (const entry of relationshipsResult.entries) {
+    if (!(entry.fromCharacter.id in relationshipPhotoUrls)) {
+      relationshipPhotoUrls[entry.fromCharacter.id] =
+        await getCharacterPhotoUrl(entry.fromCharacter.photo_path);
+    }
+    if (!(entry.toCharacter.id in relationshipPhotoUrls)) {
+      relationshipPhotoUrls[entry.toCharacter.id] =
+        await getCharacterPhotoUrl(entry.toCharacter.photo_path);
     }
   }
+
+  const primaryWorldId = worldsResult.entries[0]?.world.id ?? null;
+
+  let moodboardBundle = null;
+  let galleryImages: Awaited<ReturnType<typeof getWorldImages>>["images"] = [];
+
+  if (primaryWorldId) {
+    const [moodboardResult, galleryResult] = await Promise.all([
+      getWorldMoodboardBundle(primaryWorldId),
+      getWorldImages(primaryWorldId),
+    ]);
+    moodboardBundle = moodboardResult.bundle;
+    galleryImages = galleryResult.images;
+  }
+
+  const progressCounts = progressCountsResult.counts ?? {
+    characterCount: project.character_count,
+    storyCount: project.story_count,
+    sceneCount: 0,
+    chapterCount: 0,
+    locationCount: 0,
+    styleReferenceCount: 0,
+    hasCover: Boolean(project.cover_image_path),
+  };
+
+  const finishPath = resolveProjectFinishPath({
+    workIntent: project.work_intent,
+    stories: storyProgressResult.stories,
+    characterCount: progressCounts.characterCount,
+    sceneCount: progressCounts.sceneCount,
+    chapterCount: progressCounts.chapterCount,
+    hasCover: progressCounts.hasCover,
+    styleReferenceCount: progressCounts.styleReferenceCount,
+  });
 
   return (
     <Suspense fallback={null}>
       <ProjectWorkspaceView
         project={project}
         coverUrl={coverUrl}
-        activeTab={activeTab}
+        finishPath={finishPath}
+        progressCounts={progressCounts}
+        storyProgress={storyProgressResult.stories}
+        initialScrollSection={initialScrollSection}
         stories={storiesResult.entries}
         characters={charactersResult.entries}
         worlds={worldsResult.entries}
         relationships={relationshipsResult.entries}
         relationshipPhotoUrls={relationshipPhotoUrls}
+        sceneRollup={sceneRollupResult.entries}
+        primaryWorldId={primaryWorldId}
+        moodboardBundle={moodboardBundle}
+        galleryImages={galleryImages}
         migrationError={projectError}
       />
     </Suspense>

@@ -28,6 +28,8 @@ import { normalizeStory } from "@/types/story";
 import type { World, WorldRow, WorldWithCounts } from "@/types/world";
 import { normalizeWorld } from "@/types/world";
 import { scanSavedText } from "@/lib/moderation/scan-text";
+import { ensureProjectDefaultSetting } from "@/lib/project-setting";
+import type { ProjectStoryProgress } from "@/lib/project-finish-path";
 
 const BUCKET = "character-photos";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -51,7 +53,7 @@ export type ProjectsResult = {
 
 export type ProjectStoryEntry = {
   story: StoryWithCounts;
-  world: { id: string; name: string };
+  world: { id: string; name: string; description: string | null };
   coverUrl: string | null;
 };
 
@@ -75,6 +77,25 @@ export type ProjectRelationshipEntry = {
 export type ProjectWorkspaceBundle = {
   project: ProjectWithCounts;
   coverUrl: string | null;
+};
+
+export type ProjectProgressCounts = {
+  characterCount: number;
+  storyCount: number;
+  sceneCount: number;
+  chapterCount: number;
+  locationCount: number;
+  styleReferenceCount: number;
+  hasCover: boolean;
+};
+
+export type ProjectSceneRollupEntry = {
+  sceneId: string;
+  sceneTitle: string;
+  storyId: string;
+  storyTitle: string;
+  worldId: string;
+  updatedAt: string;
 };
 
 function formatProjectError(message: string, code?: string): string {
@@ -251,7 +272,20 @@ export async function getOrCreateDefaultProject(
     };
   }
 
-  return { project: normalizeProject(created as ProjectRow) };
+  const project = normalizeProject(created as ProjectRow);
+  const settingResult = await ensureProjectDefaultSetting(
+    supabase,
+    userId,
+    project
+  );
+  if (settingResult.error) {
+    console.error(
+      "Failed to ensure default setting for default project:",
+      settingResult.error
+    );
+  }
+
+  return { project };
 }
 
 export async function getProjects(): Promise<ProjectsResult> {
@@ -321,6 +355,26 @@ export async function getProjectById(
     supabase,
     normalizeProject(data as ProjectRow)
   );
+
+  if (project.world_count === 0) {
+    const settingResult = await ensureProjectDefaultSetting(
+      supabase,
+      user.id,
+      project
+    );
+    if (settingResult.world) {
+      return {
+        project: await attachProjectCounts(supabase, project),
+      };
+    }
+    if (settingResult.error) {
+      console.error(
+        `Failed to ensure default setting for project ${projectId}:`,
+        settingResult.error
+      );
+    }
+  }
+
   return { project };
 }
 
@@ -367,11 +421,18 @@ export async function getProjectStories(
 
   const { data: worlds } = await supabase
     .from("worlds")
-    .select("id, name")
+    .select("id, name, description")
     .in("id", worldIds.length > 0 ? worldIds : ["00000000-0000-0000-0000-000000000000"]);
 
   const worldMap = new Map(
-    (worlds ?? []).map((w) => [w.id as string, { id: w.id as string, name: w.name as string }])
+    (worlds ?? []).map((w) => [
+      w.id as string,
+      {
+        id: w.id as string,
+        name: w.name as string,
+        description: (w.description as string | null) ?? null,
+      },
+    ])
   );
 
   const { data: rosterCounts } = await supabase
@@ -665,7 +726,23 @@ export async function createProject(
   }
 
   const project = normalizeProject(created as ProjectRow);
+
+  const settingResult = await ensureProjectDefaultSetting(
+    supabase,
+    user.id,
+    project
+  );
+  if (settingResult.error) {
+    console.error(
+      "Failed to ensure default setting for new project:",
+      settingResult.error
+    );
+  }
+
   revalidateProjectPaths(project.id);
+  if (settingResult.world) {
+    revalidatePath("/dashboard/worlds");
+  }
 
   void scanSavedText({
     supabase,
@@ -857,4 +934,295 @@ export async function getStoryProjectContext(
       title: project.title as string,
     },
   };
+}
+
+export async function getProjectStoryProgress(
+  projectId: string
+): Promise<{ stories: ProjectStoryProgress[]; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { stories: [], error: "You must be logged in." };
+  }
+
+  const { data: storyRows, error } = await supabase
+    .from("stories")
+    .select("id, title, world_id, project_type, created_at")
+    .eq("project_id", projectId)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return { stories: [], error: formatProjectError(error.message, error.code) };
+  }
+
+  const stories = storyRows ?? [];
+  const storyIds = stories.map((row) => row.id as string);
+
+  const sceneCountMap = new Map<string, number>();
+  if (storyIds.length > 0) {
+    const { data: sceneRows } = await supabase
+      .from("scenes")
+      .select("story_id")
+      .in("story_id", storyIds);
+
+    for (const row of sceneRows ?? []) {
+      const sid = row.story_id as string;
+      sceneCountMap.set(sid, (sceneCountMap.get(sid) ?? 0) + 1);
+    }
+  }
+
+  return {
+    stories: stories.map((row) => ({
+      id: row.id as string,
+      title: row.title as string,
+      worldId: row.world_id as string,
+      sceneCount: sceneCountMap.get(row.id as string) ?? 0,
+      updatedAt: row.created_at as string,
+      projectType: (row.project_type as Story["project_type"]) ?? "novel",
+    })),
+  };
+}
+
+export async function getProjectProgressCounts(
+  projectId: string
+): Promise<{ counts: ProjectProgressCounts | null; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { counts: null, error: "You must be logged in." };
+  }
+
+  const { data: projectRow, error: projectError } = await supabase
+    .from("projects")
+    .select("cover_image_path")
+    .eq("id", projectId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (projectError || !projectRow) {
+    return {
+      counts: null,
+      error: projectError?.message ?? "Project not found.",
+    };
+  }
+
+  const { data: storyRows } = await supabase
+    .from("stories")
+    .select("id")
+    .eq("project_id", projectId)
+    .eq("user_id", user.id);
+
+  const storyIds = (storyRows ?? []).map((row) => row.id as string);
+
+  const { data: worldRows } = await supabase
+    .from("worlds")
+    .select("id")
+    .eq("project_id", projectId)
+    .eq("user_id", user.id);
+
+  const worldIds = (worldRows ?? []).map((row) => row.id as string);
+  const primaryWorldId = worldIds[0] ?? null;
+
+  const [
+    characterCount,
+    sceneCount,
+    chapterCount,
+    locationCount,
+    styleReferenceCount,
+  ] = await Promise.all([
+    countForProject(supabase, "characters", projectId),
+    storyIds.length > 0
+      ? supabase
+          .from("scenes")
+          .select("*", { count: "exact", head: true })
+          .in("story_id", storyIds)
+          .then(({ count }) => count ?? 0)
+      : Promise.resolve(0),
+    storyIds.length > 0
+      ? supabase
+          .from("chapters")
+          .select("*", { count: "exact", head: true })
+          .in("story_id", storyIds)
+          .then(({ count }) => count ?? 0)
+      : Promise.resolve(0),
+    worldIds.length > 0
+      ? supabase
+          .from("world_locations")
+          .select("*", { count: "exact", head: true })
+          .in("world_id", worldIds)
+          .then(({ count }) => count ?? 0)
+      : Promise.resolve(0),
+    primaryWorldId
+      ? supabase
+          .from("world_moodboards")
+          .select("id")
+          .eq("world_id", primaryWorldId)
+          .maybeSingle()
+          .then(async ({ data: board }) => {
+            if (!board?.id) return 0;
+            const { count } = await supabase
+              .from("world_moodboard_items")
+              .select("*", { count: "exact", head: true })
+              .eq("moodboard_id", board.id as string);
+            return count ?? 0;
+          })
+      : Promise.resolve(0),
+  ]);
+
+  return {
+    counts: {
+      characterCount,
+      storyCount: storyIds.length,
+      sceneCount,
+      chapterCount,
+      locationCount,
+      styleReferenceCount,
+      hasCover: Boolean(projectRow.cover_image_path),
+    },
+  };
+}
+
+export async function getProjectSceneRollup(
+  projectId: string,
+  limit = 8
+): Promise<{ entries: ProjectSceneRollupEntry[]; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { entries: [], error: "You must be logged in." };
+  }
+
+  const { data: storyRows } = await supabase
+    .from("stories")
+    .select("id, title, world_id")
+    .eq("project_id", projectId)
+    .eq("user_id", user.id);
+
+  const storyMap = new Map(
+    (storyRows ?? []).map((row) => [
+      row.id as string,
+      {
+        title: row.title as string,
+        worldId: row.world_id as string,
+      },
+    ])
+  );
+
+  const storyIds = [...storyMap.keys()];
+  if (storyIds.length === 0) {
+    return { entries: [] };
+  }
+
+  const { data: sceneRows, error } = await supabase
+    .from("scenes")
+    .select("id, title, story_id, updated_at, created_at")
+    .in("story_id", storyIds)
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    return { entries: [], error: error.message };
+  }
+
+  const entries: ProjectSceneRollupEntry[] = [];
+  for (const row of sceneRows ?? []) {
+    const storyId = row.story_id as string;
+    const story = storyMap.get(storyId);
+    if (!story) continue;
+
+    entries.push({
+      sceneId: row.id as string,
+      sceneTitle: row.title as string,
+      storyId,
+      storyTitle: story.title,
+      worldId: story.worldId,
+      updatedAt: (row.updated_at as string) ?? (row.created_at as string),
+    });
+  }
+
+  return { entries };
+}
+
+export async function updateProjectCover(
+  projectId: string,
+  formData: FormData
+): Promise<{ error?: string; success?: boolean }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be logged in." };
+  }
+
+  const cover = formData.get("cover");
+  if (!(cover instanceof File) || cover.size === 0) {
+    return { error: "Choose an image to upload." };
+  }
+
+  const coverError = validateCover(cover);
+  if (coverError) {
+    return { error: coverError };
+  }
+
+  const { data: existing } = await supabase
+    .from("projects")
+    .select("cover_image_path")
+    .eq("id", projectId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!existing) {
+    return { error: "Project not found." };
+  }
+
+  const extension = cover.type.split("/")[1] ?? "jpg";
+  const coverPath = `${user.id}/projects/${projectId}/cover.${extension}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(BUCKET)
+    .upload(coverPath, cover, {
+      contentType: cover.type,
+      upsert: true,
+    });
+
+  if (uploadError) {
+    return { error: `Failed to upload cover: ${uploadError.message}` };
+  }
+
+  const { error: updateError } = await supabase
+    .from("projects")
+    .update({
+      cover_image_path: coverPath,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", projectId)
+    .eq("user_id", user.id);
+
+  if (updateError) {
+    return { error: updateError.message };
+  }
+
+  if (
+    existing.cover_image_path &&
+    existing.cover_image_path !== coverPath
+  ) {
+    await supabase.storage.from(BUCKET).remove([existing.cover_image_path]);
+  }
+
+  revalidateProjectPaths(projectId);
+  revalidatePath("/dashboard");
+
+  return { success: true };
 }

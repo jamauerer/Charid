@@ -20,6 +20,8 @@ import {
   ensurePrimaryStoryWorldLink,
   resolveProjectIdForWorld,
 } from "@/app/actions/projects";
+import { ensureProjectDefaultSetting } from "@/lib/project-setting";
+import { normalizeProject, type ProjectRow } from "@/types/project";
 
 export type StoryActionState = {
   error?: string;
@@ -40,7 +42,7 @@ export type CharacterStoryEntry = {
 
 export type UserStoryEntry = {
   story: StoryWithCounts;
-  world: { id: string; name: string };
+  world: { id: string; name: string; description: string | null };
 };
 
 function formatStoryError(message: string, code?: string): string {
@@ -269,7 +271,7 @@ export async function getStoriesForUser(): Promise<{
 
   const { data, error } = await supabase
     .from("stories")
-    .select("*, worlds(id, name)")
+    .select("*, worlds(id, name, description)")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -282,11 +284,21 @@ export async function getStoriesForUser(): Promise<{
 
   const stories = (data ?? []).map((row) => {
     const { worlds: worldRow, ...storyRow } = row as StoryRow & {
-      worlds: { id: string; name: string } | null;
+      worlds: { id: string; name: string; description: string | null } | null;
     };
     return {
       story: normalizeStory(storyRow),
-      world: worldRow ?? { id: storyRow.world_id, name: "Unknown world" },
+      world: worldRow
+        ? {
+            id: worldRow.id,
+            name: worldRow.name,
+            description: worldRow.description ?? null,
+          }
+        : {
+            id: storyRow.world_id,
+            name: "Unknown setting",
+            description: null,
+          },
     };
   });
 
@@ -349,29 +361,72 @@ export async function createStory(
     return { error: "You must be logged in." };
   }
 
-  const worldId = String(formData.get("world_id") ?? "").trim();
+  let worldId = String(formData.get("world_id") ?? "").trim();
+  const projectIdInput = String(formData.get("project_id") ?? "").trim() || null;
   const title = String(formData.get("title") ?? "").trim();
   const summary = String(formData.get("summary") ?? "").trim() || null;
   const status = parseStoryStatus(formData.get("status"));
   const projectType = parseStoryProjectType(formData.get("project_type"));
 
-  if (!worldId || !title) {
+  if (!title) {
     return { error: "Title is required." };
+  }
+
+  if (!worldId && !projectIdInput) {
+    return { error: "Project is required." };
+  }
+
+  let resolvedProjectId: string | null = projectIdInput;
+
+  if (!worldId && projectIdInput) {
+    const { data: projectRow, error: projectError } = await supabase
+      .from("projects")
+      .select("*")
+      .eq("id", projectIdInput)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (projectError) {
+      return { error: projectError.message };
+    }
+    if (!projectRow) {
+      return { error: "Project not found." };
+    }
+
+    const project = normalizeProject(projectRow as ProjectRow);
+    const settingResult = await ensureProjectDefaultSetting(
+      supabase,
+      user.id,
+      project
+    );
+    if (settingResult.error || !settingResult.world) {
+      return {
+        error: settingResult.error ?? "Failed to resolve project setting.",
+      };
+    }
+    worldId = settingResult.world.id;
+    resolvedProjectId = project.id;
   }
 
   const worldCheck = await assertWorldOwner(supabase, worldId, user.id);
   if (worldCheck.error || !worldCheck.world) {
-    return { error: worldCheck.error ?? "World not found." };
+    return { error: worldCheck.error ?? "Setting not found." };
   }
 
-  const projectResolve = await resolveProjectIdForWorld(
-    supabase,
-    user.id,
-    worldId,
-    String(formData.get("project_id") ?? "").trim() || null
-  );
-  if (projectResolve.error && !projectResolve.projectId) {
-    return { error: projectResolve.error };
+  let projectId: string | null;
+  if (resolvedProjectId) {
+    projectId = resolvedProjectId;
+  } else {
+    const projectResolve = await resolveProjectIdForWorld(
+      supabase,
+      user.id,
+      worldId,
+      projectIdInput
+    );
+    if (projectResolve.error && !projectResolve.projectId) {
+      return { error: projectResolve.error };
+    }
+    projectId = projectResolve.projectId;
   }
 
   let slug: string;
@@ -389,7 +444,7 @@ export async function createStory(
     .insert({
       world_id: worldId,
       user_id: user.id,
-      project_id: projectResolve.projectId,
+      project_id: projectId,
       title,
       slug,
       summary,
@@ -411,8 +466,8 @@ export async function createStory(
   const story = normalizeStory(created as StoryRow);
   await ensurePrimaryStoryWorldLink(supabase, story.id, worldId);
 
-  if (projectResolve.projectId) {
-    revalidatePath(`/dashboard/projects/${projectResolve.projectId}`);
+  if (projectId) {
+    revalidatePath(`/dashboard/projects/${projectId}`);
     revalidatePath("/dashboard/projects");
   }
 

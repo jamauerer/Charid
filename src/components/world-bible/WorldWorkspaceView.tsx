@@ -110,7 +110,7 @@ export function WorldWorkspaceView({
             clipRule="evenodd"
           />
         </svg>
-        Back to Worlds
+        Back to all settings
       </Link>
 
       {migrationError && (
@@ -126,7 +126,7 @@ export function WorldWorkspaceView({
       <header className="mb-8 space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className={studioEyebrow}>World</p>
+            <p className={studioEyebrow}>Setting</p>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--brand-text-secondary)] sm:text-3xl">
               {world.name}
             </h1>

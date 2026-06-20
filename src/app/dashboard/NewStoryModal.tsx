@@ -6,12 +6,26 @@ import { ModalPortal } from "@/components/ModalPortal";
 import { StoryForm } from "./StoryForm";
 
 type NewStoryModalProps = {
-  worldId: string;
+  /** Setting workspace — story create from a setting page. */
+  worldId?: string;
+  /** Project workspace — uses auto-provisioned setting internally. */
+  projectId?: string;
 };
 
-export function NewStoryModal({ worldId }: NewStoryModalProps) {
+export function NewStoryModal({ worldId, projectId }: NewStoryModalProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+
+  const subtitle = projectId
+    ? "Add a story to this project"
+    : "Plan a story within this setting";
+
+  function handleSuccess(story: { id: string; world_id: string }) {
+    setOpen(false);
+    router.push(
+      `/dashboard/worlds/${story.world_id}/stories/${story.id}?welcome=1`
+    );
+  }
 
   return (
     <>
@@ -49,7 +63,7 @@ export function NewStoryModal({ worldId }: NewStoryModalProps) {
                       New Story
                     </h2>
                     <p className="mt-0.5 text-xs text-[var(--brand-text-secondary)]">
-                      Plan a story within this world
+                      {subtitle}
                     </p>
                   </div>
                   <button
@@ -72,12 +86,8 @@ export function NewStoryModal({ worldId }: NewStoryModalProps) {
                 <div className="overflow-y-auto p-5">
                   <StoryForm
                     worldId={worldId}
-                    onSuccess={(story) => {
-                      setOpen(false);
-                      router.push(
-                        `/dashboard/worlds/${worldId}/stories/${story.id}?welcome=1`
-                      );
-                    }}
+                    projectId={projectId}
+                    onSuccess={handleSuccess}
                   />
                 </div>
               </div>

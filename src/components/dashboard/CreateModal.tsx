@@ -3,13 +3,13 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { ModalPortal } from "@/components/ModalPortal";
-import { getWorlds } from "@/app/actions/worlds";
+import { getProjects } from "@/app/actions/projects";
 import { CharacterForm } from "@/app/dashboard/CharacterForm";
 import { WorldForm } from "@/app/dashboard/WorldForm";
 import { StoryForm } from "@/app/dashboard/StoryForm";
 import { StartNewProjectWizard } from "@/components/project/StartNewProjectWizard";
 import type { Story } from "@/types/story";
-import type { WorldWithCounts } from "@/types/world";
+import type { ProjectWithCounts } from "@/types/project";
 import {
   studioBtnPrimarySm,
   dsModalBackdrop,
@@ -29,7 +29,7 @@ type QuickAddView =
   | "home"
   | "character"
   | "world"
-  | "story-select-world"
+  | "story-select-project"
   | "story";
 
 function ModalShell({
@@ -117,10 +117,10 @@ export function CreateModal({ variant = "default" }: CreateModalProps) {
   const [open, setOpen] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [view, setView] = useState<QuickAddView>("home");
-  const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null);
-  const [worlds, setWorlds] = useState<WorldWithCounts[]>([]);
-  const [worldsLoading, setWorldsLoading] = useState(false);
-  const [worldsError, setWorldsError] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [projects, setProjects] = useState<ProjectWithCounts[]>([]);
+  const [projectsLoading, setProjectsLoading] = useState(false);
+  const [projectsError, setProjectsError] = useState<string | null>(null);
 
   const triggerClass =
     variant === "sidebar"
@@ -131,14 +131,14 @@ export function CreateModal({ variant = "default" }: CreateModalProps) {
     setOpen(false);
     setWizardOpen(false);
     setView("home");
-    setSelectedWorldId(null);
-    setWorlds([]);
-    setWorldsError(null);
+    setSelectedProjectId(null);
+    setProjects([]);
+    setProjectsError(null);
   }
 
   function handleOpen() {
     setView("home");
-    setSelectedWorldId(null);
+    setSelectedProjectId(null);
     setOpen(true);
   }
 
@@ -155,21 +155,22 @@ export function CreateModal({ variant = "default" }: CreateModalProps) {
   }
 
   useEffect(() => {
-    if (!open || view !== "story-select-world") return;
+    if (!open || view !== "story-select-project") return;
 
     let cancelled = false;
-    setWorldsLoading(true);
-    setWorldsError(null);
+    setProjectsLoading(true);
+    setProjectsError(null);
 
-    getWorlds().then((result) => {
+    getProjects().then((result) => {
       if (cancelled) return;
-      setWorldsLoading(false);
+      setProjectsLoading(false);
       if (result.error) {
-        setWorldsError(result.error);
-        setWorlds([]);
+        setProjectsError(result.error);
+        setProjects([]);
         return;
       }
-      setWorlds(result.worlds);
+      const list = result.projects;
+      setProjects(list);
     });
 
     return () => {
@@ -238,8 +239,8 @@ export function CreateModal({ variant = "default" }: CreateModalProps) {
               {(
                 [
                   { id: "character" as const, label: "Character", desc: "New profile" },
-                  { id: "world" as const, label: "World", desc: "New setting" },
-                  { id: "story" as const, label: "Story", desc: "Pick a world" },
+                  { id: "world" as const, label: "Setting", desc: "New place" },
+                  { id: "story" as const, label: "Story", desc: "Add to a project" },
                 ] as const
               ).map((item) => (
                 <button
@@ -247,7 +248,7 @@ export function CreateModal({ variant = "default" }: CreateModalProps) {
                   type="button"
                   onClick={() => {
                     if (item.id === "story") {
-                      setView("story-select-world");
+                      setView("story-select-project");
                     } else {
                       setView(item.id);
                     }
@@ -278,8 +279,8 @@ export function CreateModal({ variant = "default" }: CreateModalProps) {
 
       {open && view === "world" && (
         <ModalShell
-          title="Create World"
-          subtitle="A setting for characters and stories"
+          title="New Setting"
+          subtitle="A place for characters and stories"
           onClose={resetAndClose}
           onBack={() => setView("home")}
         >
@@ -287,48 +288,50 @@ export function CreateModal({ variant = "default" }: CreateModalProps) {
         </ModalShell>
       )}
 
-      {open && view === "story-select-world" && (
+      {open && view === "story-select-project" && (
         <ModalShell
-          title="Choose a world"
-          subtitle="Stories live inside a world"
+          title="Choose a project"
+          subtitle="Your story will live in this project"
           onClose={resetAndClose}
           onBack={() => setView("home")}
         >
-          {worldsLoading ? (
-            <p className="text-sm text-[var(--brand-text-muted)]">Loading worlds…</p>
-          ) : worldsError ? (
-            <p className={dsAlertWarning}>{worldsError}</p>
-          ) : worlds.length === 0 ? (
+          {projectsLoading ? (
+            <p className="text-sm text-[var(--brand-text-muted)]">Loading projects…</p>
+          ) : projectsError ? (
+            <p className={dsAlertWarning}>{projectsError}</p>
+          ) : projects.length === 0 ? (
             <div className="space-y-4 text-center">
               <p className="text-sm text-[var(--brand-text-secondary)]">
-                You need a world before you can create a story.
+                Start a project before adding a story.
               </p>
               <button
                 type="button"
-                onClick={() => setView("world")}
+                onClick={() => {
+                  setWizardOpen(true);
+                }}
                 className={dsBtnPrimary}
               >
-                Create World
+                Start New Project
               </button>
             </div>
           ) : (
             <ul className="space-y-2">
-              {worlds.map((world) => (
-                <li key={world.id}>
+              {projects.map((project) => (
+                <li key={project.id}>
                   <button
                     type="button"
                     onClick={() => {
-                      setSelectedWorldId(world.id);
+                      setSelectedProjectId(project.id);
                       setView("story");
                     }}
                     className={`flex w-full items-center justify-between ${dsCardLink} px-3 py-3 text-left`}
                   >
                     <span className="text-sm font-medium text-[var(--foreground)]">
-                      {world.name}
+                      {project.title}
                     </span>
                     <span className="text-xs text-[var(--brand-text-muted)]">
-                      {world.character_count}{" "}
-                      {world.character_count === 1 ? "character" : "characters"}
+                      {project.story_count}{" "}
+                      {project.story_count === 1 ? "story" : "stories"}
                     </span>
                   </button>
                 </li>
@@ -338,14 +341,14 @@ export function CreateModal({ variant = "default" }: CreateModalProps) {
         </ModalShell>
       )}
 
-      {open && view === "story" && selectedWorldId && (
+      {open && view === "story" && selectedProjectId && (
         <ModalShell
           title="New Story"
-          subtitle="Plan a story within this world"
+          subtitle="Plan a story within this project"
           onClose={resetAndClose}
-          onBack={() => setView("story-select-world")}
+          onBack={() => setView("story-select-project")}
         >
-          <StoryForm worldId={selectedWorldId} onSuccess={handleStorySuccess} />
+          <StoryForm projectId={selectedProjectId} onSuccess={handleStorySuccess} />
         </ModalShell>
       )}
     </>

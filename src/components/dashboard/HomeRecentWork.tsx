@@ -12,7 +12,7 @@ type HomeRecentWorkProps = {
 const TYPE_LABELS: Record<HomeStudioItem["type"], string> = {
   story: "Story",
   character: "Character",
-  world: "World",
+  world: "Setting",
 };
 
 export function HomeRecentWork({ items }: HomeRecentWorkProps) {

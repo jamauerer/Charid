@@ -97,7 +97,7 @@ export function ProjectOverviewSection({
           href={`${base}?tab=characters`}
         />
         <StatCard
-          label="Worlds"
+          label="Setting"
           count={project.world_count}
           href={`${base}?tab=worlds`}
         />
@@ -109,8 +109,8 @@ export function ProjectOverviewSection({
       </div>
 
       <p className="text-xs text-neutral-500">
-        Stories, characters, and worlds open in their dedicated workspaces.
-        This project groups everything for one finished work.
+        Everything for this project lives here. Open stories, characters, and
+        settings from the tabs below.
       </p>
     </div>
   );

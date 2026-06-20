@@ -4,7 +4,7 @@ export const STUDIO_EMPTY_COPY = {
   project: {
     headline: "What do you want to create?",
     description:
-      "A comic, a picture book, a world — start a project and your art will live here.",
+      "A comic, a picture book, a setting — start a project and your art will live here.",
   },
   story: {
     headline: "No stories yet",
@@ -16,7 +16,7 @@ export const STUDIO_EMPTY_COPY = {
   },
   world: {
     headline: "What kind of place are we exploring?",
-    description: "This world is still taking shape.",
+    description: "This setting is still taking shape.",
   },
   scene: {
     headline: "What happens next?",
@@ -24,7 +24,7 @@ export const STUDIO_EMPTY_COPY = {
   },
   studio: {
     headline: "Your studio is waiting for its first image.",
-    description: "Create a character, world, or story — your art will appear here.",
+    description: "Create a character, setting, or story — your art will appear here.",
   },
 } as const;
 
@@ -44,7 +44,7 @@ export const EMPTY_PLACEHOLDER_COPY = {
   },
   worldCover: {
     title: "No cover yet",
-    description: "This world is still taking shape.",
+    description: "This setting is still taking shape.",
   },
   characterPhoto: {
     title: "No portrait yet",

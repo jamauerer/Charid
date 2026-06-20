@@ -27,7 +27,7 @@ export function HomeFirstTimeHero() {
           A place where stories begin.
         </h1>
         <p className={`mt-2 max-w-lg ${studioSectionSub}`}>
-          Start a project — your characters, worlds, and stories will appear
+          Start a project — your characters, settings, and stories will appear
           here as art.
         </p>
         <div className="mt-4">

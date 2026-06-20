@@ -2,12 +2,19 @@
 
 import { useActionState, useEffect } from "react";
 import { createStory, type StoryActionState } from "@/app/actions/stories";
-import { STORY_STATUSES, STORY_PROJECT_TYPES, STORY_PROJECT_TYPE_LABELS, type StoryProjectType } from "@/types/story";
+import {
+  STORY_STATUSES,
+  STORY_PROJECT_TYPES,
+  STORY_PROJECT_TYPE_LABELS,
+  type StoryProjectType,
+} from "@/types/story";
 import type { Story } from "@/types/story";
 import { selectClassName } from "@/components/CharacterFormFields";
 
 type StoryFormProps = {
-  worldId: string;
+  /** Setting workspace path — optional when projectId is provided. */
+  worldId?: string;
+  /** Project-first path — resolves auto-provisioned setting internally. */
   projectId?: string;
   defaultProjectType?: StoryProjectType;
   onSuccess?: (story: Story) => void;
@@ -30,9 +37,17 @@ export function StoryForm({
     }
   }, [state.success, state.story, onSuccess]);
 
+  if (!worldId && !projectId) {
+    return (
+      <p className="text-sm text-[var(--status-danger-text)]">
+        Story form requires a project or setting context.
+      </p>
+    );
+  }
+
   return (
     <form action={formAction} className="space-y-4">
-      <input type="hidden" name="world_id" value={worldId} />
+      {worldId && <input type="hidden" name="world_id" value={worldId} />}
       {projectId && <input type="hidden" name="project_id" value={projectId} />}
 
       {state.error && (

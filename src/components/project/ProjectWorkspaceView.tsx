@@ -1,158 +1,216 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ProjectOverviewSection } from "@/components/project/ProjectOverviewSection";
-import { ProjectStoriesSection } from "@/components/project/ProjectStoriesSection";
+import { useEffect } from "react";
+import { NewStoryModal } from "@/app/dashboard/NewStoryModal";
+import { ProjectAddCharacterButton } from "@/components/project/ProjectAddCharacterButton";
 import { ProjectCharactersSection } from "@/components/project/ProjectCharactersSection";
-import { ProjectWorldsSection } from "@/components/project/ProjectWorldsSection";
+import { ProjectFormatGuide } from "@/components/project/ProjectFormatGuide";
+import { ProjectNotesSection } from "@/components/project/ProjectNotesSection";
 import { ProjectRelationshipsSection } from "@/components/project/ProjectRelationshipsSection";
+import { ProjectRoadmapSection } from "@/components/project/ProjectRoadmapSection";
+import { ProjectScenesSection } from "@/components/project/ProjectScenesSection";
+import { ProjectStoriesSection } from "@/components/project/ProjectStoriesSection";
+import { ProjectStyleReferencesSection } from "@/components/project/ProjectStyleReferencesSection";
+import { ProjectWhatsNext } from "@/components/project/ProjectWhatsNext";
+import { ProjectWorldsSection } from "@/components/project/ProjectWorldsSection";
 import type {
   ProjectCharacterEntry,
+  ProjectProgressCounts,
   ProjectRelationshipEntry,
+  ProjectSceneRollupEntry,
   ProjectStoryEntry,
   ProjectWorldEntry,
 } from "@/app/actions/projects";
+import type {
+  ProjectFinishPathResult,
+  ProjectStoryProgress,
+} from "@/lib/project-finish-path";
+import { PROJECT_SECTION_IDS } from "@/lib/project-tabs";
 import type { ProjectWithCounts } from "@/types/project";
 import { PROJECT_WORK_INTENT_LABELS } from "@/types/project";
-
-export const PROJECT_TABS = [
-  "overview",
-  "stories",
-  "characters",
-  "worlds",
-  "relationships",
-] as const;
-
-export type ProjectTab = (typeof PROJECT_TABS)[number];
-
-const TAB_LABELS: Record<ProjectTab, string> = {
-  overview: "Overview",
-  stories: "Stories",
-  characters: "Characters",
-  worlds: "Worlds",
-  relationships: "Relationships",
-};
+import type { WorldImageWithUrl } from "@/types/world-image";
+import type { WorldMoodboardBundle } from "@/types/world-moodboard";
 
 type ProjectWorkspaceViewProps = {
   project: ProjectWithCounts;
   coverUrl: string | null;
-  activeTab: ProjectTab;
+  finishPath: ProjectFinishPathResult;
+  progressCounts: ProjectProgressCounts;
+  storyProgress: ProjectStoryProgress[];
+  initialScrollSection: string | null;
   stories: ProjectStoryEntry[];
   characters: ProjectCharacterEntry[];
   worlds: ProjectWorldEntry[];
   relationships: ProjectRelationshipEntry[];
   relationshipPhotoUrls: Record<string, string | null>;
+  sceneRollup: ProjectSceneRollupEntry[];
+  primaryWorldId: string | null;
+  moodboardBundle: WorldMoodboardBundle | null;
+  galleryImages: WorldImageWithUrl[];
   migrationError?: string;
 };
 
 export function ProjectWorkspaceView({
   project,
   coverUrl,
-  activeTab,
+  finishPath,
+  progressCounts,
+  storyProgress,
+  initialScrollSection,
   stories,
   characters,
   worlds,
   relationships,
   relationshipPhotoUrls,
+  sceneRollup,
+  primaryWorldId,
+  moodboardBundle,
+  galleryImages,
   migrationError,
 }: ProjectWorkspaceViewProps) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  function setTab(tab: ProjectTab) {
-    const params = new URLSearchParams(searchParams.toString());
-    if (tab === "overview") {
-      params.delete("tab");
-    } else {
-      params.set("tab", tab);
+  useEffect(() => {
+    if (!initialScrollSection) return;
+    const el = document.getElementById(initialScrollSection);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-    const query = params.toString();
-    router.push(query ? `${pathname}?${query}` : pathname);
-  }
+  }, [initialScrollSection]);
+
+  const isWorldbuilding = project.work_intent === "worldbuilding";
+  const hasStory = progressCounts.storyCount > 0;
 
   return (
     <div className="mx-auto w-full max-w-[1280px]">
       {migrationError && (
-        <div className="mb-4 rounded-lg rounded-lg border border-[color-mix(in_srgb,var(--brand-warning)_25%,var(--brand-border))] bg-[color-mix(in_srgb,var(--brand-warning)_8%,var(--brand-surface))] px-3 py-2.5 text-sm text-[var(--foreground)]">
+        <div className="mb-4 rounded-lg border border-[color-mix(in_srgb,var(--brand-warning)_25%,var(--brand-border))] bg-[color-mix(in_srgb,var(--brand-warning)_8%,var(--brand-surface))] px-3 py-2.5 text-sm text-[var(--foreground)]">
           {migrationError}
         </div>
       )}
 
-      <div className="mb-6 border-b border-[var(--brand-border)] pb-5">
+      <div className="mb-5 border-b border-[var(--brand-border)] pb-5">
         <Link
           href="/dashboard/projects"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-[var(--brand-text-secondary)] transition hover:text-[var(--brand-text-secondary)]"
+          className="mb-3 inline-flex items-center gap-1 text-xs text-[var(--brand-text-secondary)] transition hover:text-[var(--foreground)]"
         >
           ← All projects
         </Link>
-        <h1 className="text-xl font-semibold tracking-tight text-[var(--brand-text-secondary)]">
+        <h1 className="text-xl font-semibold tracking-tight text-[var(--foreground)] sm:text-2xl">
           {project.title}
         </h1>
-        <p className="mt-1 text-sm text-[var(--brand-text-secondary)]">
+        <p className="mt-1 text-sm text-[var(--brand-text-muted)]">
           {project.work_intent
             ? PROJECT_WORK_INTENT_LABELS[project.work_intent]
-            : "Everything for this finished work"}
+            : "Creative project"}
         </p>
       </div>
 
-      <nav
-        className="mb-6 flex flex-wrap gap-1 border-b border-[var(--brand-border)] pb-px"
-        aria-label="Project sections"
-      >
-        {PROJECT_TABS.map((tab) => {
-          const isActive = activeTab === tab;
-          const count =
-            tab === "stories"
-              ? project.story_count
-              : tab === "characters"
-                ? project.character_count
-                : tab === "worlds"
-                  ? project.world_count
-                  : tab === "relationships"
-                    ? project.relationship_count
-                    : null;
+      <ProjectFormatGuide projectId={project.id} workIntent={project.work_intent} />
 
-          return (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setTab(tab)}
-              className={`relative px-3 py-2 text-sm font-medium transition ${
-                isActive
-                  ? "text-neutral-600"
-                  : "text-[var(--brand-text-secondary)] hover:text-[var(--brand-text-secondary)]"
-              }`}
-            >
-              {TAB_LABELS[tab]}
-              {count !== null && count > 0 && (
-                <span className="ml-1.5 tabular-nums text-[var(--brand-text-secondary)]">
-                  {count}
-                </span>
-              )}
-              {isActive && (
-                <span className="absolute inset-x-0 -bottom-px h-0.5 bg-violet-500" />
-              )}
-            </button>
-          );
-        })}
-      </nav>
+      <div className="mb-6">
+        <ProjectWhatsNext finishPath={finishPath} />
+      </div>
 
-      {activeTab === "overview" && (
-        <ProjectOverviewSection project={project} coverUrl={coverUrl} />
-      )}
-      {activeTab === "stories" && <ProjectStoriesSection entries={stories} />}
-      {activeTab === "characters" && (
-        <ProjectCharactersSection entries={characters} />
-      )}
-      {activeTab === "worlds" && <ProjectWorldsSection entries={worlds} />}
-      {activeTab === "relationships" && (
-        <ProjectRelationshipsSection
-          entries={relationships}
-          photoUrls={relationshipPhotoUrls}
+      <div className="mb-8">
+        <ProjectStyleReferencesSection
+          projectId={project.id}
+          coverUrl={coverUrl}
+          worldId={primaryWorldId}
+          moodboardBundle={moodboardBundle}
+          galleryImages={galleryImages}
         />
-      )}
+      </div>
+
+      <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 sm:px-5">
+        <ProjectRoadmapSection
+          id={PROJECT_SECTION_IDS.story}
+          title="Story"
+          count={progressCounts.storyCount}
+          defaultExpanded
+          action={<NewStoryModal projectId={project.id} />}
+        >
+          <ProjectStoriesSection
+            projectId={project.id}
+            entries={stories}
+            storyProgress={storyProgress}
+            projectTitle={project.title}
+          />
+        </ProjectRoadmapSection>
+
+        <ProjectRoadmapSection
+          id={PROJECT_SECTION_IDS.characters}
+          title="Characters"
+          count={progressCounts.characterCount}
+          defaultExpanded={progressCounts.characterCount > 0 || !hasStory}
+          action={<ProjectAddCharacterButton projectId={project.id} />}
+          preview={
+            progressCounts.characterCount === 0
+              ? "Add characters when you're ready — or start with a story first."
+              : undefined
+          }
+        >
+          <ProjectCharactersSection entries={characters} />
+        </ProjectRoadmapSection>
+
+        {hasStory && (
+          <ProjectRoadmapSection
+            id={PROJECT_SECTION_IDS.scenes}
+            title="Scenes"
+            count={progressCounts.sceneCount}
+            defaultExpanded={progressCounts.sceneCount > 0}
+            preview={
+              progressCounts.sceneCount === 0
+                ? "Scenes are beats in your story — add them from the story workspace."
+                : undefined
+            }
+          >
+            <ProjectScenesSection
+              entries={sceneRollup}
+              storyCount={progressCounts.storyCount}
+            />
+          </ProjectRoadmapSection>
+        )}
+
+        <ProjectRoadmapSection
+          id={PROJECT_SECTION_IDS.setting}
+          title="Setting"
+          count={progressCounts.locationCount || worlds.length}
+          defaultExpanded={isWorldbuilding}
+          preview={
+            progressCounts.locationCount === 0
+              ? "Locations and place details — add when a scene needs a place."
+              : `${worlds.length} setting${worlds.length === 1 ? "" : "s"} · ${progressCounts.locationCount} location${progressCounts.locationCount === 1 ? "" : "s"}`
+          }
+        >
+          <ProjectWorldsSection entries={worlds} />
+        </ProjectRoadmapSection>
+
+        <ProjectRoadmapSection
+          id={PROJECT_SECTION_IDS.connections}
+          title="Connections"
+          count={relationships.length}
+          defaultExpanded={relationships.length > 0}
+          preview={
+            relationships.length === 0
+              ? "Character relationships appear here when you define them."
+              : undefined
+          }
+        >
+          <ProjectRelationshipsSection
+            entries={relationships}
+            photoUrls={relationshipPhotoUrls}
+          />
+        </ProjectRoadmapSection>
+
+        <ProjectRoadmapSection
+          id={PROJECT_SECTION_IDS.notes}
+          title="Notes"
+          defaultExpanded={Boolean(project.description)}
+          preview={project.description ? undefined : "Project description and notes."}
+        >
+          <ProjectNotesSection description={project.description} />
+        </ProjectRoadmapSection>
+      </div>
     </div>
   );
 }

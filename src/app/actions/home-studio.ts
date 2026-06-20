@@ -4,6 +4,7 @@ import { getCharacterPhotoUrl, getCharacters } from "@/app/actions/characters";
 import { getStoryCoverUrls } from "@/app/actions/story-images";
 import { getStoriesForUser } from "@/app/actions/stories";
 import { getWorldCoverUrl, getWorlds } from "@/app/actions/worlds";
+import { isAutoProvisionedSetting } from "@/lib/project-setting";
 
 export type HomeStudioItem = {
   id: string;
@@ -39,7 +40,7 @@ export async function getHomeStudioPreview(): Promise<{
       id: story.id,
       type: "story",
       title: story.title,
-      subtitle: world.name,
+      subtitle: isAutoProvisionedSetting(world) ? null : world.name,
       imageUrl: storyCoverUrls[story.id] ?? null,
       href: `/dashboard/worlds/${world.id}/stories/${story.id}`,
       sortKey: story.created_at,

@@ -34,7 +34,7 @@ export function DashboardWorldsView({
       {error && <div className={`mb-4 ${dsAlertWarning}`}>{error}</div>}
 
       <PageHeader
-        title="My Worlds"
+        title="All settings"
         actions={<NewWorldModal onCreated={handleWorldCreated} />}
       />
 
