@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { StorySectionGuide } from "@/components/story-bible/StorySectionGuide";
 import { StoryReferenceAssetCard } from "@/components/story-bible/StoryReferenceAssetCard";
+import { ConfirmDialog } from "@/components/studio/ConfirmDialog";
 import { assignableStoryRoles } from "@/lib/story-assignable-image-roles";
 import { buildStorySlotAssignmentMap } from "@/lib/story-slot-assignments";
 import {
@@ -25,6 +26,8 @@ export function StoryReferenceSection({
   slotAssignments,
 }: StoryReferenceSectionProps) {
   const router = useRouter();
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [deletePending, setDeletePending] = useState(false);
 
   const slotMap = useMemo(
     () => buildStorySlotAssignmentMap(images, slotAssignments),
@@ -48,19 +51,21 @@ export function StoryReferenceSection({
     e.target.value = "";
   }
 
-  async function handleDelete(imageId: string) {
-    if (
-      !confirm(
-        "Remove this asset? Role assignments using it will also clear."
-      )
-    ) {
-      return;
-    }
-    await deleteStoryImage(imageId);
+  function requestDelete(imageId: string) {
+    setDeleteTargetId(imageId);
+  }
+
+  async function confirmDelete() {
+    if (!deleteTargetId) return;
+    setDeletePending(true);
+    await deleteStoryImage(deleteTargetId);
+    setDeletePending(false);
+    setDeleteTargetId(null);
     refresh();
   }
 
   return (
+    <>
     <div className="space-y-6">
       <StorySectionGuide
         title="Assets"
@@ -105,7 +110,7 @@ export function StoryReferenceSection({
                 image={image}
                 slotMap={slotMap}
                 assignableRoles={assignableRoles}
-                onDelete={handleDelete}
+                onDelete={requestDelete}
                 onUpdated={refresh}
               />
             ))}
@@ -113,5 +118,20 @@ export function StoryReferenceSection({
         )}
       </section>
     </div>
+
+    <ConfirmDialog
+      open={deleteTargetId !== null}
+      title="Remove asset"
+      description="Remove this asset? Role assignments using it will also clear."
+      confirmLabel="Remove"
+      pending={deletePending}
+      onConfirm={confirmDelete}
+      onCancel={() => {
+        if (!deletePending) {
+          setDeleteTargetId(null);
+        }
+      }}
+    />
+    </>
   );
 }

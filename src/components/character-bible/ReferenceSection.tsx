@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { BibleSectionGuide } from "@/components/character-bible/BibleSectionGuide";
 import { ReferenceAssetCard } from "@/components/character-bible/ReferenceAssetCard";
 import { ReferenceSlotCard } from "@/components/character-bible/ReferenceSlotCard";
+import { ConfirmDialog } from "@/components/studio/ConfirmDialog";
 import { assignableRolesForArchetype } from "@/lib/assignable-image-roles";
 import {
   buildSlotAssignmentMap,
@@ -33,6 +34,8 @@ export function ReferenceSection({
   identityArchetype,
 }: ReferenceSectionProps) {
   const [images, setImages] = useState(initialImages);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [deletePending, setDeletePending] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -67,19 +70,21 @@ export function ReferenceSection({
     e.target.value = "";
   }
 
-  async function handleDelete(imageId: string) {
-    if (
-      !confirm(
-        "Remove this asset? Role assignments using it will also clear."
-      )
-    ) {
-      return;
-    }
-    await deleteCharacterImage(imageId);
+  function requestDelete(imageId: string) {
+    setDeleteTargetId(imageId);
+  }
+
+  async function confirmDelete() {
+    if (!deleteTargetId) return;
+    setDeletePending(true);
+    await deleteCharacterImage(deleteTargetId);
+    setDeletePending(false);
+    setDeleteTargetId(null);
     refresh();
   }
 
   return (
+    <>
     <div className="space-y-6">
       <BibleSectionGuide
         title="Reference assets"
@@ -124,7 +129,7 @@ export function ReferenceSection({
                 image={image}
                 slotMap={slotMap}
                 assignableRoles={assignableRoles}
-                onDelete={handleDelete}
+                onDelete={requestDelete}
                 onUpdated={refresh}
               />
             ))}
@@ -153,5 +158,20 @@ export function ReferenceSection({
         </div>
       </section>
     </div>
+
+    <ConfirmDialog
+      open={deleteTargetId !== null}
+      title="Remove asset"
+      description="Remove this asset? Role assignments using it will also clear."
+      confirmLabel="Remove"
+      pending={deletePending}
+      onConfirm={confirmDelete}
+      onCancel={() => {
+        if (!deletePending) {
+          setDeleteTargetId(null);
+        }
+      }}
+    />
+    </>
   );
 }

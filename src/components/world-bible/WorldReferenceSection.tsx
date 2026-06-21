@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { WorldSectionGuide } from "@/components/world-bible/WorldSectionGuide";
 import { WorldReferenceAssetCard } from "@/components/world-bible/WorldReferenceAssetCard";
+import { ConfirmDialog } from "@/components/studio/ConfirmDialog";
 import { assignableWorldRoles } from "@/lib/world-assignable-image-roles";
 import {
   buildWorldSlotAssignmentMap,
@@ -28,6 +29,8 @@ export function WorldReferenceSection({
   slotAssignments,
 }: WorldReferenceSectionProps) {
   const router = useRouter();
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [deletePending, setDeletePending] = useState(false);
 
   const slotMap = useMemo(
     () => buildWorldSlotAssignmentMap(images, slotAssignments),
@@ -51,19 +54,21 @@ export function WorldReferenceSection({
     e.target.value = "";
   }
 
-  async function handleDelete(imageId: string) {
-    if (
-      !confirm(
-        "Remove this asset? Role assignments using it will also clear."
-      )
-    ) {
-      return;
-    }
-    await deleteWorldImage(imageId);
+  function requestDelete(imageId: string) {
+    setDeleteTargetId(imageId);
+  }
+
+  async function confirmDelete() {
+    if (!deleteTargetId) return;
+    setDeletePending(true);
+    await deleteWorldImage(deleteTargetId);
+    setDeletePending(false);
+    setDeleteTargetId(null);
     refresh();
   }
 
   return (
+    <>
     <div className="space-y-6">
       <WorldSectionGuide
         title="Reference assets"
@@ -108,7 +113,7 @@ export function WorldReferenceSection({
                 image={image}
                 slotMap={slotMap}
                 assignableRoles={assignableRoles}
-                onDelete={handleDelete}
+                onDelete={requestDelete}
                 onUpdated={refresh}
               />
             ))}
@@ -116,5 +121,20 @@ export function WorldReferenceSection({
         )}
       </section>
     </div>
+
+    <ConfirmDialog
+      open={deleteTargetId !== null}
+      title="Remove asset"
+      description="Remove this asset? Role assignments using it will also clear."
+      confirmLabel="Remove"
+      pending={deletePending}
+      onConfirm={confirmDelete}
+      onCancel={() => {
+        if (!deletePending) {
+          setDeleteTargetId(null);
+        }
+      }}
+    />
+    </>
   );
 }

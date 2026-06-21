@@ -16,6 +16,7 @@ import {
   labelRiskCategories,
 } from "@/lib/moderation/labels";
 import { sanitizeFounderError } from "@/lib/founder-messages";
+import { ConfirmDialog } from "@/components/studio/ConfirmDialog";
 import {
   studioAdminCard,
   studioEyebrow,
@@ -53,11 +54,15 @@ function formatContentType(type: string, entityType: string): string {
   return `${type} · ${entityType.replace(/_/g, " ")}`;
 }
 
+type ModerationConfirmAction = "remove" | "suspend" | null;
+
 function QueueItemCard({ item }: { item: ModerationQueueEntry }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [note, setNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] =
+    useState<ModerationConfirmAction>(null);
 
   function runAction(
     action: () => Promise<{ error?: string; success?: boolean }>
@@ -82,7 +87,35 @@ function QueueItemCard({ item }: { item: ModerationQueueEntry }) {
   const isActionable =
     item.status === "pending" || item.status === "escalated";
 
+  function handleConfirmAction() {
+    if (!confirmAction) return;
+
+    if (confirmAction === "remove") {
+      runAction(() => removeModerationItem(item.id, note));
+    } else {
+      runAction(() => suspendUserFromModeration(item.user_id, note));
+    }
+    setConfirmAction(null);
+  }
+
+  const confirmDialogProps =
+    confirmAction === "remove"
+      ? {
+          title: "Remove content",
+          description:
+            "Remove this content from public view? This decision will be recorded with your optional note.",
+          confirmLabel: "Remove",
+        }
+      : confirmAction === "suspend"
+        ? {
+            title: "Suspend account",
+            description: `Suspend ${creatorLabel}? They won't be able to sign in until unsuspended.`,
+            confirmLabel: "Suspend account",
+          }
+        : null;
+
   return (
+    <>
     <article className={studioAdminCard}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -172,9 +205,7 @@ function QueueItemCard({ item }: { item: ModerationQueueEntry }) {
             <button
               type="button"
               disabled={pending}
-              onClick={() =>
-                runAction(() => removeModerationItem(item.id, note))
-              }
+              onClick={() => setConfirmAction("remove")}
               className="rounded-lg bg-red-800/90 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
             >
               Remove
@@ -192,9 +223,7 @@ function QueueItemCard({ item }: { item: ModerationQueueEntry }) {
             <button
               type="button"
               disabled={pending}
-              onClick={() =>
-                runAction(() => suspendUserFromModeration(item.user_id, note))
-              }
+              onClick={() => setConfirmAction("suspend")}
               className="rounded-lg border border-[var(--brand-border)] px-3 py-1.5 text-xs font-medium text-[var(--brand-text-secondary)] transition hover:bg-[var(--brand-surface)] disabled:opacity-60"
             >
               Suspend account
@@ -221,6 +250,23 @@ function QueueItemCard({ item }: { item: ModerationQueueEntry }) {
 
       {message && <p className="mt-3 text-xs text-[var(--brand-text-secondary)]">{message}</p>}
     </article>
+
+    {confirmDialogProps && (
+      <ConfirmDialog
+        open={confirmAction !== null}
+        title={confirmDialogProps.title}
+        description={confirmDialogProps.description}
+        confirmLabel={confirmDialogProps.confirmLabel}
+        pending={pending}
+        onConfirm={handleConfirmAction}
+        onCancel={() => {
+          if (!pending) {
+            setConfirmAction(null);
+          }
+        }}
+      />
+    )}
+    </>
   );
 }
 

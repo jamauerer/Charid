@@ -13,6 +13,7 @@ import {
   LOCATION_TYPES,
   type LocationType,
 } from "@/lib/location-types";
+import { ConfirmDialog } from "@/components/studio/ConfirmDialog";
 import type { WorldLocationWithCover } from "@/types/world-location";
 
 type WorldLocationsSectionProps = {
@@ -161,18 +162,26 @@ export function WorldLocationsSection({
 }: WorldLocationsSectionProps) {
   const router = useRouter();
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [locationToRemove, setLocationToRemove] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [, startTransition] = useTransition();
 
-  function handleDelete(locationId: string) {
-    setPendingId(locationId);
+  function confirmRemoveLocation() {
+    if (!locationToRemove) return;
+    const { id } = locationToRemove;
+    setPendingId(id);
     startTransition(async () => {
-      await deleteWorldLocation(locationId, worldId);
+      await deleteWorldLocation(id, worldId);
       setPendingId(null);
+      setLocationToRemove(null);
       router.refresh();
     });
   }
 
   return (
+    <>
     <section id="world-locations" className="mb-10 scroll-mt-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -227,7 +236,12 @@ export function WorldLocationsSection({
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleDelete(location.id)}
+                    onClick={() =>
+                      setLocationToRemove({
+                        id: location.id,
+                        name: location.name,
+                      })
+                    }
                     disabled={pendingId === location.id}
                     className="shrink-0 text-xs text-[var(--brand-text-secondary)] hover:text-[var(--status-danger-text)] disabled:opacity-50"
                   >
@@ -245,5 +259,24 @@ export function WorldLocationsSection({
         </div>
       )}
     </section>
+
+    <ConfirmDialog
+      open={locationToRemove !== null}
+      title="Remove location"
+      description={
+        locationToRemove
+          ? `Remove ${locationToRemove.name}? Map pins and scene references may lose this place.`
+          : ""
+      }
+      confirmLabel="Remove"
+      pending={pendingId === locationToRemove?.id}
+      onConfirm={confirmRemoveLocation}
+      onCancel={() => {
+        if (pendingId === null) {
+          setLocationToRemove(null);
+        }
+      }}
+    />
+    </>
   );
 }

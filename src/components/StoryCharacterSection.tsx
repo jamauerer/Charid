@@ -10,6 +10,7 @@ import {
 } from "@/app/actions/stories";
 import { CharacterPickerModal } from "@/components/dashboard/CharacterPickerModal";
 import { ContextualCharacterCreateModal } from "@/components/dashboard/ContextualCharacterCreateModal";
+import { ConfirmDialog } from "@/components/studio/ConfirmDialog";
 import type { StoryCharacterEntry } from "@/app/actions/stories";
 
 type StoryCharacterSectionProps = {
@@ -33,6 +34,10 @@ export function StoryCharacterSection({
   const [entries, setEntries] = useState(initialEntries);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [characterToRemove, setCharacterToRemove] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   useEffect(() => {
     setEntries(initialEntries);
@@ -53,21 +58,28 @@ export function StoryCharacterSection({
     handleRefresh();
   }
 
-  function handleRemove(characterId: string) {
-    if (!confirm("Remove this character from the story?")) return;
+  function confirmRemove() {
+    if (!characterToRemove) return;
     setError(null);
     startTransition(async () => {
-      const result = await removeCharacterFromStory(storyId, characterId);
+      const result = await removeCharacterFromStory(
+        storyId,
+        characterToRemove.id
+      );
       if (result.error) {
         setError(result.error);
         return;
       }
-      setEntries((prev) => prev.filter((entry) => entry.character_id !== characterId));
+      setEntries((prev) =>
+        prev.filter((entry) => entry.character_id !== characterToRemove.id)
+      );
+      setCharacterToRemove(null);
       handleRefresh();
     });
   }
 
   return (
+    <>
     <div>
       {error && (
         <p className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-[var(--status-danger-text)]">
@@ -135,7 +147,12 @@ export function StoryCharacterSection({
                 </Link>
                 <button
                   type="button"
-                  onClick={() => handleRemove(character_id)}
+                  onClick={() =>
+                    setCharacterToRemove({
+                      id: character_id,
+                      name: character.name,
+                    })
+                  }
                   disabled={pending}
                   className="shrink-0 text-[11px] text-[var(--brand-text-secondary)] transition hover:text-red-400 disabled:opacity-50"
                 >
@@ -147,5 +164,24 @@ export function StoryCharacterSection({
         </div>
       )}
     </div>
+
+    <ConfirmDialog
+      open={characterToRemove !== null}
+      title="Remove from story"
+      description={
+        characterToRemove
+          ? `Remove ${characterToRemove.name} from this story? The character profile stays in your library.`
+          : ""
+      }
+      confirmLabel="Remove"
+      pending={pending}
+      onConfirm={confirmRemove}
+      onCancel={() => {
+        if (!pending) {
+          setCharacterToRemove(null);
+        }
+      }}
+    />
+    </>
   );
 }

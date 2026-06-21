@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { deleteScene } from "@/app/actions/scenes";
 import { SceneCreateStudio } from "@/components/scene-workspace/SceneCreateStudio";
+import { ConfirmDialog } from "@/components/studio/ConfirmDialog";
 import type { StoryCharacterEntry } from "@/app/actions/stories";
 import type { SceneWithCast } from "@/types/scene";
 import { studioBtnSecondary, studioWarmChip } from "@/lib/visual-identity";
@@ -35,16 +36,14 @@ export function SceneCard({
   const [editSession, setEditSession] = useState(0);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   function openEdit() {
     setEditSession((s) => s + 1);
     setEditOpen(true);
   }
 
-  function handleDelete() {
-    if (!window.confirm(`Delete "${scene.title}"? This cannot be undone.`)) {
-      return;
-    }
+  function confirmDelete() {
     setError(null);
     startTransition(async () => {
       const result = await deleteScene(storyId, scene.id, worldId);
@@ -52,6 +51,7 @@ export function SceneCard({
         setError(result.error);
         return;
       }
+      setDeleteConfirmOpen(false);
       router.refresh();
     });
   }
@@ -95,7 +95,7 @@ export function SceneCard({
               </button>
               <button
                 type="button"
-                onClick={handleDelete}
+                onClick={() => setDeleteConfirmOpen(true)}
                 disabled={pending}
                 className="inline-flex items-center justify-center rounded-lg border border-red-500/20 bg-red-500/5 px-3.5 py-1.5 text-sm font-medium text-[var(--status-danger-text)] transition hover:border-red-500/40 hover:bg-red-500/10 disabled:opacity-60"
               >
@@ -118,6 +118,22 @@ export function SceneCard({
           scene={scene}
         />
       )}
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title="Delete scene"
+        description={`Delete "${scene.title}"? This cannot be undone.`}
+        confirmLabel={pending ? "Deleting…" : "Delete"}
+        pending={pending}
+        error={error}
+        onConfirm={confirmDelete}
+        onCancel={() => {
+          if (!pending) {
+            setDeleteConfirmOpen(false);
+            setError(null);
+          }
+        }}
+      />
     </>
   );
 }

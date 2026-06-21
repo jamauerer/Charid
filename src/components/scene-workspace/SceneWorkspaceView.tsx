@@ -8,6 +8,7 @@ import type { StoryProjectContext } from "@/app/actions/projects";
 import type { StoryCharacterEntry } from "@/app/actions/stories";
 import type { SceneWithCast } from "@/types/scene";
 import { SceneCreateStudio } from "@/components/scene-workspace/SceneCreateStudio";
+import { ConfirmDialog } from "@/components/studio/ConfirmDialog";
 import type { StoryLocationOption } from "@/components/scene-workspace/SceneCard";
 import { CreatorContextTrail } from "@/components/studio/CreatorContextTrail";
 import { CREATOR_STORY } from "@/lib/creator-vocabulary";
@@ -45,6 +46,7 @@ export function SceneWorkspaceView({
   const [editSession, setEditSession] = useState(0);
   const [pending, startTransition] = useTransition();
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const storyHref = `/dashboard/worlds/${worldId}/stories/${storyId}`;
   const suggestionsHref = `${storyHref}#story-scene-suggestions`;
@@ -54,14 +56,7 @@ export function SceneWorkspaceView({
     setEditOpen(true);
   }
 
-  function handleDelete() {
-    if (
-      !window.confirm(
-        `Delete "${scene.title}"? This cannot be undone.`
-      )
-    ) {
-      return;
-    }
+  function confirmDelete() {
     setDeleteError(null);
     startTransition(async () => {
       const result = await deleteScene(storyId, scene.id, worldId);
@@ -69,6 +64,7 @@ export function SceneWorkspaceView({
         setDeleteError(result.error);
         return;
       }
+      setDeleteConfirmOpen(false);
       router.push(`${storyHref}#story-timeline-section`);
       router.refresh();
     });
@@ -114,7 +110,7 @@ export function SceneWorkspaceView({
           </button>
           <button
             type="button"
-            onClick={handleDelete}
+            onClick={() => setDeleteConfirmOpen(true)}
             disabled={pending}
             className="inline-flex items-center justify-center rounded-lg border border-red-500/20 bg-red-500/5 px-3.5 py-1.5 text-sm font-medium text-[var(--status-danger-text)] transition hover:border-red-500/40 hover:bg-red-500/10 disabled:opacity-60"
           >
@@ -199,6 +195,22 @@ export function SceneWorkspaceView({
           scene={scene}
         />
       )}
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title="Delete scene"
+        description={`Delete "${scene.title}"? This cannot be undone.`}
+        confirmLabel={pending ? "Deleting…" : "Delete"}
+        pending={pending}
+        error={deleteError}
+        onConfirm={confirmDelete}
+        onCancel={() => {
+          if (!pending) {
+            setDeleteConfirmOpen(false);
+            setDeleteError(null);
+          }
+        }}
+      />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import {
   removeMoodboardItem,
   uploadMoodboardImage,
 } from "@/app/actions/world-moodboards";
+import { ConfirmDialog } from "@/components/studio/ConfirmDialog";
 import { ImagePickerModal } from "@/components/image-picker/ImagePickerModal";
 import { worldImagesToPickerItemsGeneral } from "@/lib/image-picker-world";
 import type { WorldSlotAssignmentMap } from "@/lib/world-slot-assignments";
@@ -34,6 +35,7 @@ export function WorldMoodboardSection({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [removePendingId, setRemovePendingId] = useState<string | null>(null);
+  const [itemToRemove, setItemToRemove] = useState<string | null>(null);
 
   const usedImageIds = useMemo(
     () => new Set(bundle.items.map((entry) => entry.item.world_image_id)),
@@ -78,11 +80,13 @@ export function WorldMoodboardSection({
     });
   }
 
-  function handleRemove(itemId: string) {
-    setRemovePendingId(itemId);
+  function confirmRemove() {
+    if (!itemToRemove) return;
+    setRemovePendingId(itemToRemove);
     startTransition(async () => {
-      await removeMoodboardItem(itemId, worldId);
+      await removeMoodboardItem(itemToRemove, worldId);
       setRemovePendingId(null);
+      setItemToRemove(null);
       router.refresh();
     });
   }
@@ -164,7 +168,7 @@ export function WorldMoodboardSection({
                 )}
                 <button
                   type="button"
-                  onClick={() => handleRemove(item.id)}
+                  onClick={() => setItemToRemove(item.id)}
                   disabled={removePendingId === item.id}
                   className="absolute right-2 top-2 rounded-md bg-black/60 px-2 py-1 text-[10px] text-[var(--brand-text-secondary)] opacity-0 transition group-hover:opacity-100 disabled:opacity-50"
                 >
@@ -186,6 +190,20 @@ export function WorldMoodboardSection({
         pending={pending}
         showPriorityHint={false}
         emptyMessage="Upload images to your world gallery first."
+      />
+
+      <ConfirmDialog
+        open={itemToRemove !== null}
+        title="Remove from moodboard"
+        description="Remove this image from the moodboard? It stays in your world gallery."
+        confirmLabel="Remove"
+        pending={removePendingId === itemToRemove}
+        onConfirm={confirmRemove}
+        onCancel={() => {
+          if (removePendingId === null) {
+            setItemToRemove(null);
+          }
+        }}
       />
     </>
   );

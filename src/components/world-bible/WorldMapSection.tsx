@@ -8,6 +8,7 @@ import {
   deleteMapLocationPin,
   uploadWorldMapImage,
 } from "@/app/actions/world-maps";
+import { ConfirmDialog } from "@/components/studio/ConfirmDialog";
 import type { MapLocationPin, WorldMapBundle } from "@/types/world-map";
 import type { WorldLocationWithCover } from "@/types/world-location";
 
@@ -32,6 +33,10 @@ export function WorldMapSection({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [pinPendingId, setPinPendingId] = useState<string | null>(null);
+  const [pinToRemove, setPinToRemove] = useState<{
+    id: string;
+    label: string;
+  } | null>(null);
 
   const { map, imageUrl, pins } = bundle;
 
@@ -86,16 +91,20 @@ export function WorldMapSection({
     });
   }
 
-  function handleDeletePin(pinId: string) {
-    setPinPendingId(pinId);
+  function confirmRemovePin() {
+    if (!pinToRemove) return;
+    const { id } = pinToRemove;
+    setPinPendingId(id);
     startTransition(async () => {
-      await deleteMapLocationPin(pinId, worldId);
+      await deleteMapLocationPin(id, worldId);
       setPinPendingId(null);
+      setPinToRemove(null);
       router.refresh();
     });
   }
 
   return (
+    <>
     <section id="world-map" className="mb-10 scroll-mt-6">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -245,7 +254,9 @@ export function WorldMapSection({
                   </span>
                   <button
                     type="button"
-                    onClick={() => handleDeletePin(pin.id)}
+                    onClick={() =>
+                      setPinToRemove({ id: pin.id, label: pin.label })
+                    }
                     disabled={pinPendingId === pin.id}
                     className="text-xs text-[var(--brand-text-secondary)] hover:text-[var(--status-danger-text)] disabled:opacity-50"
                   >
@@ -258,6 +269,25 @@ export function WorldMapSection({
         </>
       )}
     </section>
+
+    <ConfirmDialog
+      open={pinToRemove !== null}
+      title="Remove pin"
+      description={
+        pinToRemove
+          ? `Remove pin "${pinToRemove.label}"? The location itself stays in your world.`
+          : ""
+      }
+      confirmLabel="Remove"
+      pending={pinPendingId === pinToRemove?.id}
+      onConfirm={confirmRemovePin}
+      onCancel={() => {
+        if (pinPendingId === null) {
+          setPinToRemove(null);
+        }
+      }}
+    />
+    </>
   );
 }
 

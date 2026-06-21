@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { deleteCharacter } from "@/app/actions/characters";
 import { EditCharacterModal } from "@/app/dashboard/EditCharacterModal";
-import { ModalPortal } from "@/components/ModalPortal";
+import { ConfirmDialog } from "@/components/studio/ConfirmDialog";
 import { CardCoverPlaceholder } from "@/components/studio/CardCoverPlaceholder";
 import { studioCardSurface } from "@/lib/visual-identity";
 import type { CharacterDisplay } from "@/types/character";
@@ -166,62 +166,21 @@ export function CharacterCard({
         onUpdated={onUpdated}
       />
 
-      {showDeleteModal && (
-        <ModalPortal>
-          <div className="fixed inset-0 z-[100] overflow-y-auto">
-            <button
-              type="button"
-              aria-label="Close dialog"
-              className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
-              onClick={() => {
-                if (!deleting) {
-                  setShowDeleteModal(false);
-                  setError(null);
-                }
-              }}
-            />
-            <div className="flex min-h-full items-start justify-center p-4 sm:items-center sm:p-6">
-              <div className="relative z-10 w-full max-w-md rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] p-5 shadow-lg">
-                <h2 className="text-base font-semibold text-[var(--brand-text-secondary)]">
-                  Delete character
-                </h2>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--brand-text-secondary)]">
-                  Are you sure you want to delete this character? This action
-                  cannot be undone.
-                </p>
-
-                {error && (
-                  <p className="mt-3 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-[var(--status-danger-text)]">
-                    {error}
-                  </p>
-                )}
-
-                <div className="mt-5 flex justify-end gap-2">
-                  <button
-                    type="button"
-                    disabled={deleting}
-                    onClick={() => {
-                      setShowDeleteModal(false);
-                      setError(null);
-                    }}
-                    className="rounded-lg border border-[var(--brand-border)] px-4 py-2 text-sm font-medium text-[var(--brand-text-secondary)] transition hover:bg-[var(--brand-surface)] disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    disabled={deleting}
-                    onClick={handleDelete}
-                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {deleting ? "Deleting..." : "Delete"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </ModalPortal>
-      )}
+      <ConfirmDialog
+        open={showDeleteModal}
+        title="Delete character"
+        description={`Delete ${character.name}? This removes the character and all reference images. This cannot be undone.`}
+        confirmLabel={deleting ? "Deleting..." : "Delete"}
+        pending={deleting}
+        error={error}
+        onConfirm={handleDelete}
+        onCancel={() => {
+          if (!deleting) {
+            setShowDeleteModal(false);
+            setError(null);
+          }
+        }}
+      />
     </>
   );
 }

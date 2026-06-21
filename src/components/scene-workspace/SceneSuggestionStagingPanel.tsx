@@ -13,6 +13,7 @@ import {
 import type { StoryCharacterEntry } from "@/app/actions/stories";
 import type { Chapter } from "@/types/chapter";
 import type { SceneSuggestionBatchView } from "@/types/scene-suggestion";
+import { ConfirmDialog } from "@/components/studio/ConfirmDialog";
 import { SceneSuggestionEditStudio } from "@/components/scene-workspace/SceneSuggestionEditStudio";
 import type { StoryLocationOption } from "@/components/scene-workspace/SceneCard";
 import { CREATOR_STORY } from "@/lib/creator-vocabulary";
@@ -35,6 +36,11 @@ type SceneSuggestionStagingPanelProps = {
   batchError?: string;
 };
 
+type SuggestionConfirmAction =
+  | { type: "discard"; itemId: string }
+  | { type: "clear-all" }
+  | null;
+
 export function SceneSuggestionStagingPanel({
   worldId,
   storyId,
@@ -55,6 +61,9 @@ export function SceneSuggestionStagingPanel({
   const [editItemId, setEditItemId] = useState<string | null>(null);
   const [editSession, setEditSession] = useState(0);
   const [selectedChapterId, setSelectedChapterId] = useState("");
+  const [confirmAction, setConfirmAction] = useState<SuggestionConfirmAction>(
+    null
+  );
 
   const pendingItems = batch?.items.filter((i) => i.status === "pending") ?? [];
   const hasActiveBatch = pendingItems.length > 0;
@@ -115,6 +124,47 @@ export function SceneSuggestionStagingPanel({
   }
 
   const editItem = batch?.items.find((i) => i.id === editItemId) ?? null;
+
+  function handleConfirmAction() {
+    if (!confirmAction || !batch) return;
+
+    if (confirmAction.type === "discard") {
+      runItemAction(confirmAction.itemId, () =>
+        discardSceneSuggestion({
+          worldId,
+          storyId,
+          batchId: batch.id,
+          itemId: confirmAction.itemId,
+        })
+      );
+    } else {
+      runItemAction("dismiss", () =>
+        dismissSceneSuggestionBatch({
+          worldId,
+          storyId,
+          batchId: batch.id,
+        })
+      );
+    }
+    setConfirmAction(null);
+  }
+
+  const confirmDialogProps =
+    confirmAction?.type === "discard"
+      ? {
+          title: "Discard suggestion",
+          description:
+            "Discard this suggestion? It won't be saved as a scene.",
+          confirmLabel: "Discard",
+        }
+      : confirmAction?.type === "clear-all"
+        ? {
+            title: "Clear suggestions",
+            description:
+              "Clear all pending suggestions? Nothing saves until you approve scenes.",
+            confirmLabel: "Clear all",
+          }
+        : null;
 
   return (
     <div className="rounded-xl border border-dashed border-[var(--brand-border)] bg-[var(--brand-surface)] p-4">
@@ -259,15 +309,10 @@ export function SceneSuggestionStagingPanel({
                         type="button"
                         disabled={pending}
                         onClick={() =>
-                          batch &&
-                          runItemAction(item.id, () =>
-                            discardSceneSuggestion({
-                              worldId,
-                              storyId,
-                              batchId: batch.id,
-                              itemId: item.id,
-                            })
-                          )
+                          setConfirmAction({
+                            type: "discard",
+                            itemId: item.id,
+                          })
                         }
                         className="rounded-lg border border-red-500/20 bg-red-500/5 px-2.5 py-1 text-xs font-medium text-[var(--status-danger-text)] transition hover:border-red-500/40 disabled:opacity-60"
                       >
@@ -302,15 +347,7 @@ export function SceneSuggestionStagingPanel({
             <button
               type="button"
               disabled={pending}
-              onClick={() =>
-                runItemAction("dismiss", () =>
-                  dismissSceneSuggestionBatch({
-                    worldId,
-                    storyId,
-                    batchId: batch.id,
-                  })
-                )
-              }
+              onClick={() => setConfirmAction({ type: "clear-all" })}
               className="mt-3 text-xs text-[var(--brand-text-secondary)] transition hover:text-[var(--brand-text-secondary)]"
             >
               Clear all suggestions
@@ -336,6 +373,22 @@ export function SceneSuggestionStagingPanel({
             void getActiveSceneSuggestionBatch(storyId).then(({ batch: next }) => {
               setBatch(next);
             });
+          }}
+        />
+      )}
+
+      {confirmDialogProps && (
+        <ConfirmDialog
+          open={confirmAction !== null}
+          title={confirmDialogProps.title}
+          description={confirmDialogProps.description}
+          confirmLabel={confirmDialogProps.confirmLabel}
+          pending={pending && confirmAction !== null}
+          onConfirm={handleConfirmAction}
+          onCancel={() => {
+            if (!pending) {
+              setConfirmAction(null);
+            }
           }}
         />
       )}

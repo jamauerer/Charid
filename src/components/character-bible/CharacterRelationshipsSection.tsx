@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { deleteCharacterRelationship } from "@/app/actions/character-relationships";
+import { ConfirmDialog } from "@/components/studio/ConfirmDialog";
 import { AddRelationshipModal } from "@/components/character-bible/AddRelationshipModal";
 import { formatRelationshipForViewer } from "@/lib/relationship-plain-language";
 import type { CharacterRelationshipEntry } from "@/types/character-relationship";
@@ -24,20 +25,28 @@ export function CharacterRelationshipsSection({
 }: CharacterRelationshipsSectionProps) {
   const router = useRouter();
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [relationshipToRemove, setRelationshipToRemove] = useState<{
+    id: string;
+    otherName: string;
+  } | null>(null);
   const [, startTransition] = useTransition();
 
   const linkedIds = entries.map((e) => e.otherCharacter.id);
 
-  function handleDelete(relationshipId: string) {
-    setPendingId(relationshipId);
+  function confirmRemoveRelationship() {
+    if (!relationshipToRemove) return;
+    const { id } = relationshipToRemove;
+    setPendingId(id);
     startTransition(async () => {
-      await deleteCharacterRelationship(relationshipId, characterId);
+      await deleteCharacterRelationship(id, characterId);
       setPendingId(null);
+      setRelationshipToRemove(null);
       router.refresh();
     });
   }
 
   return (
+    <>
     <section id="character-relationships" className="mb-10 scroll-mt-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -112,7 +121,12 @@ export function CharacterRelationshipsSection({
                 </Link>
                 <button
                   type="button"
-                  onClick={() => handleDelete(relationship.id)}
+                  onClick={() =>
+                    setRelationshipToRemove({
+                      id: relationship.id,
+                      otherName: otherCharacter.name,
+                    })
+                  }
                   disabled={pendingId === relationship.id}
                   className="shrink-0 rounded-md px-2 py-1 text-xs text-[var(--brand-text-secondary)] transition hover:bg-[var(--brand-surface-elevated)] hover:text-[var(--status-danger-text)] disabled:opacity-50"
                   aria-label={`Remove relationship with ${otherCharacter.name}`}
@@ -125,5 +139,24 @@ export function CharacterRelationshipsSection({
         </ul>
       )}
     </section>
+
+    <ConfirmDialog
+      open={relationshipToRemove !== null}
+      title="Remove relationship"
+      description={
+        relationshipToRemove
+          ? `Remove the relationship between ${characterName} and ${relationshipToRemove.otherName}? This cannot be undone.`
+          : ""
+      }
+      confirmLabel="Remove"
+      pending={pendingId === relationshipToRemove?.id}
+      onConfirm={confirmRemoveRelationship}
+      onCancel={() => {
+        if (pendingId === null) {
+          setRelationshipToRemove(null);
+        }
+      }}
+    />
+    </>
   );
 }

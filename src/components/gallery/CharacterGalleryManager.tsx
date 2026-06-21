@@ -10,6 +10,7 @@ import {
   updateCharacterImageCaption,
   uploadCharacterImage,
 } from "@/app/actions/character-images";
+import { ConfirmDialog } from "@/components/studio/ConfirmDialog";
 import type { CharacterImageWithUrl } from "@/types/character-image";
 
 type CharacterGalleryManagerProps = {
@@ -26,6 +27,7 @@ export function CharacterGalleryManager({
   const [pending, startTransition] = useTransition();
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [uploadCaption, setUploadCaption] = useState("");
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imagesRef = useRef(images);
 
@@ -83,15 +85,16 @@ export function CharacterGalleryManager({
     });
   }
 
-  function handleDelete(imageId: string) {
-    if (!confirm("Delete this image from the gallery?")) return;
+  function confirmDelete() {
+    if (!deleteTargetId) return;
 
     startTransition(async () => {
       setError(null);
-      const result = await deleteCharacterImage(imageId);
+      const result = await deleteCharacterImage(deleteTargetId);
       if (result.error) {
         setError(result.error);
       } else {
+        setDeleteTargetId(null);
         await loadImages();
       }
     });
@@ -251,7 +254,7 @@ export function CharacterGalleryManager({
                         )}
                         <button
                           type="button"
-                          onClick={() => handleDelete(image.id)}
+                          onClick={() => setDeleteTargetId(image.id)}
                           disabled={pending}
                           className="rounded-md border border-red-500/20 px-2 py-1 text-xs font-medium text-[var(--status-danger-text)] transition hover:bg-red-500/10 disabled:opacity-60"
                         >
@@ -295,6 +298,20 @@ export function CharacterGalleryManager({
           {error}
         </p>
       )}
+
+      <ConfirmDialog
+        open={deleteTargetId !== null}
+        title="Delete image"
+        description="Delete this image from the gallery?"
+        confirmLabel="Delete"
+        pending={pending}
+        onConfirm={confirmDelete}
+        onCancel={() => {
+          if (!pending) {
+            setDeleteTargetId(null);
+          }
+        }}
+      />
     </fieldset>
   );
 }
