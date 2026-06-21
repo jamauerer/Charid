@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { CreateModal } from "@/components/dashboard/CreateModal";
 import { LogoutButton } from "@/components/LogoutButton";
 import { BrandLogoSlot } from "@/components/brand/BrandLogoSlot";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { DashboardNavItem } from "./DashboardNavItem";
 
 type DashboardSidebarProps = {
@@ -124,26 +125,6 @@ export function DashboardSidebar({
           }
         />
         <DashboardNavItem
-          href="/dashboard/explore"
-          label="Explore"
-          active={pathname === "/dashboard/explore"}
-          onNavigate={onNavigate}
-          icon={
-            <NavIcon>
-              <path
-                fillRule="evenodd"
-                d="M8.5 3.75a4.75 4.75 0 1 0 0 9.5 4.75 4.75 0 0 0 0-9.5ZM2.25 8.5a6.25 6.25 0 1 1 12.5 0 6.25 6.25 0 0 1-12.5 0Zm9.28 8.03a.75.75 0 0 1 1.06 0l2.5 2.5a.75.75 0 1 1-1.06 1.06l-2.5-2.5a.75.75 0 0 1 0-1.06Z"
-                clipRule="evenodd"
-              />
-            </NavIcon>
-          }
-        />
-
-        <div className="my-2 border-t border-[var(--brand-border)]" />
-        <p className="px-2.5 pb-1 pt-2 text-[10px] font-medium uppercase tracking-wide text-[var(--brand-text-muted)]">
-          Library
-        </p>
-        <DashboardNavItem
           href="/dashboard/worlds"
           label="Worlds"
           active={isWorlds}
@@ -156,6 +137,23 @@ export function DashboardSidebar({
                 clipRule="evenodd"
               />
               <path d="M8 8.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5A.75.75 0 0 1 8 8.25ZM8 11a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 0 1.5h-4.5A.75.75 0 0 1 8 11Z" />
+            </NavIcon>
+          }
+        />
+
+        <div className="my-2 border-t border-[var(--brand-border)]" />
+        <DashboardNavItem
+          href="/dashboard/explore"
+          label="Explore"
+          active={pathname === "/dashboard/explore"}
+          onNavigate={onNavigate}
+          icon={
+            <NavIcon>
+              <path
+                fillRule="evenodd"
+                d="M8.5 3.75a4.75 4.75 0 1 0 0 9.5 4.75 4.75 0 0 0 0-9.5ZM2.25 8.5a6.25 6.25 0 1 1 12.5 0 6.25 6.25 0 0 1-12.5 0Zm9.28 8.03a.75.75 0 0 1 1.06 0l2.5 2.5a.75.75 0 1 1-1.06 1.06l-2.5-2.5a.75.75 0 0 1 0-1.06Z"
+                clipRule="evenodd"
+              />
             </NavIcon>
           }
         />
@@ -217,6 +215,9 @@ export function DashboardSidebar({
         >
           {userEmail}
         </p>
+        <div className="px-2.5 pb-3">
+          <ThemeToggle />
+        </div>
         <DashboardNavItem
           href="/dashboard/settings"
           label="Settings"

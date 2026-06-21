@@ -10,6 +10,7 @@ import {
 } from "react";
 import {
   applyTheme,
+  DEFAULT_THEME,
   getStoredTheme,
   persistTheme,
   resolveTheme,
@@ -32,7 +33,7 @@ function readInitialTheme(): ThemeId {
       window.matchMedia("(prefers-color-scheme: dark)").matches
     );
   }
-  return "sunset-light";
+  return DEFAULT_THEME;
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
