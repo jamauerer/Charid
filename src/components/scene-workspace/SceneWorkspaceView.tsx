@@ -69,7 +69,7 @@ export function SceneWorkspaceView({
         setDeleteError(result.error);
         return;
       }
-      router.push(`${storyHref}#story-scenes`);
+      router.push(`${storyHref}#story-timeline-section`);
       router.refresh();
     });
   }

@@ -31,13 +31,13 @@ export function StoryMapPreview({ worldId, mapBundle }: StoryMapPreviewProps) {
       <div className="rounded-xl border border-dashed border-[var(--brand-border)] bg-[var(--brand-surface)] px-5 py-8 text-center">
         <p className="text-sm text-[var(--brand-text-secondary)]">No map yet.</p>
         <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
-          Upload a map on the world page to see geography while you write.
+          Upload a map in story setting to see geography while you write.
         </p>
         <Link
           href={worldEditHref}
           className="mt-3 inline-block text-xs font-medium text-neutral-500 transition hover:text-neutral-600"
         >
-          Add map on world →
+          Add map in setting →
         </Link>
       </div>
     );
@@ -55,7 +55,7 @@ export function StoryMapPreview({ worldId, mapBundle }: StoryMapPreviewProps) {
           href={worldEditHref}
           className="text-xs text-[var(--brand-text-secondary)] transition hover:text-[var(--brand-text-secondary)]"
         >
-          Edit on world →
+          Edit in setting →
         </Link>
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
@@ -76,7 +76,7 @@ export function StoryMapPreview({ worldId, mapBundle }: StoryMapPreviewProps) {
             ))}
           </div>
           <span className="absolute bottom-2 right-2 rounded-md bg-black/60 px-2 py-1 text-[10px] text-[var(--brand-text-secondary)] opacity-0 transition group-hover:opacity-100">
-            Open on world
+            Open in setting
           </span>
         </Link>
 

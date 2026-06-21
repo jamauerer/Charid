@@ -10,14 +10,17 @@ import {
   RELATIONSHIP_TYPES,
   type RelationshipType,
 } from "@/lib/relationship-types";
+import { formatRelationshipPreview } from "@/lib/relationship-plain-language";
 
 type AddRelationshipModalProps = {
   characterId: string;
+  characterName: string;
   excludeCharacterIds?: string[];
 };
 
 export function AddRelationshipModal({
   characterId,
+  characterName,
   excludeCharacterIds = [],
 }: AddRelationshipModalProps) {
   const router = useRouter();
@@ -43,6 +46,16 @@ export function AddRelationshipModal({
   const selectable = useMemo(
     () => characters.filter((c) => !excluded.has(c.id)),
     [characters, excluded]
+  );
+
+  const selectedName =
+    characters.find((c) => c.id === toCharacterId)?.name ?? "";
+
+  const preview = formatRelationshipPreview(
+    characterName,
+    selectedName,
+    relationshipType,
+    relationshipType === "custom" ? customLabel : null
   );
 
   useEffect(() => {
@@ -174,6 +187,9 @@ export function AddRelationshipModal({
                   </option>
                 ))}
               </select>
+              <p className="mt-2 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface-elevated)] px-3 py-2 text-sm text-[var(--brand-text-secondary)]">
+                {preview}
+              </p>
             </div>
 
             {relationshipType === "custom" && (

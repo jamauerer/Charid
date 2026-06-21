@@ -17,6 +17,10 @@ import {
   commitSceneRecord,
   syncSceneCharacters,
 } from "@/lib/scenes/commit-scene";
+import { parseSceneInsertPlacement, applySceneSortOrder } from "@/lib/scenes/scene-insert-order";
+
+const COVER_BUCKET = "character-photos";
+const MAX_COVER_BYTES = 5 * 1024 * 1024;
 
 export type SceneActionState = {
   error?: string;
@@ -38,6 +42,26 @@ function formatSceneError(message: string, code?: string): string {
     );
   }
   return message;
+}
+
+export async function getSceneCoverUrl(
+  coverPath: string | null
+): Promise<string | null> {
+  if (!coverPath) {
+    return null;
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.storage
+    .from(COVER_BUCKET)
+    .createSignedUrl(coverPath, 3600);
+
+  if (error) {
+    console.error("Failed to create scene cover signed URL:", error.message);
+    return null;
+  }
+
+  return data.signedUrl;
 }
 
 async function assertStoryOwner(
@@ -193,6 +217,18 @@ async function attachCastToScenes(
   }));
 }
 
+async function attachCoverUrls(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  scenes: SceneWithCast[]
+): Promise<SceneWithCast[]> {
+  return Promise.all(
+    scenes.map(async (scene) => ({
+      ...scene,
+      cover_url: await getSceneCoverUrl(scene.cover_image_path),
+    }))
+  );
+}
+
 async function revalidateScenePaths(
   worldId: string,
   storyId: string,
@@ -239,7 +275,8 @@ export async function getScenesByStoryId(
 
   const scenes = (data ?? []).map((row) => normalizeScene(row as SceneRow));
   const withCast = await attachCastToScenes(supabase, scenes);
-  return { scenes: withCast };
+  const withCovers = await attachCoverUrls(supabase, withCast);
+  return { scenes: withCovers };
 }
 
 export async function getSceneById(
@@ -280,7 +317,10 @@ export async function getSceneById(
   const [withCast] = await attachCastToScenes(supabase, [
     normalizeScene(data as SceneRow),
   ]);
-  return { scene: withCast ?? null };
+  const [withCover] = withCast
+    ? await attachCoverUrls(supabase, [withCast])
+    : [null];
+  return { scene: withCover ?? null };
 }
 
 function parseWorldLocationId(formData: FormData): string | null {
@@ -309,6 +349,7 @@ export async function createScene(
     String(formData.get("location_label") ?? "").trim() || null;
   const worldLocationId = parseWorldLocationId(formData);
   const characterIds = parseCharacterIds(formData);
+  const insertPlacement = parseSceneInsertPlacement(formData);
 
   if (!storyId || !title) {
     return { error: "Scene title is required." };
@@ -331,6 +372,7 @@ export async function createScene(
     characterIds,
     locationLabel,
     worldLocationId,
+    insertPlacement,
   });
 
   if (commitError || !scene) {
@@ -478,4 +520,161 @@ export async function deleteScene(
 
   await revalidateScenePaths(worldId, storyId);
   return {};
+}
+
+export async function reorderStoryScenes(
+  storyId: string,
+  worldId: string,
+  orderedSceneIds: string[]
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be logged in." };
+  }
+
+  const storyCheck = await assertStoryOwner(supabase, storyId, user.id);
+  if (storyCheck.error) {
+    return { error: storyCheck.error };
+  }
+
+  const uniqueIds = [...new Set(orderedSceneIds.filter(Boolean))];
+  if (uniqueIds.length === 0) {
+    return { error: "No scenes to reorder." };
+  }
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("scenes")
+    .select("id")
+    .eq("story_id", storyId);
+
+  if (fetchError) {
+    return { error: formatSceneError(fetchError.message, fetchError.code) };
+  }
+
+  const existingIds = new Set((existing ?? []).map((row) => row.id as string));
+  if (
+    uniqueIds.length !== existingIds.size ||
+    uniqueIds.some((id) => !existingIds.has(id))
+  ) {
+    return { error: "Scene order does not match this story." };
+  }
+
+  const sortError = await applySceneSortOrder(supabase, storyId, uniqueIds);
+  if (sortError) {
+    return { error: sortError };
+  }
+
+  await revalidateScenePaths(worldId, storyId);
+  return {};
+}
+
+export async function updateSceneCoverFocal(
+  storyId: string,
+  sceneId: string,
+  worldId: string,
+  focalX: number,
+  focalY: number
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be logged in." };
+  }
+
+  const storyCheck = await assertStoryOwner(supabase, storyId, user.id);
+  if (storyCheck.error) {
+    return { error: storyCheck.error };
+  }
+
+  const clampedX = Math.min(100, Math.max(0, focalX));
+  const clampedY = Math.min(100, Math.max(0, focalY));
+
+  const { error } = await supabase
+    .from("scenes")
+    .update({
+      cover_focal_x: clampedX,
+      cover_focal_y: clampedY,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", sceneId)
+    .eq("story_id", storyId);
+
+  if (error) {
+    return { error: formatSceneError(error.message, error.code) };
+  }
+
+  await revalidateScenePaths(worldId, storyId, sceneId);
+  return {};
+}
+
+export async function uploadSceneCover(
+  storyId: string,
+  sceneId: string,
+  worldId: string,
+  formData: FormData
+): Promise<{ error?: string; coverUrl?: string | null }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be logged in." };
+  }
+
+  const storyCheck = await assertStoryOwner(supabase, storyId, user.id);
+  if (storyCheck.error) {
+    return { error: storyCheck.error };
+  }
+
+  const file = formData.get("cover");
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Choose an image to upload." };
+  }
+
+  if (file.size > MAX_COVER_BYTES) {
+    return { error: "Cover image must be 5 MB or smaller." };
+  }
+
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    return { error: "Cover must be JPEG, PNG, or WebP." };
+  }
+
+  const extension = file.type.split("/")[1] ?? "jpg";
+  const coverPath = `${user.id}/scenes/${sceneId}/cover.${extension}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(COVER_BUCKET)
+    .upload(coverPath, file, { contentType: file.type, upsert: true });
+
+  if (uploadError) {
+    return { error: uploadError.message };
+  }
+
+  const { error: updateError } = await supabase
+    .from("scenes")
+    .update({
+      cover_image_path: coverPath,
+      cover_focal_x: 50,
+      cover_focal_y: 50,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", sceneId)
+    .eq("story_id", storyId);
+
+  if (updateError) {
+    await supabase.storage.from(COVER_BUCKET).remove([coverPath]);
+    return { error: formatSceneError(updateError.message, updateError.code) };
+  }
+
+  const coverUrl = await getSceneCoverUrl(coverPath);
+  await revalidateScenePaths(worldId, storyId, sceneId);
+  return { coverUrl };
 }

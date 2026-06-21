@@ -6,17 +6,19 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { deleteCharacterRelationship } from "@/app/actions/character-relationships";
 import { AddRelationshipModal } from "@/components/character-bible/AddRelationshipModal";
-import { relationshipDisplayLabel } from "@/lib/relationship-types";
+import { formatRelationshipForViewer } from "@/lib/relationship-plain-language";
 import type { CharacterRelationshipEntry } from "@/types/character-relationship";
 
 type CharacterRelationshipsSectionProps = {
   characterId: string;
+  characterName: string;
   entries: CharacterRelationshipEntry[];
   photoUrls: Record<string, string | null>;
 };
 
 export function CharacterRelationshipsSection({
   characterId,
+  characterName,
   entries,
   photoUrls,
 }: CharacterRelationshipsSectionProps) {
@@ -48,6 +50,7 @@ export function CharacterRelationshipsSection({
         </div>
         <AddRelationshipModal
           characterId={characterId}
+          characterName={characterName}
           excludeCharacterIds={linkedIds}
         />
       </div>
@@ -62,10 +65,12 @@ export function CharacterRelationshipsSection({
       ) : (
         <ul className="space-y-2">
           {entries.map(({ relationship, direction, otherCharacter }) => {
-            const label = relationshipDisplayLabel(
+            const label = formatRelationshipForViewer(
+              characterName,
+              otherCharacter.name,
               relationship.relationship_type,
-              relationship.custom_label,
-              direction
+              direction,
+              relationship.custom_label
             );
             const photoUrl = photoUrls[otherCharacter.id];
 

@@ -19,13 +19,13 @@ export function StoryLocationsPreview({
       <div className="rounded-xl border border-dashed border-[var(--brand-border)] bg-[var(--brand-surface)] px-5 py-8 text-center">
         <p className="text-sm text-[var(--brand-text-secondary)]">No places yet.</p>
         <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
-          Add locations on the world page to see where this story happens.
+          Add locations in story setting to pick places for scenes.
         </p>
         <Link
           href={worldEditHref}
           className="mt-3 inline-block text-xs font-medium text-neutral-500 transition hover:text-neutral-600"
         >
-          Add locations on world →
+          Add locations in setting →
         </Link>
       </div>
     );
@@ -41,7 +41,7 @@ export function StoryLocationsPreview({
           href={worldEditHref}
           className="text-xs text-[var(--brand-text-secondary)] transition hover:text-[var(--brand-text-secondary)]"
         >
-          Edit on world →
+          Edit in setting →
         </Link>
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

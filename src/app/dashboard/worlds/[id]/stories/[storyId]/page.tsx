@@ -14,11 +14,13 @@ import { StoryChaptersPanel } from "@/components/dashboard/StoryChaptersPanel";
 import { StoryScenesPanel } from "@/components/scene-workspace/StoryScenesPanel";
 import { StoryAdvancedPlan } from "@/components/dashboard/StoryAdvancedPlan";
 import { StoryWelcomeBanner } from "@/components/dashboard/StoryWelcomeBanner";
-import { StoryCastConnectionsPanel } from "@/components/story-workspace/StoryCastConnectionsPanel";
+import { StoryCharactersPanel } from "@/components/story-workspace/StoryCharactersPanel";
+import { StoryRelationshipsPanel } from "@/components/story-workspace/StoryRelationshipsPanel";
 import { StorySettingPanel } from "@/components/story-workspace/StorySettingPanel";
 import { StoryFormatGuide } from "@/components/story-workspace/StoryFormatGuide";
 import { StoryStatusBadge } from "@/components/StoryStatusBadge";
 import { CreatorContextTrail } from "@/components/studio/CreatorContextTrail";
+import { CollapsibleWorkspaceSection } from "@/components/dashboard/CollapsibleWorkspaceSection";
 import { resolveStoryFinishPath } from "@/lib/story-finish-path";
 import { studioSection } from "@/lib/visual-identity";
 
@@ -127,7 +129,7 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
         }}
       />
 
-      <div className="mb-4 flex flex-wrap items-end gap-3">
+      <div className="mb-6 flex flex-wrap items-end gap-3">
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-semibold tracking-tight text-[var(--brand-text-secondary)] sm:text-3xl">
             {story.title}
@@ -135,8 +137,6 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
         </div>
         <StoryStatusBadge status={story.status} />
       </div>
-
-      <StoryFormatGuide storyId={storyId} projectType={story.project_type} />
 
       {migrationError && (
         <div className="mb-4 rounded-lg border border-[color-mix(in_srgb,var(--brand-warning)_25%,var(--brand-border))] bg-[color-mix(in_srgb,var(--brand-warning)_8%,var(--brand-surface))] px-3 py-2.5 text-sm text-[var(--foreground)]">
@@ -149,6 +149,20 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
       </Suspense>
 
       <StoryFinishPath finishPath={finishPath} />
+
+      <StoryCharactersPanel
+        storyId={storyId}
+        worldId={worldId}
+        worldName={world.name}
+        projectId={projectContext?.id ?? null}
+        cast={context.cast}
+        castPhotoUrls={context.castPhotoUrls}
+      />
+
+      <StoryRelationshipsPanel
+        castBonds={context.castBonds}
+        bondPhotoUrls={context.bondPhotoUrls}
+      />
 
       <StoryScenesPanel
         worldId={worldId}
@@ -166,34 +180,27 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
         suggestionError={suggestionError}
       />
 
-      <StoryChaptersPanel
-        worldId={worldId}
-        storyId={storyId}
-        chapters={chapters}
-        continueChapter={finishPath.continueChapter}
-      />
+      <CollapsibleWorkspaceSection
+        id="story-setting"
+        title="Setting"
+        hint="Story context — locations, map, and mood references."
+      >
+        <StorySettingPanel
+          storyId={storyId}
+          worldId={worldId}
+          worldName={world.name}
+          locations={context.locations}
+          mapBundle={context.mapBundle}
+          moodboardBundle={context.moodboardBundle}
+          embedded
+        />
+      </CollapsibleWorkspaceSection>
 
-      <StoryCastConnectionsPanel
-        storyId={storyId}
-        worldId={worldId}
-        worldName={world.name}
-        projectId={projectContext?.id ?? null}
-        cast={context.cast}
-        castPhotoUrls={context.castPhotoUrls}
-        castBonds={context.castBonds}
-        bondPhotoUrls={context.bondPhotoUrls}
-      />
-
-      <StorySettingPanel
-        storyId={storyId}
-        worldId={worldId}
-        worldName={world.name}
-        locations={context.locations}
-        mapBundle={context.mapBundle}
-        moodboardBundle={context.moodboardBundle}
-      />
-
-      <StoryAdvancedPlan>
+      <CollapsibleWorkspaceSection
+        id="story-bible"
+        title="Story Bible"
+        hint="Overview, themes, events, and reference planning."
+      >
         <StoryBibleView
           bundle={{
             story: bundle.story,
@@ -213,14 +220,29 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
           }
           variant="advanced"
         />
-      </StoryAdvancedPlan>
+      </CollapsibleWorkspaceSection>
 
-      <aside className={`${studioSection} mb-10`}>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--brand-text-secondary)]">
-          Story details
-        </h2>
-        <EditStoryForm story={story} worldId={worldId} />
-      </aside>
+      <CollapsibleWorkspaceSection
+        id="story-advanced"
+        title="Advanced"
+        hint="Chapters, format guide, and story details."
+      >
+        <div className="space-y-8">
+          <StoryFormatGuide storyId={storyId} projectType={story.project_type} />
+          <StoryChaptersPanel
+            worldId={worldId}
+            storyId={storyId}
+            chapters={chapters}
+            continueChapter={finishPath.continueChapter}
+          />
+          <aside className={studioSection}>
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--brand-text-secondary)]">
+              Story details
+            </h2>
+            <EditStoryForm story={story} worldId={worldId} />
+          </aside>
+        </div>
+      </CollapsibleWorkspaceSection>
     </div>
   );
 }

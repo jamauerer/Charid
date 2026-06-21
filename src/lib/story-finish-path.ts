@@ -161,7 +161,7 @@ export function resolveStoryFinishPath(input: {
       primaryStep: "characters_linked",
       primary: {
         kind: "scroll",
-        hash: "cast-connections",
+        hash: "story-characters",
         label: isComicProjectType(projectType)
           ? "Add characters to your story"
           : "Add characters",
@@ -177,7 +177,7 @@ export function resolveStoryFinishPath(input: {
       primaryStep: "first_scene",
       primary: {
         kind: "scroll",
-        hash: "story-scenes",
+        hash: "story-timeline-section",
         label: "Add your first scene",
       },
       hints:
@@ -197,7 +197,7 @@ export function resolveStoryFinishPath(input: {
         hash: "story-chapters",
         label: "Add your first chapter",
       },
-      hints: [{ label: "Review your scenes", hash: "story-scenes" }],
+      hints: [{ label: "Review your timeline", hash: "story-timeline-section" }],
       continueChapter: null,
       checklist,
     };
@@ -212,7 +212,7 @@ export function resolveStoryFinishPath(input: {
         label: "Continue writing",
       },
       hints: [
-        { label: "Add another scene", hash: "story-scenes" },
+        { label: "Add another scene", hash: "story-timeline-section" },
         ...(locationCount === 0
           ? [{ label: "Add places in Setting", hash: "story-setting" }]
           : []),
@@ -227,7 +227,7 @@ export function resolveStoryFinishPath(input: {
       primaryStep: "continue_scenes",
       primary: {
         kind: "scroll",
-        hash: "story-scenes",
+        hash: "story-timeline-section",
         label: "Add another scene",
       },
       hints: locationCount === 0
@@ -242,7 +242,7 @@ export function resolveStoryFinishPath(input: {
     primaryStep: "continue_scenes",
     primary: {
       kind: "scroll",
-      hash: "story-scenes",
+      hash: "story-timeline-section",
       label: "Add another scene",
     },
     hints: [],

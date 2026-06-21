@@ -8,6 +8,11 @@ import {
   type SceneRow,
 } from "@/types/scene";
 
+import {
+  resolveInsertSortOrder,
+  type SceneInsertPlacement,
+} from "@/lib/scenes/scene-insert-order";
+
 export type CommitSceneInput = {
   storyId: string;
   userId: string;
@@ -17,6 +22,7 @@ export type CommitSceneInput = {
   characterIds: string[];
   locationLabel: string | null;
   worldLocationId: string | null;
+  insertPlacement?: SceneInsertPlacement | null;
 };
 
 async function isSceneSlugTaken(
@@ -61,21 +67,6 @@ async function resolveAvailableSceneSlug(
   }
 
   throw new Error("Unable to allocate a unique scene slug.");
-}
-
-async function nextSceneSortOrder(
-  supabase: SupabaseClient,
-  storyId: string
-): Promise<number> {
-  const { data } = await supabase
-    .from("scenes")
-    .select("sort_order")
-    .eq("story_id", storyId)
-    .order("sort_order", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  return (data?.sort_order ?? 0) + 1;
 }
 
 export async function syncSceneCharacters(
@@ -133,6 +124,7 @@ export async function commitSceneRecord(
     characterIds,
     locationLabel,
     worldLocationId,
+    insertPlacement,
   } = input;
 
   if (!title.trim()) {
@@ -153,7 +145,20 @@ export async function commitSceneRecord(
     };
   }
 
-  const sortOrder = await nextSceneSortOrder(supabase, storyId);
+  let sortOrder: number;
+  try {
+    sortOrder = await resolveInsertSortOrder(
+      supabase,
+      storyId,
+      insertPlacement ?? { mode: "end" }
+    );
+  } catch (err) {
+    return {
+      scene: null,
+      error:
+        err instanceof Error ? err.message : "Failed to allocate scene order.",
+    };
+  }
 
   const sceneId = randomUUID();
 

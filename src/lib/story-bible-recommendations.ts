@@ -111,7 +111,7 @@ export function computeStoryBibleRecommendations(
       target: storyRecommendationTarget("characters"),
       title: "Note key characters",
       description:
-        "List the characters who drive this story, then link them from your world roster.",
+        "List the characters who drive this story, then add them from Characters above.",
     });
   }
 

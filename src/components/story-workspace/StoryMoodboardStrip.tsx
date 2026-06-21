@@ -19,13 +19,13 @@ export function StoryMoodboardStrip({
       <div className="rounded-xl border border-dashed border-[var(--brand-border)] bg-[var(--brand-surface)] px-5 py-8 text-center">
         <p className="text-sm text-[var(--brand-text-secondary)]">No moodboard images yet.</p>
         <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
-          Add reference images on the world page to capture tone at a glance.
+          Add reference images in story setting to capture tone at a glance.
         </p>
         <Link
           href={worldEditHref}
           className="mt-3 inline-block text-xs font-medium text-neutral-500 transition hover:text-neutral-600"
         >
-          Add mood images on world →
+          Add mood images in setting →
         </Link>
       </div>
     );
@@ -41,7 +41,7 @@ export function StoryMoodboardStrip({
           href={worldEditHref}
           className="text-xs text-[var(--brand-text-secondary)] transition hover:text-[var(--brand-text-secondary)]"
         >
-          Edit on world →
+          Edit in setting →
         </Link>
       </div>
       <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-2">

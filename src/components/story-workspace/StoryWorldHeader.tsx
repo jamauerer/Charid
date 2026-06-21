@@ -40,9 +40,9 @@ export function StoryWorldHeader({
     router.refresh();
   }
 
-  function handleChangeWorld() {
+  function handleChangeSetting() {
     if (!selectedWorldId) {
-      setError("Choose a world.");
+      setError("Choose a setting.");
       return;
     }
 
@@ -60,7 +60,7 @@ export function StoryWorldHeader({
     });
   }
 
-  function handleWorldCreated(world: World) {
+  function handleSettingCreated(world: World) {
     startTransition(async () => {
       setError(null);
       const result = await changeStoryWorld(storyId, world.id);
@@ -73,13 +73,16 @@ export function StoryWorldHeader({
     });
   }
 
-  const otherWorlds = worlds.filter((world) => world.id !== currentWorld.id);
+  const otherSettings = worlds.filter((world) => world.id !== currentWorld.id);
 
   return (
     <>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-lg font-semibold text-[var(--brand-text-secondary)]">
+          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--brand-text-secondary)]">
+            Story setting
+          </p>
+          <p className="mt-1 text-lg font-semibold text-[var(--brand-text-secondary)]">
             <Link
               href={`/dashboard/worlds/${currentWorld.id}`}
               className="transition hover:text-neutral-600"
@@ -88,8 +91,7 @@ export function StoryWorldHeader({
             </Link>
           </p>
           <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
-            Places and visuals for this story — edit locations, map, and mood on
-            the world page.
+            Locations, map, and mood references for this story&apos;s context.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -97,14 +99,14 @@ export function StoryWorldHeader({
             href={`/dashboard/worlds/${currentWorld.id}`}
             className={studioBtnPrimarySm}
           >
-            Open world
+            Open setting
           </Link>
           <button
             type="button"
             onClick={openChangeModal}
             className={studioBtnSecondary}
           >
-            Change world
+            Change setting
           </button>
           <button
             type="button"
@@ -114,7 +116,7 @@ export function StoryWorldHeader({
             }}
             className={studioBtnSecondary}
           >
-            Create world
+            New setting
           </button>
         </div>
       </div>
@@ -127,32 +129,32 @@ export function StoryWorldHeader({
 
       {changeOpen && (
         <FormModalShell
-          title="Change World"
-          subtitle="Move this story to another world. Characters not in the new world will be unlinked from the story."
+          title="Change story setting"
+          subtitle="Move this story to a different setting. Your cast stays on the story."
           onClose={() => setChangeOpen(false)}
           maxWidth="md"
         >
-          {otherWorlds.length === 0 ? (
+          {otherSettings.length === 0 ? (
             <p className="text-sm text-[var(--brand-text-secondary)]">
-              You don&apos;t have another world yet. Create one to move this
+              You don&apos;t have another setting yet. Create one to move this
               story.
             </p>
           ) : (
             <div>
               <label
-                htmlFor="story-world-select"
+                htmlFor="story-setting-select"
                 className="mb-1.5 block text-xs font-medium text-[var(--brand-text-secondary)]"
               >
-                World
+                Setting
               </label>
               <select
-                id="story-world-select"
+                id="story-setting-select"
                 value={selectedWorldId}
                 onChange={(e) => setSelectedWorldId(e.target.value)}
                 className={selectClassName}
               >
-                <option value="">Select a world…</option>
-                {otherWorlds.map((world) => (
+                <option value="">Select a setting…</option>
+                {otherSettings.map((world) => (
                   <option key={world.id} value={world.id}>
                     {world.name}
                   </option>
@@ -177,8 +179,8 @@ export function StoryWorldHeader({
             </button>
             <button
               type="button"
-              disabled={pending || otherWorlds.length === 0}
-              onClick={handleChangeWorld}
+              disabled={pending || otherSettings.length === 0}
+              onClick={handleChangeSetting}
               className="rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--brand-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {pending ? "Moving…" : "Move story"}
@@ -189,11 +191,11 @@ export function StoryWorldHeader({
 
       {createOpen && (
         <FormModalShell
-          title="Create New World"
-          subtitle="Creates a world and moves this story into it"
+          title="New setting"
+          subtitle="Creates a setting and moves this story into it"
           onClose={() => setCreateOpen(false)}
         >
-          <WorldForm onCreated={handleWorldCreated} onSuccess={() => {}} />
+          <WorldForm onCreated={handleSettingCreated} onSuccess={() => {}} />
         </FormModalShell>
       )}
     </>

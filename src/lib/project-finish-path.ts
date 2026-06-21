@@ -188,7 +188,7 @@ export function resolveProjectFinishPath(input: {
       primaryStep: "first_scene",
       primary: {
         kind: "link",
-        href: `/dashboard/worlds/${primaryStory.worldId}/stories/${primaryStory.id}#story-scenes`,
+        href: `/dashboard/worlds/${primaryStory.worldId}/stories/${primaryStory.id}#story-timeline-section`,
         label: `Add first scene in ${primaryStory.title}`,
       },
       hints: [{ label: "Set style references", hash: PROJECT_SECTION_IDS.styleReferences }],
@@ -209,7 +209,7 @@ export function resolveProjectFinishPath(input: {
           ? [
               {
                 label: "Add another scene",
-                href: `/dashboard/worlds/${continueStory.worldId}/stories/${continueStory.id}#story-scenes`,
+                href: `/dashboard/worlds/${continueStory.worldId}/stories/${continueStory.id}#story-timeline-section`,
               },
             ]
           : []),

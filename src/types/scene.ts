@@ -15,6 +15,9 @@ export type Scene = {
   /** Linked world_locations.id (product spec: location_id) */
   world_location_id: string | null;
   sort_order: number;
+  cover_image_path: string | null;
+  cover_focal_x: number;
+  cover_focal_y: number;
   created_at: string;
   updated_at: string;
 };
@@ -26,6 +29,9 @@ export type SceneRow = Scene & {
   location_label?: string | null;
   world_location_id?: string | null;
   sort_order?: number;
+  cover_image_path?: string | null;
+  cover_focal_x?: number;
+  cover_focal_y?: number;
   updated_at?: string;
 };
 
@@ -45,6 +51,8 @@ export type SceneWithCast = Scene & {
   }[];
   /** Resolved for display: linked location name or free-text label */
   location_display: string | null;
+  /** Signed URL when cover_image_path is set */
+  cover_url?: string | null;
 };
 
 export function normalizeScene(row: SceneRow): Scene {
@@ -61,6 +69,9 @@ export function normalizeScene(row: SceneRow): Scene {
     location_label: row.location_label ?? null,
     world_location_id: row.world_location_id ?? null,
     sort_order: row.sort_order ?? 0,
+    cover_image_path: row.cover_image_path ?? null,
+    cover_focal_x: row.cover_focal_x ?? 50,
+    cover_focal_y: row.cover_focal_y ?? 50,
     created_at: row.created_at,
     updated_at: row.updated_at ?? row.created_at,
   };

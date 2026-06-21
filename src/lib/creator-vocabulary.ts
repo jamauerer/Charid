@@ -58,6 +58,10 @@ export const CREATOR_STORY = {
   sceneCharactersOptional: "optional",
   sceneCharactersEmptyHint:
     "Optional — pick from your story cast below, or add characters in Cast & Connections first.",
+  timelineLabel: "Timeline",
+  timelineHint:
+    "Drag scenes to reorder. Click a scene to open it, or use + to insert.",
+  timelineEmptyHint: "Use + to add your first scene.",
   needSceneIdeasLabel: "Need ideas?",
   needSceneIdeasHint: "CharID can suggest what happens next — you approve every scene.",
   generateSceneSuggestionsLabel: "Generate scene suggestions",

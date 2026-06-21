@@ -4,11 +4,12 @@ import { useState } from "react";
 import type { Chapter } from "@/types/chapter";
 import type { StoryCharacterEntry } from "@/app/actions/stories";
 import type { SceneWithCast } from "@/types/scene";
-import { SceneList } from "@/components/scene-workspace/SceneList";
 import { SceneCreateStudio } from "@/components/scene-workspace/SceneCreateStudio";
+import { StoryTimelinePanel } from "@/components/scene-workspace/StoryTimelinePanel";
 import { SceneSuggestionStagingPanel } from "@/components/scene-workspace/SceneSuggestionStagingPanel";
 import type { StoryLocationOption } from "@/components/scene-workspace/SceneCard";
 import type { SceneSuggestionBatchView } from "@/types/scene-suggestion";
+import type { SceneInsertPlacement } from "@/lib/scenes/scene-insert-order";
 import { CREATOR_STORY } from "@/lib/creator-vocabulary";
 import { StudioEmptyState } from "@/components/studio/StudioEmptyState";
 import { STUDIO_EMPTY_COPY } from "@/lib/studio-empty-copy";
@@ -41,22 +42,26 @@ export function StoryScenesPanel({
 }: StoryScenesPanelProps) {
   const [studioOpen, setStudioOpen] = useState(false);
   const [studioSession, setStudioSession] = useState(0);
+  const [insertPlacement, setInsertPlacement] = useState<SceneInsertPlacement>({
+    mode: "end",
+  });
 
-  function openStudio() {
+  function openStudio(placement: SceneInsertPlacement = { mode: "end" }) {
+    setInsertPlacement(placement);
     setStudioSession((s) => s + 1);
     setStudioOpen(true);
   }
 
   return (
     <section
-      id="story-scenes"
-      aria-labelledby="story-scenes-heading"
+      id="story-timeline-section"
+      aria-labelledby="story-timeline-heading"
       className="mb-10 scroll-mt-6"
     >
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 id="story-scenes-heading" className={studioSectionLabel}>
-            Scenes{scenes.length > 0 ? ` (${scenes.length})` : ""}
+          <h2 id="story-timeline-heading" className={studioSectionLabel}>
+            Timeline
           </h2>
           <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
             {CREATOR_STORY.scenesHint}
@@ -64,7 +69,7 @@ export function StoryScenesPanel({
         </div>
         <button
           type="button"
-          onClick={openStudio}
+          onClick={() => openStudio({ mode: "end" })}
           className={studioBtnPrimarySm}
         >
           {CREATOR_STORY.createSceneLabel}
@@ -77,27 +82,26 @@ export function StoryScenesPanel({
         </p>
       )}
 
-      {scenes.length === 0 ? (
+      <StoryTimelinePanel
+        worldId={worldId}
+        storyId={storyId}
+        scenes={scenes}
+        onInsert={openStudio}
+      />
+
+      {scenes.length === 0 && (
         <StudioEmptyState
           headline={STUDIO_EMPTY_COPY.scene.headline}
           description={CREATOR_STORY.scenesEmptyHint}
         >
           <button
             type="button"
-            onClick={openStudio}
+            onClick={() => openStudio({ mode: "end" })}
             className={studioBtnPrimarySm}
           >
             {CREATOR_STORY.createSceneLabel}
           </button>
         </StudioEmptyState>
-      ) : (
-        <SceneList
-          worldId={worldId}
-          storyId={storyId}
-          scenes={scenes}
-          cast={cast}
-          locations={locations}
-        />
       )}
 
       <div
@@ -130,6 +134,7 @@ export function StoryScenesPanel({
           storyId={storyId}
           cast={cast}
           locations={locations}
+          insertPlacement={insertPlacement}
         />
       )}
     </section>

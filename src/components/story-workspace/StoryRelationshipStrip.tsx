@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { StoryCastBond } from "@/app/actions/story-workspace";
-import { studioWarmChip } from "@/lib/visual-identity";
+import { formatDirectedRelationship } from "@/lib/relationship-plain-language";
 
 type StoryRelationshipStripProps = {
   bonds: StoryCastBond[];
@@ -51,52 +51,55 @@ export function StoryRelationshipStrip({
 }: StoryRelationshipStripProps) {
   if (bonds.length === 0) {
     return (
-      <div className="mt-5 border-t border-[var(--brand-border)] pt-5">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--brand-text-secondary)]">
-          Connections among your cast
-        </h3>
-        <p className="mt-2 text-sm text-[var(--brand-text-secondary)]">
-          Add relationships on character pages to see cast dynamics here.
+      <div className="rounded-xl border border-dashed border-[var(--brand-border)] bg-[var(--brand-surface)] px-5 py-8 text-center">
+        <p className="text-sm text-[var(--brand-text-secondary)]">
+          No relationships among your cast yet.
         </p>
         <p className="mt-2 text-xs text-[var(--brand-text-secondary)]">
-          Friend · Rival · Mentor · Parent · Companion · Daemon
+          Add relationships on character pages to see them here.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="mt-5 border-t border-[var(--brand-border)] pt-5">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--brand-text-secondary)]">
-        Connections among your cast
-      </h3>
-      <ul className="mt-3 space-y-2">
-        {bonds.map(({ relationship, fromCharacter, toCharacter, label }) => (
-          <li
-            key={relationship.id}
-            className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2.5"
-          >
-            <CharacterAvatar
-              id={fromCharacter.id}
-              name={fromCharacter.name}
-              photoUrl={photoUrls[fromCharacter.id] ?? null}
-            />
-            <span className={studioWarmChip}>
-              {label}
-            </span>
-            <CharacterAvatar
-              id={toCharacter.id}
-              name={toCharacter.name}
-              photoUrl={photoUrls[toCharacter.id] ?? null}
-            />
-          </li>
-        ))}
+    <div>
+      <ul className="space-y-2">
+        {bonds.map(({ relationship, fromCharacter, toCharacter }) => {
+          const sentence = formatDirectedRelationship(
+            fromCharacter.name,
+            toCharacter.name,
+            relationship.relationship_type,
+            relationship.custom_label
+          );
+
+          return (
+            <li
+              key={relationship.id}
+              className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2.5"
+            >
+              <CharacterAvatar
+                id={fromCharacter.id}
+                name={fromCharacter.name}
+                photoUrl={photoUrls[fromCharacter.id] ?? null}
+              />
+              <p className="min-w-0 flex-1 text-sm text-[var(--brand-text-secondary)]">
+                {sentence}
+              </p>
+              <CharacterAvatar
+                id={toCharacter.id}
+                name={toCharacter.name}
+                photoUrl={photoUrls[toCharacter.id] ?? null}
+              />
+            </li>
+          );
+        })}
       </ul>
       <p className="mt-3 text-xs text-[var(--brand-text-secondary)]">
         Edit relationships on{" "}
         <Link
           href={`/dashboard/characters/${bonds[0]?.fromCharacter.id}?focus=relationships`}
-          className="text-[var(--brand-text-secondary)] underline-offset-2 hover:text-[var(--brand-text-secondary)] hover:underline"
+          className="text-[var(--brand-text-secondary)] underline-offset-2 hover:underline"
         >
           character pages
         </Link>

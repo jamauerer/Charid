@@ -11,6 +11,7 @@ import {
 import type { StoryCharacterEntry } from "@/app/actions/stories";
 import type { SceneWithCast } from "@/types/scene";
 import type { StoryLocationOption } from "@/components/scene-workspace/SceneCard";
+import type { SceneInsertPlacement } from "@/lib/scenes/scene-insert-order";
 import { CREATOR_STORY } from "@/lib/creator-vocabulary";
 import { studioBtnPrimary } from "@/lib/visual-identity";
 
@@ -22,7 +23,15 @@ type SceneCreateStudioProps = {
   cast: StoryCharacterEntry[];
   locations?: StoryLocationOption[];
   scene?: SceneWithCast | null;
+  insertPlacement?: SceneInsertPlacement | null;
 };
+
+function insertPlacementLabel(placement: SceneInsertPlacement | null | undefined): string | null {
+  if (!placement || placement.mode === "end") return null;
+  if (placement.mode === "start") return "Inserting at the start of the timeline";
+  if (placement.mode === "after") return "Inserting after the selected scene";
+  return "Inserting before the selected scene";
+}
 
 export function SceneCreateStudio({
   open,
@@ -32,6 +41,7 @@ export function SceneCreateStudio({
   cast,
   locations = [],
   scene,
+  insertPlacement = null,
 }: SceneCreateStudioProps) {
   const router = useRouter();
   const isEdit = Boolean(scene);
@@ -71,6 +81,7 @@ export function SceneCreateStudio({
 
   const hasLocations = locations.length > 0;
   const useLinkedLocation = hasLocations && locationMode === "linked";
+  const placementHint = !isEdit ? insertPlacementLabel(insertPlacement) : null;
 
   return (
     <ModalPortal>
@@ -92,6 +103,11 @@ export function SceneCreateStudio({
                   <h2 className="mt-1 text-lg font-semibold text-[var(--brand-text-secondary)]">
                     {isEdit ? scene!.title : "What happens next?"}
                   </h2>
+                  {placementHint && (
+                    <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
+                      {placementHint}
+                    </p>
+                  )}
                 </div>
                 <button
                   type="button"
@@ -109,6 +125,23 @@ export function SceneCreateStudio({
               <input type="hidden" name="world_id" value={worldId} />
               {scene && (
                 <input type="hidden" name="scene_id" value={scene.id} />
+              )}
+              {!isEdit && insertPlacement && (
+                <>
+                  <input
+                    type="hidden"
+                    name="insert_placement"
+                    value={insertPlacement.mode}
+                  />
+                  {(insertPlacement.mode === "after" ||
+                    insertPlacement.mode === "before") && (
+                    <input
+                      type="hidden"
+                      name="insert_anchor_scene_id"
+                      value={insertPlacement.sceneId}
+                    />
+                  )}
+                </>
               )}
               {selectedIds.map((id) => (
                 <input key={id} type="hidden" name="character_ids" value={id} />

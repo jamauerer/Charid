@@ -132,6 +132,7 @@ export function CharacterWorkspaceView({
 
       <CharacterRelationshipsSection
         characterId={character.id}
+        characterName={character.name}
         entries={relationshipEntries}
         photoUrls={relationshipPhotoUrls}
       />
