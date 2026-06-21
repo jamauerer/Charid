@@ -37,7 +37,7 @@ export function NewChapterModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm shadow-violet-500/15 transition hover:bg-[var(--brand-accent-hover)]"
+        className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--brand-accent)] px-3.5 py-1.5 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:bg-[var(--brand-accent)]"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -114,14 +114,14 @@ export function NewChapterModal({
                         maxLength={200}
                         placeholder="Chapter One"
                         autoFocus
-                        className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none placeholder:text-[var(--brand-text-secondary)] focus:border-violet-500/50"
+                        className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)]"
                       />
                     </div>
 
                     <button
                       type="submit"
                       disabled={pending}
-                      className="w-full rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-violet-500/15 transition hover:bg-[var(--brand-accent-hover)] disabled:opacity-50"
+                      className="w-full rounded-lg bg-[var(--brand-accent)] px-4 py-2 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:bg-[var(--brand-accent)] disabled:opacity-50"
                     >
                       {pending ? "Creating..." : "Create Chapter"}
                     </button>

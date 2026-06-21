@@ -209,7 +209,7 @@ export function CharacterPickerModal({
                         <label
                           className={`flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2.5 transition ${
                             isSelected
-                              ? "border-violet-500/40 bg-violet-500/10"
+                              ? "border-[var(--brand-accent)] bg-[var(--tag-primary-bg)]"
                               : "border-[var(--brand-border)] bg-[var(--brand-surface)] hover:border-white/[0.12]"
                           }`}
                         >
@@ -260,7 +260,7 @@ export function CharacterPickerModal({
               type="button"
               disabled={pending || selectable.length === 0}
               onClick={handleSubmit}
-              className="rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--brand-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-lg bg-[var(--brand-accent)] px-4 py-2 text-sm font-semibold text-[var(--brand-accent-foreground)] transition hover:bg-[var(--brand-accent)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {pending
                 ? "Adding…"

@@ -7,18 +7,18 @@
 /* ── Typography ── */
 
 export const dsPageTitle =
-  "text-xl font-semibold tracking-tight text-neutral-900";
+  "text-xl font-semibold tracking-tight text-[var(--foreground)]";
 
 export const dsPageSubtitle =
-  "mt-1 text-sm text-neutral-600";
+  "mt-1 text-sm text-[var(--brand-text-secondary)]";
 
 export const dsSectionLabel =
-  "text-[11px] font-medium uppercase tracking-wide text-neutral-500";
+  "text-[11px] font-medium uppercase tracking-wide text-[var(--brand-text-muted)]";
 
 export const dsEyebrow = dsSectionLabel;
 
 export const dsBody =
-  "text-sm leading-relaxed text-neutral-600";
+  "text-sm leading-relaxed text-[var(--brand-text-secondary)]";
 
 export const dsMarketingHeadline =
   "text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl";
@@ -29,10 +29,10 @@ export const dsMarketingSectionTitle =
 /* ── Buttons ── */
 
 export const dsBtnPrimary =
-  "inline-flex items-center justify-center rounded-lg bg-[var(--brand-accent)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[var(--brand-accent-hover)] disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center rounded-lg bg-[var(--brand-accent)] px-4 py-2 text-sm font-medium text-[var(--brand-accent-foreground)] transition hover:bg-[var(--brand-accent)] disabled:cursor-not-allowed disabled:opacity-50";
 
 export const dsBtnPrimarySm =
-  "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--brand-accent)] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[var(--brand-accent-hover)]";
+  "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--brand-accent)] px-3 py-1.5 text-xs font-medium text-[var(--brand-accent-foreground)] transition hover:bg-[var(--brand-accent)]";
 
 export const dsBtnSecondary =
   "inline-flex items-center justify-center rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-1.5 text-sm font-medium text-[var(--foreground)] transition hover:bg-[var(--brand-surface-elevated)]";
@@ -49,7 +49,7 @@ export const dsSection =
   "mb-6 scroll-mt-4 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] p-5";
 
 export const dsCard =
-  "overflow-hidden rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] transition hover:border-neutral-300";
+  "overflow-hidden rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] transition hover:border-[var(--brand-accent)]";
 
 export const dsCardInteractive = `group/card block ${dsCard}`;
 
@@ -57,7 +57,7 @@ export const dsCardLink =
   "group rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-3.5 transition hover:bg-[var(--brand-surface-elevated)]";
 
 export const dsEmptyArt =
-  "flex h-full min-h-[8rem] items-center justify-center bg-[var(--studio-empty-fill)] text-xs text-neutral-500";
+  "flex h-full min-h-[8rem] items-center justify-center bg-[var(--studio-empty-fill)] text-xs text-[var(--brand-text-muted)]";
 
 export const dsEmptyCover =
   "flex h-full min-h-[8rem] flex-col items-center justify-center gap-1 bg-[var(--studio-empty-fill)] px-4 py-6 text-center";
@@ -66,7 +66,7 @@ export const dsEmptyCoverCompact =
   "flex h-full min-h-[5rem] flex-col items-center justify-center gap-0.5 bg-[var(--studio-empty-fill)] px-3 py-4 text-center";
 
 export const dsInput =
-  "w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--brand-text-muted)] outline-none transition focus:border-[var(--brand-accent)] focus:ring-1 focus:ring-[color-mix(in_srgb,var(--brand-accent)_20%,transparent)]";
+  "w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--brand-text-secondary)] outline-none transition focus:border-[var(--brand-accent)] focus:ring-1 focus:ring-[var(--brand-accent)]";
 
 /* ── Alerts & status (informational — no orange) ── */
 
@@ -99,7 +99,7 @@ export const dsProgressFill =
   "h-full rounded-full bg-[var(--brand-accent)] transition-all";
 
 export const dsChip =
-  "rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface-elevated)] px-2 py-0.5 text-[11px] font-medium text-neutral-600";
+  "rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface-elevated)] px-2 py-0.5 text-[11px] font-medium text-[var(--brand-text-secondary)]";
 
 /* ── Modals ── */
 

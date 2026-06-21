@@ -69,7 +69,7 @@ export function CharacterForm({
             name="photo"
             type="file"
             accept="image/jpeg,image/png,image/webp"
-            className="w-full text-sm text-[var(--brand-text-secondary)] file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-violet-600/20 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-600 file:transition hover:file:bg-violet-600/30"
+            className="w-full text-sm text-[var(--brand-text-secondary)] file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-[var(--tag-primary-bg)] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-600 file:transition hover:file:bg-[var(--tag-primary-bg)]"
           />
           <p className="mt-1.5 text-xs text-[var(--brand-text-secondary)]">
             JPEG, PNG, or WebP up to 5 MB
@@ -86,7 +86,7 @@ export function CharacterForm({
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-500/20 transition hover:bg-[var(--brand-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-lg bg-[var(--brand-accent)] px-4 py-2.5 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-md transition hover:bg-[var(--brand-accent)] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Saving..." : "Save character"}
       </button>

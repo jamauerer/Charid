@@ -21,7 +21,7 @@ export function PublicWorldCard({
   return (
     <Link
       href={href}
-      className="group overflow-hidden rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] transition hover:border-[var(--brand-border)] hover:bg-[#111113]"
+      className="group overflow-hidden rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] transition hover:border-[var(--brand-border)] hover:bg-[var(--brand-sidebar)]"
     >
       <div className="relative aspect-[16/9] overflow-hidden bg-[var(--studio-empty-fill)]">
         {coverUrl ? (
@@ -33,7 +33,7 @@ export function PublicWorldCard({
             unoptimized
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-violet-950/40 to-zinc-900 text-xs text-[var(--brand-text-secondary)]">
+          <div className="flex h-full items-center justify-center bg-[var(--studio-empty-fill)] text-xs text-[var(--brand-text-secondary)]">
             No cover
           </div>
         )}

@@ -30,11 +30,11 @@ function StatusBadge({ status }: { status: string }) {
     pending:
       "border border-[var(--status-info-border)] bg-[var(--status-info-bg)] text-[var(--status-info-text)]",
     approved:
-      "bg-[color-mix(in_srgb,var(--brand-success)_12%,var(--brand-surface))] text-[var(--brand-success)]",
+      "bg-[var(--status-success-bg)] text-[var(--brand-success)]",
     removed:
-      "bg-[color-mix(in_srgb,var(--brand-danger)_12%,var(--brand-surface))] text-[var(--brand-danger)]",
+      "bg-[var(--status-danger-bg)] text-[var(--brand-danger)]",
     escalated:
-      "bg-[color-mix(in_srgb,var(--brand-accent)_12%,var(--brand-surface))] text-[var(--brand-accent)]",
+      "bg-[var(--tag-primary-bg)] text-[var(--brand-accent)]",
   };
 
   return (
@@ -185,7 +185,7 @@ function QueueItemCard({ item }: { item: ModerationQueueEntry }) {
               onClick={() =>
                 runAction(() => escalateModerationItem(item.id, note))
               }
-              className="rounded-lg border border-violet-500/30 bg-violet-500/10 px-3 py-1.5 text-xs font-semibold text-violet-200 transition hover:bg-violet-500/20 disabled:opacity-60"
+              className="rounded-lg border border-[var(--brand-border)] bg-[var(--tag-primary-bg)] px-3 py-1.5 text-xs font-semibold text-[var(--tag-primary-text)] transition hover:bg-[var(--tag-primary-bg)] disabled:opacity-60"
             >
               Escalate
             </button>

@@ -130,7 +130,7 @@ export function WorldMapSection({
               onClick={() => setPinMode((v) => !v)}
               className={`rounded-lg border px-3.5 py-1.5 text-sm font-medium transition ${
                 pinMode
-                  ? "border-violet-500/40 bg-violet-500/15 text-violet-200"
+                  ? "border-[var(--brand-accent)] bg-[var(--tag-primary-bg)] text-[var(--tag-primary-text)]"
                   : "border-[var(--brand-border)] bg-[var(--brand-surface)] text-[var(--brand-text-secondary)] hover:border-neutral-300"
               }`}
             >
@@ -147,7 +147,7 @@ export function WorldMapSection({
       )}
 
       {pinMode && imageUrl && (
-        <div className="mb-3 flex flex-wrap items-end gap-3 rounded-lg border border-violet-500/20 bg-violet-500/5 p-3">
+        <div className="mb-3 flex flex-wrap items-end gap-3 rounded-lg border border-[var(--brand-border)] bg-[var(--tag-primary-bg)] p-3">
           <div className="min-w-[140px] flex-1">
             <label className="mb-1 block text-xs text-[var(--brand-text-secondary)]">Pin label</label>
             <input
@@ -155,7 +155,7 @@ export function WorldMapSection({
               value={pinLabel}
               onChange={(e) => setPinLabel(e.target.value)}
               placeholder="Forest gate"
-              className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-1.5 text-sm text-[var(--brand-text-secondary)] outline-none focus:border-violet-500/50"
+              className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-1.5 text-sm text-[var(--brand-text-secondary)] outline-none focus:border-[var(--brand-accent)]"
             />
           </div>
           {locations.length > 0 && (
@@ -166,7 +166,7 @@ export function WorldMapSection({
               <select
                 value={pinLocationId}
                 onChange={(e) => setPinLocationId(e.target.value)}
-                className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-1.5 text-sm text-[var(--brand-text-secondary)] outline-none focus:border-violet-500/50"
+                className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-1.5 text-sm text-[var(--brand-text-secondary)] outline-none focus:border-[var(--brand-accent)]"
               >
                 <option value="">None</option>
                 {locations.map(({ location }) => (
@@ -205,7 +205,7 @@ export function WorldMapSection({
         <>
           <div
             className={`relative overflow-hidden rounded-xl border border-[var(--brand-border)] bg-[var(--studio-empty-fill)] ${
-              pinMode ? "cursor-crosshair ring-2 ring-violet-500/30" : ""
+              pinMode ? "cursor-crosshair ring-2 ring-[var(--brand-accent)]" : ""
             }`}
             onClick={handleMapClick}
             role={pinMode ? "button" : undefined}
@@ -268,10 +268,10 @@ function MapPinMarker({ pin }: { pin: MapLocationPin }) {
       style={{ left: `${pin.pin_x}%`, top: `${pin.pin_y}%` }}
     >
       <div className="flex flex-col items-center">
-        <span className="rounded-md bg-violet-600/90 px-1.5 py-0.5 text-[10px] font-medium text-white shadow">
+        <span className="rounded-md bg-[var(--brand-accent)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--brand-accent-foreground)] shadow">
           {pin.label}
         </span>
-        <span className="mt-0.5 h-2 w-2 rounded-full bg-violet-400 ring-2 ring-violet-200/80" />
+        <span className="mt-0.5 h-2 w-2 rounded-full bg-[var(--brand-secondary-accent)] ring-2 ring-[var(--brand-accent)]" />
       </div>
     </div>
   );

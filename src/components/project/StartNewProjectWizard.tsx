@@ -331,7 +331,7 @@ export function StartNewProjectWizard({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={suggestedTitle || "Children's Dragon Comic"}
-              className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[color-mix(in_srgb,var(--brand-accent)_20%,transparent)]"
+              className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-accent)]"
             />
             <p className="mt-1.5 text-xs text-[var(--brand-text-secondary)]">
               Name the finished work — you can have many unrelated projects.
@@ -390,7 +390,7 @@ export function StartNewProjectWizard({
                 value={ideaDescription}
                 onChange={(e) => setIdeaDescription(e.target.value)}
                 placeholder="A shy dragon who learns to fly by helping friends in a mountain village…"
-                className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[color-mix(in_srgb,var(--brand-accent)_20%,transparent)]"
+                className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-accent)]"
               />
             </div>
           )}
@@ -405,7 +405,7 @@ export function StartNewProjectWizard({
             type="button"
             disabled={creating || !title.trim()}
             onClick={() => void handleCreateProject()}
-            className="w-full rounded-lg bg-[var(--brand-accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--brand-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-lg bg-[var(--brand-accent)] px-4 py-2.5 text-sm font-semibold text-[var(--brand-accent-foreground)] transition hover:bg-[var(--brand-accent)] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {creating ? "Creating project…" : "Create project & continue"}
           </button>

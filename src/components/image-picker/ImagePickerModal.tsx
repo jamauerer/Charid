@@ -83,7 +83,7 @@ export function ImagePickerModal({
             role="dialog"
             aria-modal="true"
             aria-labelledby="image-picker-title"
-            className="relative z-10 flex w-full max-w-4xl max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-2xl border border-violet-500/20 bg-[var(--brand-surface)] shadow-lg"
+            className="relative z-10 flex w-full max-w-4xl max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-2xl border border-[var(--brand-border)] bg-[var(--brand-surface)] shadow-lg"
           >
             <header className="shrink-0 border-b border-[var(--brand-border)] px-5 py-4">
               <div className="flex items-start justify-between gap-3">
@@ -118,7 +118,7 @@ export function ImagePickerModal({
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search by name, slot, or type…"
-                    className="w-full rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-2.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-violet-500/40 focus:outline-none focus:ring-1 focus:ring-violet-500/30"
+                    className="w-full rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-2.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-accent)]"
                   />
                   {showPriorityHint && !search.trim() && (
                     <p className="mt-2 text-xs text-[var(--brand-text-secondary)]">
@@ -244,8 +244,8 @@ function ImagePickerCard({
       onClick={onSelect}
       className={`flex w-full flex-col overflow-hidden rounded-xl border text-left transition ${
         selected
-          ? "border-violet-500/60 ring-2 ring-violet-500/30"
-          : "border-[var(--brand-border)] hover:border-violet-400/40"
+          ? "border-[var(--brand-accent)] ring-2 ring-[var(--brand-accent)]"
+          : "border-[var(--brand-border)] hover:border-[var(--brand-accent)]"
       } disabled:cursor-not-allowed disabled:opacity-50`}
     >
       <div className="relative aspect-square min-h-[120px] w-full bg-[var(--studio-empty-fill)]">

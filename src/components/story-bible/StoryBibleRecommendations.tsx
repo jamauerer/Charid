@@ -44,7 +44,7 @@ export function StoryBibleRecommendations({
             key={rec.id}
             className="flex gap-3 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] p-3 sm:p-4"
           >
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-500/20 text-xs font-semibold text-neutral-600">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--tag-primary-bg)] text-xs font-semibold text-neutral-600">
               {index + 1}
             </span>
             <div className="min-w-0 flex-1">

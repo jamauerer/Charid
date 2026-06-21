@@ -25,7 +25,7 @@ export function PublicCharacterCard({
   const href = getPublicCharacterPath(username, character.id);
 
   return (
-    <article className="overflow-hidden rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] transition hover:border-[var(--brand-border)] hover:bg-[#111113]">
+    <article className="overflow-hidden rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] transition hover:border-[var(--brand-border)] hover:bg-[var(--brand-sidebar)]">
       <Link href={href} className="relative block aspect-[4/3] overflow-hidden bg-[var(--studio-empty-fill)]">
         {photoUrl ? (
           <Image
@@ -37,7 +37,7 @@ export function PublicCharacterCard({
             unoptimized
           />
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-1 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black">
+          <div className="flex h-full flex-col items-center justify-center gap-1 bg-[var(--studio-empty-fill)]">
             <span className="text-[10px] text-[var(--brand-text-secondary)]">No portrait</span>
           </div>
         )}

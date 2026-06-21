@@ -14,7 +14,7 @@ import type { SupportTicketStatus } from "@/types/support-ticket";
 function StatusBadge({ status }: { status: SupportTicketStatus }) {
   const colors: Record<SupportTicketStatus, string> = {
     open: "border border-[var(--status-info-border)] bg-[var(--status-info-bg)] text-[var(--status-info-text)]",
-    in_progress: "bg-violet-500/15 text-neutral-600",
+    in_progress: "bg-[var(--tag-primary-bg)] text-[var(--brand-text-secondary)]",
     resolved: "border border-[var(--status-success-border)] bg-[var(--status-success-bg)] text-[var(--status-success-text)]",
   };
 
@@ -99,7 +99,7 @@ function TicketRow({ ticket }: { ticket: SupportInboxEntry }) {
                 type="button"
                 disabled={pending}
                 onClick={() => setStatus("in_progress")}
-                className="rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface-elevated)] text-neutral-600 transition hover:bg-violet-500/20 disabled:opacity-50"
+                className="rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface-elevated)] text-neutral-600 transition hover:bg-[var(--tag-primary-bg)] disabled:opacity-50"
               >
                 Mark in progress
               </button>

@@ -94,7 +94,7 @@ export function SceneCreateStudio({
         />
         <div className="flex min-h-full items-start justify-center p-4 sm:items-center sm:p-6">
           <div className="relative z-10 flex w-full max-w-lg max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-2xl border border-[var(--status-info-border)] bg-[var(--brand-surface)] shadow-lg">
-            <div className="shrink-0 border-b border-[var(--brand-border)] bg-gradient-to-br  px-5 py-4">
+            <div className="shrink-0 border-b border-[var(--brand-border)] bg-[var(--brand-surface)] px-5 py-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
@@ -176,7 +176,7 @@ export function SceneCreateStudio({
                   defaultValue={scene?.title ?? ""}
                   placeholder="The Giant Wave"
                   autoFocus
-                  className="w-full rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-3 text-lg font-medium text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[color-mix(in_srgb,var(--brand-accent)_20%,transparent)]"
+                  className="w-full rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-3 text-lg font-medium text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-accent)]"
                 />
               </div>
 
@@ -195,7 +195,7 @@ export function SceneCreateStudio({
                   maxLength={2000}
                   defaultValue={scene?.summary ?? ""}
                   placeholder="Jake sees the biggest wave of his life."
-                  className="w-full resize-y rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-3 text-sm leading-relaxed text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[color-mix(in_srgb,var(--brand-accent)_20%,transparent)]"
+                  className="w-full resize-y rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-3 text-sm leading-relaxed text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-accent)]"
                 />
               </div>
 
@@ -273,7 +273,7 @@ export function SceneCreateStudio({
                     id="scene-location-select"
                     value={linkedLocationId}
                     onChange={(e) => setLinkedLocationId(e.target.value)}
-                    className="w-full rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-2.5 text-sm text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[color-mix(in_srgb,var(--brand-accent)_20%,transparent)]"
+                    className="w-full rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-2.5 text-sm text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-accent)]"
                   >
                     <option value="">Choose a location…</option>
                     {locations.map((loc) => (
@@ -290,7 +290,7 @@ export function SceneCreateStudio({
                     maxLength={200}
                     defaultValue={scene?.location_label ?? ""}
                     placeholder="Pleasure Point"
-                    className="w-full rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-2.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[color-mix(in_srgb,var(--brand-accent)_20%,transparent)]"
+                    className="w-full rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-2.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-accent)]"
                   />
                 )}
               </div>

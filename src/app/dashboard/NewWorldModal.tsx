@@ -16,7 +16,7 @@ export function NewWorldModal({ onCreated }: NewWorldModalProps) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm shadow-violet-500/15 transition hover:bg-[var(--brand-accent-hover)]"
+        className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--brand-accent)] px-3.5 py-1.5 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:bg-[var(--brand-accent)]"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

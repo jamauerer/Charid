@@ -113,7 +113,7 @@ export function ContactSupportForm() {
           name="screenshot"
           type="file"
           accept="image/jpeg,image/png,image/webp"
-          className="w-full text-sm text-[var(--brand-text-secondary)] file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-violet-600/20 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-600"
+          className="w-full text-sm text-[var(--brand-text-secondary)] file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-[var(--tag-primary-bg)] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-600"
         />
         <p className="mt-1.5 text-xs text-[var(--brand-text-secondary)]">
           JPEG, PNG, or WebP up to 5 MB
@@ -129,7 +129,7 @@ export function ContactSupportForm() {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--brand-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-lg bg-[var(--brand-accent)] px-5 py-2.5 text-sm font-semibold text-[var(--brand-accent-foreground)] transition hover:bg-[var(--brand-accent)] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Submitting…" : "Submit ticket"}
       </button>

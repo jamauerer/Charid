@@ -121,7 +121,7 @@ export function StoryCharacterSection({
                     unoptimized
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center bg-gradient-to-br from-zinc-900 via-zinc-950 to-black text-[10px] text-[var(--brand-text-secondary)]">
+                  <div className="flex h-full items-center justify-center bg-[var(--studio-empty-fill)] text-[10px] text-[var(--brand-text-secondary)]">
                     No portrait
                   </div>
                 )}

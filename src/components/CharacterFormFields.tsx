@@ -1,13 +1,13 @@
 import type { Character } from "@/types/character";
 
 export const inputClassName =
-  "w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] outline-none transition focus:border-[var(--brand-accent)] focus:ring-1 focus:ring-[color-mix(in_srgb,var(--brand-accent)_20%,transparent)]";
+  "w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] outline-none transition focus:border-[var(--brand-accent)] focus:ring-1 focus:ring-[var(--brand-accent)]";
 
 export const selectClassName =
-  "w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2.5 text-sm text-[var(--brand-text-secondary)] outline-none transition focus:border-[var(--brand-accent)] focus:ring-1 focus:ring-[color-mix(in_srgb,var(--brand-accent)_20%,transparent)] disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2.5 text-sm text-[var(--brand-text-secondary)] outline-none transition focus:border-[var(--brand-accent)] focus:ring-1 focus:ring-[var(--brand-accent)] disabled:cursor-not-allowed disabled:opacity-60";
 
 export const selectClassNameCompact =
-  "w-full rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2 py-1.5 text-xs text-[var(--brand-text-secondary)] outline-none transition focus:border-[var(--brand-accent)] focus:ring-1 focus:ring-[color-mix(in_srgb,var(--brand-accent)_20%,transparent)] disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2 py-1.5 text-xs text-[var(--brand-text-secondary)] outline-none transition focus:border-[var(--brand-accent)] focus:ring-1 focus:ring-[var(--brand-accent)] disabled:cursor-not-allowed disabled:opacity-60";
 
 const labelClassName =
   "mb-1.5 block text-xs font-medium uppercase tracking-wide text-[var(--brand-text-secondary)]";

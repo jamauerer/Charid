@@ -105,7 +105,7 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
       </div>
 
       {migrationError && (
-        <div className="mb-4 rounded-lg border border-[color-mix(in_srgb,var(--brand-warning)_25%,var(--brand-border))] bg-[color-mix(in_srgb,var(--brand-warning)_8%,var(--brand-surface))] px-3 py-2.5 text-sm text-[var(--foreground)]">
+        <div className="mb-4 rounded-lg border border-[var(--status-info-border)] bg-[var(--status-info-bg)] px-3 py-2.5 text-sm text-[var(--foreground)]">
           {migrationError}
         </div>
       )}

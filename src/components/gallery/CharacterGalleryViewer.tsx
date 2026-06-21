@@ -115,7 +115,7 @@ export function CharacterGalleryViewer({
                 onClick={() => setSelectedIndex(index)}
                 className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border transition ${
                   isSelected
-                    ? "border-violet-500 ring-2 ring-violet-500/40"
+                    ? "border-[var(--brand-accent)] ring-2 ring-[var(--brand-accent)]"
                     : "border-[var(--brand-border)] opacity-70 hover:border-white/20 hover:opacity-100"
                 }`}
               >

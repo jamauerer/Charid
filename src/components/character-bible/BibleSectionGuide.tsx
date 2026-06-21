@@ -14,7 +14,7 @@ export function BibleSectionGuide({
   creativeImpact,
 }: BibleSectionGuideProps) {
   return (
-    <div className="rounded-lg border border-violet-500/20 bg-violet-500/[0.06] p-4 sm:p-5">
+    <div className="rounded-lg border border-[var(--brand-border)] bg-[var(--tag-primary-bg)] p-4 sm:p-5">
       <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
         Why {title} matters
       </p>

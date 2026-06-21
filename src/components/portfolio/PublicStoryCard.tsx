@@ -23,7 +23,7 @@ export function PublicStoryCard({
   return (
     <Link
       href={href}
-      className="block overflow-hidden rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] transition hover:border-[var(--brand-border)] hover:bg-[#111113]"
+      className="block overflow-hidden rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] transition hover:border-[var(--brand-border)] hover:bg-[var(--brand-sidebar)]"
     >
       <div className="relative aspect-[16/9] bg-[var(--studio-empty-fill)]">
         {coverUrl ? (
@@ -35,7 +35,7 @@ export function PublicStoryCard({
             unoptimized
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-violet-950/20 to-zinc-900 text-xs text-[var(--brand-text-secondary)]">
+          <div className="flex h-full items-center justify-center bg-[var(--studio-empty-fill)] text-xs text-[var(--brand-text-secondary)]">
             No cover
           </div>
         )}

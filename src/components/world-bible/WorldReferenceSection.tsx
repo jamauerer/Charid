@@ -90,7 +90,7 @@ export function WorldReferenceSection({
             type="file"
             accept="image/jpeg,image/png,image/webp"
             onChange={handleReferenceUpload}
-            className="mt-2 w-full text-sm text-[var(--brand-text-secondary)] file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-violet-600/20 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-600"
+            className="mt-2 w-full text-sm text-[var(--brand-text-secondary)] file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-[var(--tag-primary-bg)] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-600"
           />
         </div>
 

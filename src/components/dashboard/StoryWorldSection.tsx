@@ -108,7 +108,7 @@ export function StoryWorldSection({
               setError(null);
               setCreateOpen(true);
             }}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm shadow-violet-500/15 transition hover:bg-[var(--brand-accent-hover)]"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--brand-accent)] px-3.5 py-1.5 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:bg-[var(--brand-accent)]"
           >
             Create New World
           </button>
@@ -171,7 +171,7 @@ export function StoryWorldSection({
               type="button"
               disabled={pending || otherWorlds.length === 0}
               onClick={handleChangeWorld}
-              className="rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--brand-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-lg bg-[var(--brand-accent)] px-4 py-2 text-sm font-semibold text-[var(--brand-accent-foreground)] transition hover:bg-[var(--brand-accent)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {pending ? "Moving…" : "Move story"}
             </button>

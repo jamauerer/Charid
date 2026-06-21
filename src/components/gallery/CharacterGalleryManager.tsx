@@ -187,7 +187,7 @@ export function CharacterGalleryManager({
                   onDragEnd={handleDragEnd}
                   className={`rounded-lg border bg-[var(--brand-surface)] transition ${
                     isDragging
-                      ? "border-violet-500/50 opacity-60"
+                      ? "border-[var(--brand-accent)] opacity-60"
                       : "border-[var(--brand-border)]"
                   }`}
                 >
@@ -221,7 +221,7 @@ export function CharacterGalleryManager({
                         </span>
                       )}
                       {isFeatured && (
-                        <span className="absolute left-1 top-1 rounded bg-violet-600 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                        <span className="absolute left-1 top-1 rounded bg-[var(--brand-accent)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--brand-accent-foreground)]">
                           Featured
                         </span>
                       )}
@@ -236,7 +236,7 @@ export function CharacterGalleryManager({
                           handleCaptionBlur(image.id, e.target.value)
                         }
                         disabled={pending}
-                        className="w-full rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2.5 py-1.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-violet-500/50 focus:outline-none focus:ring-1 focus:ring-violet-500/30 disabled:opacity-60"
+                        className="w-full rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2.5 py-1.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-accent)] disabled:opacity-60"
                       />
                       <div className="flex flex-wrap gap-2">
                         {!isFeatured && (
@@ -244,7 +244,7 @@ export function CharacterGalleryManager({
                             type="button"
                             onClick={() => handleSetFeatured(image.id)}
                             disabled={pending}
-                            className="rounded-md border border-violet-500/30 px-2 py-1 text-xs font-medium text-neutral-600 transition hover:bg-violet-500/10 disabled:opacity-60"
+                            className="rounded-md border border-[var(--brand-border)] px-2 py-1 text-xs font-medium text-neutral-600 transition hover:bg-[var(--tag-primary-bg)] disabled:opacity-60"
                           >
                             Set as Featured
                           </button>
@@ -275,7 +275,7 @@ export function CharacterGalleryManager({
           accept="image/jpeg,image/png,image/webp"
           onChange={handleUpload}
           disabled={pending}
-          className="w-full text-sm text-[var(--brand-text-secondary)] file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-violet-600/20 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-600 file:transition hover:file:bg-violet-600/30 disabled:opacity-60"
+          className="w-full text-sm text-[var(--brand-text-secondary)] file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-[var(--tag-primary-bg)] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-600 file:transition hover:file:bg-[var(--tag-primary-bg)] disabled:opacity-60"
         />
         <input
           type="text"
@@ -283,7 +283,7 @@ export function CharacterGalleryManager({
           onChange={(e) => setUploadCaption(e.target.value)}
           placeholder="Optional caption for new image"
           disabled={pending}
-          className="w-full rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2.5 py-1.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-violet-500/50 focus:outline-none focus:ring-1 focus:ring-violet-500/30 disabled:opacity-60"
+          className="w-full rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2.5 py-1.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-accent)] disabled:opacity-60"
         />
         <p className="text-xs text-[var(--brand-text-secondary)]">
           JPEG, PNG, or WebP up to 5 MB.

@@ -98,7 +98,7 @@ export function SceneCoverFrame({
   return (
     <div
       ref={frameRef}
-      className={`relative aspect-[4/3] overflow-hidden rounded-t-xl bg-gradient-to-br from-[var(--studio-empty-fill)] via-[var(--brand-surface-elevated)] to-[var(--brand-surface)] ${
+      className={`relative aspect-[4/3] overflow-hidden rounded-t-xl bg-[var(--studio-empty-fill)] ${
         editable && coverUrl ? "cursor-grab active:cursor-grabbing" : ""
       }`}
       onPointerDown={handlePointerDown}

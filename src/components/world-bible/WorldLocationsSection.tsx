@@ -97,7 +97,7 @@ function AddLocationModal({ worldId }: { worldId: string }) {
                 onChange={(e) => setName(e.target.value)}
                 maxLength={120}
                 placeholder="The Whispering Forest"
-                className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none placeholder:text-[var(--brand-text-secondary)] focus:border-violet-500/50"
+                className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)]"
               />
             </div>
 
@@ -114,7 +114,7 @@ function AddLocationModal({ worldId }: { worldId: string }) {
                 onChange={(e) =>
                   setLocationType(e.target.value as LocationType)
                 }
-                className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none focus:border-violet-500/50"
+                className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none focus:border-[var(--brand-accent)]"
               >
                 {LOCATION_TYPES.map((type) => (
                   <option key={type} value={type}>
@@ -137,14 +137,14 @@ function AddLocationModal({ worldId }: { worldId: string }) {
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 maxLength={1000}
-                className="w-full resize-y rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none placeholder:text-[var(--brand-text-secondary)] focus:border-violet-500/50"
+                className="w-full resize-y rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)]"
               />
             </div>
 
             <button
               type="submit"
               disabled={pending}
-              className="w-full rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-violet-500/15 transition hover:bg-[var(--brand-accent-hover)] disabled:opacity-50"
+              className="w-full rounded-lg bg-[var(--brand-accent)] px-4 py-2 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:bg-[var(--brand-accent)] disabled:opacity-50"
             >
               {pending ? "Saving…" : "Save location"}
             </button>

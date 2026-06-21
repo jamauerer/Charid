@@ -65,7 +65,7 @@ export function ProjectForm({ onSuccess, onCreated }: ProjectFormProps) {
           name="title"
           type="text"
           required
-          className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-violet-500/50 focus:outline-none focus:ring-1 focus:ring-violet-500/30"
+          className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-accent)]"
           placeholder="Children's Dragon Comic"
         />
       </div>
@@ -81,7 +81,7 @@ export function ProjectForm({ onSuccess, onCreated }: ProjectFormProps) {
           id="project-description"
           name="description"
           rows={3}
-          className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-violet-500/50 focus:outline-none focus:ring-1 focus:ring-violet-500/30"
+          className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-accent)]"
           placeholder="Everything needed to finish this work — characters, settings, stories…"
         />
       </div>
@@ -116,7 +116,7 @@ export function ProjectForm({ onSuccess, onCreated }: ProjectFormProps) {
           type="file"
           accept="image/jpeg,image/png,image/webp"
           onChange={handleCoverChange}
-          className="w-full text-sm text-[var(--brand-text-secondary)] file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-violet-600/20 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-600 file:transition hover:file:bg-violet-600/30"
+          className="w-full text-sm text-[var(--brand-text-secondary)] file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-[var(--tag-primary-bg)] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-600 file:transition hover:file:bg-[var(--tag-primary-bg)]"
         />
       </div>
 
@@ -129,7 +129,7 @@ export function ProjectForm({ onSuccess, onCreated }: ProjectFormProps) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-500/20 transition hover:bg-[var(--brand-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-lg bg-[var(--brand-accent)] px-4 py-2.5 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-md transition hover:bg-[var(--brand-accent)] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Creating..." : "Create Project"}
       </button>

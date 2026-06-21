@@ -74,7 +74,7 @@ export function StoryTimelineSectionForm({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--brand-accent-hover)] disabled:opacity-60"
+          className="rounded-lg bg-[var(--brand-accent)] px-4 py-2.5 text-sm font-semibold text-[var(--brand-accent-foreground)] transition hover:bg-[var(--brand-accent)] disabled:opacity-60"
         >
           {pending ? "Saving…" : "Save timeline"}
         </button>

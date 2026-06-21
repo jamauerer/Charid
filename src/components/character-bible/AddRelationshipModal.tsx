@@ -153,7 +153,7 @@ export function AddRelationshipModal({
                   id="rel-character"
                   value={toCharacterId}
                   onChange={(e) => setToCharacterId(e.target.value)}
-                  className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none focus:border-violet-500/50"
+                  className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none focus:border-[var(--brand-accent)]"
                 >
                   <option value="">Select a character…</option>
                   {selectable.map((character) => (
@@ -179,7 +179,7 @@ export function AddRelationshipModal({
                 onChange={(e) =>
                   setRelationshipType(e.target.value as RelationshipType)
                 }
-                className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none focus:border-violet-500/50"
+                className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none focus:border-[var(--brand-accent)]"
               >
                 {RELATIONSHIP_TYPES.map((type) => (
                   <option key={type} value={type}>
@@ -207,7 +207,7 @@ export function AddRelationshipModal({
                   onChange={(e) => setCustomLabel(e.target.value)}
                   maxLength={80}
                   placeholder="Sworn shield, co-conspirator…"
-                  className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none placeholder:text-[var(--brand-text-secondary)] focus:border-violet-500/50"
+                  className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)]"
                 />
               </div>
             )}
@@ -226,14 +226,14 @@ export function AddRelationshipModal({
                 rows={2}
                 maxLength={500}
                 placeholder="How they know each other…"
-                className="w-full resize-y rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none placeholder:text-[var(--brand-text-secondary)] focus:border-violet-500/50"
+                className="w-full resize-y rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)]"
               />
             </div>
 
             <button
               type="submit"
               disabled={pending || selectable.length === 0}
-              className="w-full rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-violet-500/15 transition hover:bg-[var(--brand-accent-hover)] disabled:opacity-50"
+              className="w-full rounded-lg bg-[var(--brand-accent)] px-4 py-2 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:bg-[var(--brand-accent)] disabled:opacity-50"
             >
               {pending ? "Saving…" : "Save relationship"}
             </button>

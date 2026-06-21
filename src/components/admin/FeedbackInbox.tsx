@@ -49,7 +49,7 @@ function RatingFilter({
             href={hrefFor(option.value)}
             className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
               active
-                ? "border-violet-500/40 bg-violet-500/15 text-neutral-600"
+                ? "border-[var(--brand-accent)] bg-[var(--tag-primary-bg)] text-neutral-600"
                 : "border-[var(--brand-border)] text-[var(--brand-text-secondary)] hover:bg-[var(--brand-surface)]"
             }`}
           >

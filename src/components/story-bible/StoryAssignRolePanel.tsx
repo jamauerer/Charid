@@ -56,9 +56,9 @@ export function StoryAssignRolePanel({
   }
 
   return (
-    <div className="rounded-md border border-violet-500/20 bg-violet-500/5 p-3">
+    <div className="rounded-md border border-[var(--brand-border)] bg-[var(--tag-primary-bg)] p-3">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <p className="text-xs font-medium text-violet-200">Assign roles</p>
+        <p className="text-xs font-medium text-[var(--tag-primary-text)]">Assign roles</p>
         <button
           type="button"
           onClick={onClose}
@@ -81,7 +81,7 @@ export function StoryAssignRolePanel({
             checked
             disabled
             id={`${image.id}-reference`}
-            className="rounded border-white/20 bg-[var(--studio-empty-fill)] text-violet-500"
+            className="rounded border-white/20 bg-[var(--studio-empty-fill)] text-[var(--brand-accent)]"
           />
           <label
             htmlFor={`${image.id}-reference`}
@@ -106,7 +106,7 @@ export function StoryAssignRolePanel({
                 checked={checked}
                 disabled={pending}
                 onChange={(e) => handleToggle(role, e.target.checked)}
-                className="rounded border-white/20 bg-[var(--studio-empty-fill)] text-violet-500 disabled:opacity-60"
+                className="rounded border-white/20 bg-[var(--studio-empty-fill)] text-[var(--brand-accent)] disabled:opacity-60"
               />
               <label
                 htmlFor={`${image.id}-${role}`}

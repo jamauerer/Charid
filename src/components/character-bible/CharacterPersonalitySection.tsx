@@ -121,7 +121,7 @@ export function CharacterPersonalitySection({
             }}
             placeholder="Add your own trait"
             maxLength={40}
-            className="min-w-[10rem] flex-1 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-neutral-600 outline-none placeholder:text-neutral-400 focus:border-[var(--brand-accent)] focus:ring-1 focus:ring-[color-mix(in_srgb,var(--brand-accent)_20%,transparent)]"
+            className="min-w-[10rem] flex-1 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-neutral-600 outline-none placeholder:text-neutral-400 focus:border-[var(--brand-accent)] focus:ring-1 focus:ring-[var(--brand-accent)]"
           />
           <button
             type="button"

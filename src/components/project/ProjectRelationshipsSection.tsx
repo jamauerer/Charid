@@ -70,7 +70,7 @@ export function ProjectRelationshipsSection({
               name={fromCharacter.name}
               photoUrl={photoUrls[fromCharacter.id] ?? null}
             />
-            <span className="rounded-full border border-violet-500/20 bg-violet-500/10 px-2.5 py-1 text-xs font-medium text-violet-200">
+            <span className="rounded-full border border-[var(--brand-border)] bg-[var(--tag-primary-bg)] px-2.5 py-1 text-xs font-medium text-[var(--tag-primary-text)]">
               {label}
             </span>
             <CharacterChip

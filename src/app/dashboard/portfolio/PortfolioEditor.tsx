@@ -220,7 +220,7 @@ export function PortfolioEditor({
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
                   onChange={handleAvatarChange}
-                  className="w-full text-sm text-[var(--brand-text-secondary)] file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-[color-mix(in_srgb,var(--brand-accent)_12%,var(--brand-surface))] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[var(--brand-accent)]"
+                  className="w-full text-sm text-[var(--brand-text-secondary)] file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-[var(--tag-primary-bg)] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[var(--brand-accent)]"
                 />
               </div>
             </div>

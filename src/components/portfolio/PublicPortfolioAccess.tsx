@@ -72,7 +72,7 @@ export function PublicPortfolioAccess({
               href={publicPath}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r bg-[var(--brand-accent)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-violet-500/15 transition hover:bg-[var(--brand-accent-hover)]"
+              className="inline-flex items-center gap-2 rounded-lg bg-[var(--brand-accent)] px-4 py-2.5 text-sm font-semibold text-[var(--brand-accent-foreground)] shadow-sm transition hover:bg-[var(--brand-accent)]"
             >
               View Public Portfolio
               <span aria-hidden className="text-white/70">
@@ -92,7 +92,7 @@ export function PublicPortfolioAccess({
               href={`${publicPath}?preview=1`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-2.5 text-sm font-medium text-[var(--brand-text-secondary)] transition hover:border-violet-400/40 hover:text-violet-100"
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-2.5 text-sm font-medium text-[var(--brand-text-secondary)] transition hover:border-[var(--brand-accent)] hover:text-[var(--brand-accent)]"
             >
               Preview Public Portfolio
               <span aria-hidden className="text-[var(--brand-text-secondary)]">

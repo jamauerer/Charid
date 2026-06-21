@@ -14,10 +14,10 @@ function MapPinMarker({ pin }: { pin: MapLocationPin }) {
       style={{ left: `${pin.pin_x}%`, top: `${pin.pin_y}%` }}
     >
       <div className="flex flex-col items-center">
-        <span className="rounded-md bg-violet-600/90 px-1.5 py-0.5 text-[10px] font-medium text-white shadow">
+        <span className="rounded-md bg-[var(--brand-accent)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--brand-accent-foreground)] shadow">
           {pin.label}
         </span>
-        <span className="mt-0.5 h-2 w-2 rounded-full bg-violet-400 ring-2 ring-violet-200/80" />
+        <span className="mt-0.5 h-2 w-2 rounded-full bg-[var(--brand-secondary-accent)] ring-2 ring-[var(--brand-accent)]" />
       </div>
     </div>
   );

@@ -33,7 +33,7 @@ export function StorySectionNav({ active, onChange }: StorySectionNavProps) {
           onClick={() => onChange(section.id)}
           className={`shrink-0 rounded-md px-3 py-2 text-xs font-medium transition sm:px-4 sm:text-sm ${
             active === section.id
-              ? "bg-violet-600/20 text-violet-200"
+              ? "bg-[var(--tag-primary-bg)] text-[var(--tag-primary-text)]"
               : "text-[var(--brand-text-secondary)] hover:bg-[var(--brand-surface)] hover:text-[var(--brand-text-secondary)]"
           }`}
         >

@@ -216,7 +216,7 @@ export function CreateModal({ variant = "default" }: CreateModalProps) {
               onClick={() => {
                 setWizardOpen(true);
               }}
-              className={`w-full ${dsCardLink} border-[color-mix(in_srgb,var(--brand-accent)_20%,var(--brand-border))] px-4 py-4`}
+              className={`w-full ${dsCardLink} border-[var(--brand-border)] px-4 py-4`}
             >
               <span className="block text-sm font-semibold text-[var(--foreground)]">
                 Start New Project

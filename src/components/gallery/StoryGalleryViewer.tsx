@@ -65,7 +65,7 @@ export function StoryGalleryViewer({
             </div>
           )}
           {isFeatured && (
-            <span className="absolute left-3 top-3 rounded bg-violet-600/90 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+            <span className="absolute left-3 top-3 rounded bg-[var(--brand-accent)] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--brand-accent-foreground)]">
               Cover
             </span>
           )}
@@ -103,7 +103,7 @@ export function StoryGalleryViewer({
                 onClick={() => setSelectedIndex(index)}
                 className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border transition ${
                   isSelected
-                    ? "border-violet-500 ring-2 ring-violet-500/40"
+                    ? "border-[var(--brand-accent)] ring-2 ring-[var(--brand-accent)]"
                     : "border-[var(--brand-border)] opacity-70 hover:border-white/20 hover:opacity-100"
                 }`}
               >
@@ -121,7 +121,7 @@ export function StoryGalleryViewer({
                   </span>
                 )}
                 {image.id === featuredImageId && (
-                  <span className="absolute bottom-0 left-0 right-0 bg-violet-600/90 py-0.5 text-[8px] font-semibold uppercase text-white">
+                  <span className="absolute bottom-0 left-0 right-0 bg-[var(--brand-accent)] py-0.5 text-[8px] font-semibold uppercase text-[var(--brand-accent-foreground)]">
                     Cover
                   </span>
                 )}

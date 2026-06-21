@@ -37,8 +37,8 @@ function MetricBar({ label, value, highlight }: MetricBarProps) {
         <div
           className={`h-full rounded-full transition-all ${
             highlight
-              ? "bg-gradient-to-r from-violet-500 to-indigo-500"
-              : "bg-violet-500/60"
+              ? "bg-[var(--brand-accent)]"
+              : "bg-[var(--tag-primary-bg)]"
           }`}
           style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
         />

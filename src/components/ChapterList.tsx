@@ -35,7 +35,7 @@ export function ChapterList({
             <Link
               href={`/dashboard/worlds/${worldId}/stories/${storyId}/chapters/${chapter.id}`}
               className={`flex items-center gap-3 px-4 py-3 transition hover:bg-[var(--brand-surface)] ${
-                isContinue ? "bg-violet-500/[0.06]" : ""
+                isContinue ? "bg-[var(--tag-primary-bg)]" : ""
               }`}
             >
               <span className="w-6 shrink-0 text-xs font-medium tabular-nums text-[var(--brand-text-secondary)]">
@@ -46,7 +46,7 @@ export function ChapterList({
                   {chapter.title}
                 </span>
                 {isContinue && (
-                  <span className="shrink-0 rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neutral-600">
+                  <span className="shrink-0 rounded-full bg-[var(--tag-primary-bg)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neutral-600">
                     Continue here
                   </span>
                 )}

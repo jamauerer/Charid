@@ -135,7 +135,7 @@ export function AuthForm({
       </button>
 
       <p className="text-center text-sm text-neutral-600">
-        <Link href={alternateHref} className="font-medium text-[var(--brand-accent)] hover:text-[var(--brand-accent-hover)]">
+        <Link href={alternateHref} className="font-medium text-[var(--brand-accent)] hover:text-[var(--brand-accent)]">
           {alternateLabel}
         </Link>
       </p>

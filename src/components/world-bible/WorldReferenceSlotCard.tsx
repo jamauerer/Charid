@@ -164,7 +164,7 @@ export function WorldReferenceSlotCard({
               />
               <label
                 htmlFor={`upload-${worldId}-${slotRole}`}
-                className={`cursor-pointer rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2.5 py-1.5 text-[11px] font-medium text-[var(--brand-text-secondary)] transition hover:border-violet-400/40 hover:text-violet-200 ${
+                className={`cursor-pointer rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2.5 py-1.5 text-[11px] font-medium text-[var(--brand-text-secondary)] transition hover:border-[var(--brand-accent)] hover:text-[var(--brand-accent)] ${
                   pending ? "pointer-events-none opacity-60" : ""
                 }`}
               >
@@ -174,7 +174,7 @@ export function WorldReferenceSlotCard({
                 type="button"
                 disabled={pending}
                 onClick={() => setPickerOpen(true)}
-                className="rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2.5 py-1.5 text-[11px] font-medium text-[var(--brand-text-secondary)] transition hover:border-violet-400/40 hover:text-violet-200 disabled:opacity-60"
+                className="rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2.5 py-1.5 text-[11px] font-medium text-[var(--brand-text-secondary)] transition hover:border-[var(--brand-accent)] hover:text-[var(--brand-accent)] disabled:opacity-60"
               >
                 Assign Existing
               </button>

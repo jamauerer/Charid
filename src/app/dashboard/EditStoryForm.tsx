@@ -46,7 +46,7 @@ export function EditStoryForm({ story, worldId }: EditStoryFormProps) {
           required
           maxLength={200}
           defaultValue={displayStory.title}
-          className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none focus:border-violet-500/50"
+          className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none focus:border-[var(--brand-accent)]"
         />
       </div>
 
@@ -60,7 +60,7 @@ export function EditStoryForm({ story, worldId }: EditStoryFormProps) {
           rows={4}
           maxLength={2000}
           defaultValue={displayStory.summary ?? ""}
-          className="w-full resize-y rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none focus:border-violet-500/50"
+          className="w-full resize-y rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm text-[var(--brand-text-secondary)] outline-none focus:border-[var(--brand-accent)]"
         />
       </div>
 

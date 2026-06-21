@@ -40,7 +40,7 @@ export default async function PublicWorldPage({ params }: PublicWorldPageProps) 
 
   return (
     <div className="min-h-dvh bg-background font-sans text-[var(--brand-text-secondary)]">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_80%_40%_at_50%_-10%,rgba(120,119,198,0.08),transparent)]" />
+      <div className="pointer-events-none fixed inset-0" />
 
       <PublicSiteHeader />
 
@@ -79,7 +79,7 @@ export default async function PublicWorldPage({ params }: PublicWorldPageProps) 
                 unoptimized
               />
             ) : (
-              <div className="flex h-full items-center justify-center bg-gradient-to-br from-violet-950/30 to-zinc-900 text-sm text-[var(--brand-text-secondary)]">
+              <div className="flex h-full items-center justify-center bg-[var(--studio-empty-fill)] text-sm text-[var(--brand-text-secondary)]">
                 No cover yet
               </div>
             )}

@@ -79,7 +79,7 @@ export function StoryReferenceAssetCard({
         <button
           type="button"
           onClick={() => setShowRoles((open) => !open)}
-          className="w-full rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2.5 py-1.5 text-[11px] font-medium text-violet-200 transition hover:border-violet-400/40"
+          className="w-full rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2.5 py-1.5 text-[11px] font-medium text-[var(--tag-primary-text)] transition hover:border-[var(--brand-accent)]"
         >
           {showRoles ? "Hide roles" : "Assign Role"}
         </button>
