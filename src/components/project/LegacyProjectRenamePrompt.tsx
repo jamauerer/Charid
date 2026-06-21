@@ -6,7 +6,6 @@ import { renameProjectTitle, type RenameProjectState } from "@/app/actions/proje
 import type { ProjectWithCounts } from "@/types/project";
 import { isLegacyDefaultProject } from "@/types/project";
 import {
-  dsAlertInfo,
   dsAlertError,
   dsBtnPrimary,
   dsBtnSecondary,
@@ -41,9 +40,9 @@ export function LegacyProjectRenamePrompt({
   if (!legacy || dismissed) return null;
 
   return (
-    <div className={`mb-4 ${dsAlertInfo} px-4 py-4`}>
-      <p className="text-sm font-medium">Name your project</p>
-      <p className="mt-1 text-xs leading-relaxed opacity-90">
+    <div className="mb-4 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-4">
+      <p className="text-sm font-medium text-[var(--foreground)]">Name your project</p>
+      <p className="mt-1 text-xs leading-relaxed text-[var(--brand-text-secondary)]">
         Your existing work was grouped under a default project. What finished
         work is this? You can create separate projects anytime for unrelated
         comics, novels, scripts, and more.

@@ -145,7 +145,7 @@ export function DashboardSidebar({
         </p>
         <DashboardNavItem
           href="/dashboard/worlds"
-          label="All settings"
+          label="Worlds"
           active={isWorlds}
           onNavigate={onNavigate}
           icon={

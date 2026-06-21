@@ -97,14 +97,14 @@ export function SceneSuggestionEditStudio({
           onClick={onClose}
         />
         <div className="flex min-h-full items-start justify-center p-4 sm:items-center sm:p-6">
-          <div className="relative z-10 flex w-full max-w-lg max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-2xl border border-[var(--status-info-border)] bg-[var(--brand-surface)] shadow-lg">
+          <div className="relative z-10 flex w-full max-w-lg max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-2xl border border-[var(--brand-border)] bg-[var(--brand-surface)] shadow-lg">
             <div className="shrink-0 border-b border-[var(--brand-border)] bg-[var(--brand-surface)] px-5 py-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--brand-text-muted)]">
                     Edit suggestion
                   </p>
-                  <h2 className="mt-1 text-lg font-semibold text-[var(--brand-text-secondary)]">
+                  <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">
                     Change before you approve
                   </h2>
                 </div>
@@ -176,8 +176,8 @@ export function SceneSuggestionEditStudio({
                         onClick={() => toggleCharacter(character.id)}
                         className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
                           selected
-                            ? "border-[var(--status-info-border)] bg-[var(--status-info-bg)] text-neutral-900"
-                            : "border-[var(--brand-border)] bg-[var(--brand-surface)] text-[var(--brand-text-secondary)] hover:border-white/20 hover:text-[var(--brand-text-secondary)]"
+                            ? "border-[var(--brand-border)] bg-[var(--tag-primary-bg)] text-[var(--tag-primary-text)]"
+                            : "border-[var(--brand-border)] bg-[var(--brand-surface)] text-[var(--brand-text-secondary)] hover:bg-[var(--brand-surface-elevated)] hover:text-[var(--brand-text-secondary)]"
                         }`}
                       >
                         {character.name}
@@ -202,7 +202,7 @@ export function SceneSuggestionEditStudio({
                       onClick={() => setLocationMode("linked")}
                       className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                         locationMode === "linked"
-                          ? "border-[var(--status-info-border)] bg-[var(--status-info-bg)] text-neutral-900"
+                          ? "border-[var(--brand-border)] bg-[var(--tag-primary-bg)] text-[var(--tag-primary-text)]"
                           : "border-[var(--brand-border)] text-[var(--brand-text-secondary)]"
                       }`}
                     >
@@ -213,7 +213,7 @@ export function SceneSuggestionEditStudio({
                       onClick={() => setLocationMode("custom")}
                       className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                         locationMode === "custom"
-                          ? "border-[var(--status-info-border)] bg-[var(--status-info-bg)] text-neutral-900"
+                          ? "border-[var(--brand-border)] bg-[var(--tag-primary-bg)] text-[var(--tag-primary-text)]"
                           : "border-[var(--brand-border)] text-[var(--brand-text-secondary)]"
                       }`}
                     >

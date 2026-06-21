@@ -117,10 +117,10 @@ export function SceneSuggestionStagingPanel({
   const editItem = batch?.items.find((i) => i.id === editItemId) ?? null;
 
   return (
-    <div className="rounded-xl border border-dashed border-[var(--status-info-border)] bg-[var(--status-info-bg)] p-4">
+    <div className="rounded-xl border border-dashed border-[var(--brand-border)] bg-[var(--brand-surface)] p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-medium text-neutral-900/90">
+          <p className="text-sm font-medium text-[var(--foreground)]">
             {hasActiveBatch
               ? CREATOR_STORY.reviewActiveSuggestionsLabel
               : CREATOR_STORY.needSceneIdeasLabel}
@@ -191,7 +191,7 @@ export function SceneSuggestionStagingPanel({
 
       {hasActiveBatch && (
         <div className="mt-4">
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--brand-text-muted)]">
             Suggested — review before saving
           </p>
           <ul className="space-y-2">
@@ -205,7 +205,7 @@ export function SceneSuggestionStagingPanel({
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="rounded-full border border-[var(--status-info-border)] bg-[var(--status-info-bg)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neutral-600/90">
+                        <span className="rounded-full border border-[var(--brand-border)] bg-[var(--tag-primary-bg)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[var(--tag-primary-text)]">
                           Suggested
                         </span>
                         <h4 className="text-sm font-semibold text-[var(--brand-text-secondary)]">

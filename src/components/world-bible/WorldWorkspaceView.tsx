@@ -110,7 +110,7 @@ export function WorldWorkspaceView({
             clipRule="evenodd"
           />
         </svg>
-        Back to all settings
+        Back to worlds
       </Link>
 
       {migrationError && (

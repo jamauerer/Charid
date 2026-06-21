@@ -1,9 +1,9 @@
 import type { StoryStatus } from "@/types/story";
-import { dsStatusInfo, dsStatusSuccess, dsChip } from "@/lib/design-system";
+import { dsStatusInfo, dsStatusPlanning, dsStatusSuccess, dsChip } from "@/lib/design-system";
 
 const STATUS_STYLES: Record<StoryStatus, string> = {
   Idea: dsChip,
-  Planning: dsStatusInfo,
+  Planning: dsStatusPlanning,
   "In Progress": dsStatusInfo,
   Complete: dsStatusSuccess,
 };

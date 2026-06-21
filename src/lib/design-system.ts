@@ -88,6 +88,9 @@ export const dsStatusSuccess =
 export const dsStatusInfo =
   "rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide border border-[var(--status-info-border)] bg-[var(--status-info-bg)] text-[var(--status-info-text)]";
 
+export const dsStatusPlanning =
+  "rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide border border-[var(--brand-border)] bg-[var(--tag-primary-bg)] text-[var(--tag-primary-text)]";
+
 export const dsStatusDanger =
   "rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide border border-[var(--status-danger-border)] bg-[var(--status-danger-bg)] text-[var(--status-danger-text)]";
 
