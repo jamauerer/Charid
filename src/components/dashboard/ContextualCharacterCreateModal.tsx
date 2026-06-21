@@ -5,17 +5,39 @@ import { FormModalShell } from "@/components/dashboard/FormModalShell";
 import { CharacterForm } from "@/app/dashboard/CharacterForm";
 
 type ContextualCharacterCreateModalProps = {
-  worldId: string;
+  worldId?: string;
   worldName?: string;
+  projectId?: string | null;
   storyId?: string;
   onLinkedToStory?: (characterId: string) => void;
   onComplete?: () => void;
   triggerLabel?: string;
 };
 
+function resolveSubtitle(input: {
+  storyId?: string;
+  projectId?: string | null;
+  worldName?: string;
+  worldId?: string;
+}): string {
+  if (input.storyId) {
+    return input.projectId
+      ? "Adds to this project and story — no setting required"
+      : "Adds to this story when saved";
+  }
+  if (input.worldName) {
+    return `Creates in ${input.worldName} — you stay on this page`;
+  }
+  if (input.worldId) {
+    return "Optionally linked to this setting when saved";
+  }
+  return "New character for your workspace";
+}
+
 export function ContextualCharacterCreateModal({
   worldId,
   worldName,
+  projectId = null,
   storyId,
   onLinkedToStory,
   onComplete,
@@ -27,6 +49,8 @@ export function ContextualCharacterCreateModal({
     setOpen(false);
     onComplete?.();
   }
+
+  const assignWorld = Boolean(storyId ? false : worldId);
 
   return (
     <>
@@ -50,15 +74,13 @@ export function ContextualCharacterCreateModal({
       {open && (
         <FormModalShell
           title="New Character"
-          subtitle={
-            worldName
-              ? `Creates in ${worldName} — you stay on this page`
-              : "Linked to this world when saved"
-          }
+          subtitle={resolveSubtitle({ storyId, projectId, worldName, worldId })}
           onClose={handleClose}
         >
           <CharacterForm
-            defaultWorldId={worldId}
+            defaultWorldId={assignWorld ? worldId : undefined}
+            projectId={projectId ?? undefined}
+            storyId={storyId}
             onCreated={(characterId) => {
               if (storyId) {
                 onLinkedToStory?.(characterId);

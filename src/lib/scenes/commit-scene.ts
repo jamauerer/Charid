@@ -78,14 +78,18 @@ async function nextSceneSortOrder(
   return (data?.sort_order ?? 0) + 1;
 }
 
-async function syncSceneCharacters(
+export async function syncSceneCharacters(
   supabase: SupabaseClient,
   sceneId: string,
   characterIds: string[],
   userId: string
 ): Promise<string | null> {
   if (characterIds.length === 0) {
-    return "Pick at least one character for this scene.";
+    const { error } = await supabase
+      .from("scene_characters")
+      .delete()
+      .eq("scene_id", sceneId);
+    return error ? error.message : null;
   }
 
   const { data: owned } = await supabase
@@ -150,6 +154,7 @@ export async function commitSceneRecord(
   }
 
   const sortOrder = await nextSceneSortOrder(supabase, storyId);
+
   const sceneId = randomUUID();
 
   const { data: storyRow } = await supabase

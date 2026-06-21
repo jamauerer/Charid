@@ -60,6 +60,7 @@ export type CharacterPickerItem = {
   name: string;
   world_id: string | null;
   world_name: string | null;
+  project_id: string | null;
 };
 
 export type CharactersResult = {
@@ -175,7 +176,7 @@ export async function getCharactersForPicker(): Promise<{
 
   const { data, error } = await supabase
     .from("characters")
-    .select("id, name, world_id")
+    .select("id, name, world_id, project_id")
     .eq("user_id", user.id)
     .order("name", { ascending: true });
 
@@ -211,6 +212,7 @@ export async function getCharactersForPicker(): Promise<{
       name: row.name,
       world_id: row.world_id ?? null,
       world_name: row.world_id ? (worldNames.get(row.world_id) ?? null) : null,
+      project_id: (row.project_id as string | null) ?? null,
     })),
   };
 }
@@ -304,6 +306,7 @@ export async function createCharacter(
 
   let projectId: string | null = null;
   const formProjectId = String(formData.get("project_id") ?? "").trim();
+  const formStoryId = String(formData.get("story_id") ?? "").trim();
 
   if (formProjectId) {
     const { data: projectRow } = await supabase
@@ -314,6 +317,18 @@ export async function createCharacter(
       .maybeSingle();
     if (projectRow) {
       projectId = projectRow.id as string;
+    }
+  }
+
+  if (!projectId && formStoryId) {
+    const { data: storyRow } = await supabase
+      .from("stories")
+      .select("project_id")
+      .eq("id", formStoryId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (storyRow?.project_id) {
+      projectId = storyRow.project_id as string;
     }
   }
 

@@ -13,7 +13,10 @@ import {
   type SceneWithCast,
 } from "@/types/scene";
 import { scanSavedText } from "@/lib/moderation/scan-text";
-import { commitSceneRecord } from "@/lib/scenes/commit-scene";
+import {
+  commitSceneRecord,
+  syncSceneCharacters,
+} from "@/lib/scenes/commit-scene";
 
 export type SceneActionState = {
   error?: string;
@@ -201,47 +204,6 @@ async function revalidateScenePaths(
       `/dashboard/worlds/${worldId}/stories/${storyId}/scenes/${sceneId}`
     );
   }
-}
-
-async function syncSceneCharacters(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  sceneId: string,
-  characterIds: string[],
-  userId: string
-): Promise<string | null> {
-  if (characterIds.length === 0) {
-    return "Pick at least one character for this scene.";
-  }
-
-  const { data: owned } = await supabase
-    .from("characters")
-    .select("id")
-    .eq("user_id", userId)
-    .in("id", characterIds);
-
-  const ownedIds = new Set((owned ?? []).map((c) => c.id as string));
-  const validIds = characterIds.filter((id) => ownedIds.has(id));
-
-  if (validIds.length === 0) {
-    return "Selected characters were not found.";
-  }
-
-  await supabase.from("scene_characters").delete().eq("scene_id", sceneId);
-
-  const { error } = await supabase.from("scene_characters").insert(
-    validIds.map((characterId, index) => ({
-      scene_id: sceneId,
-      character_id: characterId,
-      role: "present",
-      sort_order: index,
-    }))
-  );
-
-  if (error) {
-    return formatSceneError(error.message, error.code);
-  }
-
-  return null;
 }
 
 export async function getScenesByStoryId(

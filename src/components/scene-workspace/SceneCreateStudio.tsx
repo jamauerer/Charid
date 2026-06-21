@@ -168,12 +168,14 @@ export function SceneCreateStudio({
 
               <fieldset>
                 <legend className="mb-2 text-xs font-medium text-[var(--brand-text-secondary)]">
-                  Characters
+                  Characters{" "}
+                  <span className="font-normal text-[var(--brand-text-secondary)]">
+                    ({CREATOR_STORY.sceneCharactersOptional})
+                  </span>
                 </legend>
                 {cast.length === 0 ? (
                   <p className="text-sm text-[var(--brand-text-secondary)]">
-                    Add characters to your story first — then pick who is in this
-                    scene.
+                    {CREATOR_STORY.sceneCharactersEmptyHint}
                   </p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
@@ -262,7 +264,7 @@ export function SceneCreateStudio({
 
               <button
                 type="submit"
-                disabled={pending || cast.length === 0 || selectedIds.length === 0}
+                disabled={pending}
                 className={`${studioBtnPrimary} w-full py-3`}
               >
                 {pending ? "Saving…" : "Save scene"}

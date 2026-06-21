@@ -16,6 +16,7 @@ type StoryCharacterSectionProps = {
   storyId: string;
   worldId: string;
   worldName?: string;
+  projectId?: string | null;
   initialEntries: StoryCharacterEntry[];
   photoUrls: Record<string, string | null>;
 };
@@ -24,6 +25,7 @@ export function StoryCharacterSection({
   storyId,
   worldId,
   worldName,
+  projectId = null,
   initialEntries,
   photoUrls,
 }: StoryCharacterSectionProps) {
@@ -79,12 +81,12 @@ export function StoryCharacterSection({
           worldId={worldId}
           worldName={worldName}
           storyId={storyId}
+          projectId={projectId}
           excludeCharacterIds={rosterIds}
           onComplete={handleRefresh}
         />
         <ContextualCharacterCreateModal
-          worldId={worldId}
-          worldName={worldName}
+          projectId={projectId}
           storyId={storyId}
           onLinkedToStory={linkNewCharacter}
           onComplete={handleRefresh}
@@ -95,7 +97,7 @@ export function StoryCharacterSection({
         <div className="rounded-xl border border-dashed border-[var(--brand-border)] bg-[var(--brand-surface)] px-5 py-8 text-center">
           <p className="text-sm text-[var(--brand-text-secondary)]">No characters in this story yet.</p>
           <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
-            Add from this world or create a new character — you stay on this story.
+            Add an existing character or create a new one — you stay on this story.
           </p>
         </div>
       ) : (

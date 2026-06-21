@@ -177,6 +177,7 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
         storyId={storyId}
         worldId={worldId}
         worldName={world.name}
+        projectId={projectContext?.id ?? null}
         cast={context.cast}
         castPhotoUrls={context.castPhotoUrls}
         castBonds={context.castBonds}

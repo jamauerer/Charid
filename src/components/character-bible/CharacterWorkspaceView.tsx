@@ -138,6 +138,7 @@ export function CharacterWorkspaceView({
 
       <CharacterStoriesPanel
         worldId={character.world_id}
+        projectId={character.project_id}
         entries={storyEntries}
       />
 

@@ -271,7 +271,7 @@ export async function getStoriesForUser(): Promise<{
 
   const { data, error } = await supabase
     .from("stories")
-    .select("*, worlds(id, name, description)")
+    .select("*, worlds!stories_world_id_fkey(id, name, description)")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -693,11 +693,22 @@ export async function addCharacterToStory(
     return { error: "Character not found." };
   }
 
-  if (character.world_id !== storyCheck.story.world_id) {
-    return {
-      error:
-        "Character must belong to this world before joining a story in it.",
-    };
+  const { data: storyRow } = await supabase
+    .from("stories")
+    .select("project_id")
+    .eq("id", storyId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const storyProjectId = (storyRow?.project_id as string | null) ?? null;
+  const characterProjectId = (character.project_id as string | null) ?? null;
+
+  if (
+    storyProjectId &&
+    characterProjectId &&
+    storyProjectId !== characterProjectId
+  ) {
+    return { error: "This character belongs to a different project." };
   }
 
   const { error: insertError } = await supabase.from("story_characters").insert({
@@ -782,33 +793,6 @@ export async function changeStoryWorld(
   const worldCheck = await assertWorldOwner(supabase, newWorldId, user.id);
   if (worldCheck.error || !worldCheck.world) {
     return { error: worldCheck.error ?? "World not found." };
-  }
-
-  const { data: links } = await supabase
-    .from("story_characters")
-    .select("character_id")
-    .eq("story_id", storyId);
-
-  const linkedIds = (links ?? []).map((link) => link.character_id);
-  if (linkedIds.length > 0) {
-    const { data: characters } = await supabase
-      .from("characters")
-      .select("id, world_id")
-      .in("id", linkedIds)
-      .eq("user_id", user.id);
-
-    const incompatible = (characters ?? []).filter(
-      (character) => character.world_id !== newWorldId
-    );
-
-    if (incompatible.length > 0) {
-      const removeIds = incompatible.map((character) => character.id);
-      await supabase
-        .from("story_characters")
-        .delete()
-        .eq("story_id", storyId)
-        .in("character_id", removeIds);
-    }
   }
 
   let slug = story.slug;

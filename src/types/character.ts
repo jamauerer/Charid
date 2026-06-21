@@ -11,6 +11,7 @@ export type Character = {
   photo_path: string | null;
   featured_image_id: string | null;
   world_id: string | null;
+  project_id: string | null;
   is_public: boolean;
   created_at: string;
 };
@@ -22,6 +23,7 @@ export type CharacterRow = Character & {
   is_public?: boolean;
   featured_image_id?: string | null;
   world_id?: string | null;
+  project_id?: string | null;
   species?: string | null;
   core_personality?: string | null;
   permanent_features?: string | null;
@@ -41,6 +43,7 @@ export function normalizeCharacter(row: CharacterRow): Character {
     photo_path: row.photo_path ?? null,
     featured_image_id: row.featured_image_id ?? null,
     world_id: row.world_id ?? null,
+    project_id: row.project_id ?? null,
     is_public: row.is_public ?? false,
     created_at: row.created_at,
   };

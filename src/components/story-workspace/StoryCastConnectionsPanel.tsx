@@ -10,6 +10,7 @@ type StoryCastConnectionsPanelProps = {
   storyId: string;
   worldId: string;
   worldName: string;
+  projectId?: string | null;
   cast: StoryWorkspaceContext["cast"];
   castPhotoUrls: Record<string, string | null>;
   castBonds: StoryCastBond[];
@@ -20,6 +21,7 @@ export function StoryCastConnectionsPanel({
   storyId,
   worldId,
   worldName,
+  projectId = null,
   cast,
   castPhotoUrls,
   castBonds,
@@ -39,6 +41,7 @@ export function StoryCastConnectionsPanel({
         storyId={storyId}
         worldId={worldId}
         worldName={worldName}
+        projectId={projectId}
         initialEntries={cast}
         photoUrls={castPhotoUrls}
       />

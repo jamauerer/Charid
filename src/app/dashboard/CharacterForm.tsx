@@ -14,6 +14,7 @@ type CharacterFormProps = {
   onCreated?: (characterId: string) => void;
   defaultWorldId?: string;
   projectId?: string;
+  storyId?: string;
 };
 
 export function CharacterForm({
@@ -21,6 +22,7 @@ export function CharacterForm({
   onCreated,
   defaultWorldId,
   projectId,
+  storyId,
 }: CharacterFormProps) {
   const [state, formAction, pending] = useActionState(
     createCharacter,
@@ -45,6 +47,9 @@ export function CharacterForm({
       )}
       {projectId && (
         <input type="hidden" name="project_id" value={projectId} />
+      )}
+      {storyId && (
+        <input type="hidden" name="story_id" value={storyId} />
       )}
       <CharacterFormFields />
 

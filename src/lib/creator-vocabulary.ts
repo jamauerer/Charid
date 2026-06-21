@@ -55,6 +55,9 @@ export const CREATOR_STORY = {
   sceneWhatHappensLabel: "What happens?",
   sceneLocationLabel: "Location",
   sceneLocationOptional: "optional",
+  sceneCharactersOptional: "optional",
+  sceneCharactersEmptyHint:
+    "Optional — pick from your story cast below, or add characters in Cast & Connections first.",
   needSceneIdeasLabel: "Need ideas?",
   needSceneIdeasHint: "CharID can suggest what happens next — you approve every scene.",
   generateSceneSuggestionsLabel: "Generate scene suggestions",

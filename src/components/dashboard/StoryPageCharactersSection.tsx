@@ -7,6 +7,7 @@ type StoryPageCharactersSectionProps = {
   storyId: string;
   worldId: string;
   worldName: string;
+  projectId?: string | null;
   entries: StoryCharacterEntry[];
   photoUrls: Record<string, string | null>;
 };
@@ -15,6 +16,7 @@ export function StoryPageCharactersSection({
   storyId,
   worldId,
   worldName,
+  projectId = null,
   entries,
   photoUrls,
 }: StoryPageCharactersSectionProps) {
@@ -28,14 +30,14 @@ export function StoryPageCharactersSection({
           Characters
         </h2>
         <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
-          Link characters from this world or create new ones — you stay on this
-          story.
+          Add an existing character or create a new one — you stay on this story.
         </p>
       </div>
       <StoryCharacterSection
         storyId={storyId}
         worldId={worldId}
         worldName={worldName}
+        projectId={projectId}
         initialEntries={entries}
         photoUrls={photoUrls}
       />

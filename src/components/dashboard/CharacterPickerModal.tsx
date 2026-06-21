@@ -14,16 +14,32 @@ type CharacterPickerModalProps = {
   worldId: string;
   worldName?: string;
   storyId?: string;
+  projectId?: string | null;
   excludeCharacterIds?: string[];
   onComplete?: () => void;
   triggerLabel?: string;
 };
+
+function isStoryAttachable(
+  character: CharacterPickerItem,
+  excluded: Set<string>,
+  projectId?: string | null
+): boolean {
+  if (excluded.has(character.id)) {
+    return false;
+  }
+  if (projectId) {
+    return character.project_id === projectId;
+  }
+  return true;
+}
 
 export function CharacterPickerModal({
   mode,
   worldId,
   worldName,
   storyId,
+  projectId = null,
   excludeCharacterIds = [],
   onComplete,
   triggerLabel = "Add Existing Character",
@@ -45,11 +61,10 @@ export function CharacterPickerModal({
           !excluded.has(character.id) && character.world_id !== worldId
       );
     }
-    return characters.filter(
-      (character) =>
-        !excluded.has(character.id) && character.world_id === worldId
+    return characters.filter((character) =>
+      isStoryAttachable(character, excluded, projectId)
     );
-  }, [characters, mode, worldId, excluded]);
+  }, [characters, mode, worldId, excluded, projectId]);
 
   useEffect(() => {
     if (!open) return;
@@ -120,7 +135,9 @@ export function CharacterPickerModal({
       ? worldName
         ? `Assign characters to ${worldName}`
         : "Assign existing characters to this world"
-      : "Add characters from this world to the story";
+      : projectId
+        ? "Add characters from this project to the story"
+        : "Add characters to this story";
 
   return (
     <>
@@ -144,7 +161,9 @@ export function CharacterPickerModal({
             <p className="text-sm text-[var(--brand-text-secondary)]">
               {mode === "world"
                 ? "All your characters are already in this world, or you have none to assign."
-                : "No characters in this world are available to add. Create one or assign characters to this world first."}
+                : projectId
+                  ? "No characters in this project are available to add. Create one first."
+                  : "No characters are available to add. Create one first."}
             </p>
           ) : (
             <ul className="max-h-64 space-y-2 overflow-y-auto">
@@ -170,9 +189,13 @@ export function CharacterPickerModal({
                           {character.name}
                         </span>
                         <span className="block text-xs text-[var(--brand-text-secondary)]">
-                          {character.world_name
-                            ? `Currently in ${character.world_name}`
-                            : "Unassigned"}
+                          {mode === "story"
+                            ? character.world_name
+                              ? `Setting: ${character.world_name}`
+                              : "No setting assigned"
+                            : character.world_name
+                              ? `Currently in ${character.world_name}`
+                              : "Unassigned"}
                         </span>
                       </span>
                     </label>

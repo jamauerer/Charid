@@ -7,13 +7,17 @@ import { StoryStatusBadge } from "@/components/StoryStatusBadge";
 
 type CharacterStoriesPanelProps = {
   worldId: string | null;
+  projectId?: string | null;
   entries: CharacterStoryEntry[];
 };
 
 export function CharacterStoriesPanel({
   worldId,
+  projectId = null,
   entries,
 }: CharacterStoriesPanelProps) {
+  const canCreateStory = Boolean(projectId || worldId);
+
   return (
     <section className="mb-10">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -25,19 +29,24 @@ export function CharacterStoriesPanel({
             Where this character appears in your work.
           </p>
         </div>
-        {worldId && <NewStoryModal worldId={worldId} />}
+        {projectId ? (
+          <NewStoryModal projectId={projectId} />
+        ) : worldId ? (
+          <NewStoryModal worldId={worldId} />
+        ) : null}
       </div>
 
       {entries.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[var(--brand-border)] bg-[var(--brand-surface)] px-5 py-8 text-center">
           <p className="text-sm text-[var(--brand-text-secondary)]">Not in any stories yet.</p>
-          {worldId ? (
+          {canCreateStory ? (
             <p className="mt-2 text-xs text-[var(--brand-text-secondary)]">
-              Create a story in this character&apos;s world to get started.
+              Create a story, then add this character from the story&apos;s Cast
+              section.
             </p>
           ) : (
             <p className="mt-2 text-xs text-[var(--brand-text-secondary)]">
-              Link this character to a world, then add them to a story.
+              Open a story and add this character from Cast &amp; Connections.
             </p>
           )}
         </div>

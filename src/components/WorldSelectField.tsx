@@ -27,10 +27,10 @@ export function WorldSelectField({
   return (
     <fieldset className="space-y-3">
       <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
-        World
+        Setting (optional)
       </legend>
       <label htmlFor={`${idPrefix}world_id`} className="sr-only">
-        World
+        Setting
       </label>
       <select
         id={`${idPrefix}world_id`}
@@ -39,7 +39,7 @@ export function WorldSelectField({
         disabled={loading}
         className={selectClassName}
       >
-        <option value="">No world (unassigned)</option>
+        <option value="">No setting assigned</option>
         {worlds.map((world) => (
           <option key={world.id} value={world.id}>
             {world.name}
@@ -47,7 +47,7 @@ export function WorldSelectField({
         ))}
       </select>
       <p className="text-xs text-[var(--brand-text-secondary)]">
-        Assign this character to one of your worlds.
+        Optionally link this character to a setting for locations and references.
       </p>
     </fieldset>
   );
