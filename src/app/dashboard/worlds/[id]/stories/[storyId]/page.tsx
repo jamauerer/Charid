@@ -4,15 +4,12 @@ import { getChaptersByStoryId } from "@/app/actions/chapters";
 import { getScenesByStoryId } from "@/app/actions/scenes";
 import { getActiveSceneSuggestionBatch } from "@/app/actions/scene-suggestions";
 import { getStoryProjectContext } from "@/app/actions/projects";
-import { getStoryBibleBundle } from "@/app/actions/story-bible";
 import { getStoryWorkspaceContext } from "@/app/actions/story-workspace";
 import { getWorldById } from "@/app/actions/worlds";
 import { EditStoryForm } from "@/app/dashboard/EditStoryForm";
-import { StoryBibleView } from "@/components/story-bible/StoryBibleView";
 import { StoryFinishPath } from "@/components/dashboard/StoryFinishPath";
 import { StoryChaptersPanel } from "@/components/dashboard/StoryChaptersPanel";
 import { StoryScenesPanel } from "@/components/scene-workspace/StoryScenesPanel";
-import { StoryAdvancedPlan } from "@/components/dashboard/StoryAdvancedPlan";
 import { StoryWelcomeBanner } from "@/components/dashboard/StoryWelcomeBanner";
 import { StoryCharactersPanel } from "@/components/story-workspace/StoryCharactersPanel";
 import { StoryRelationshipsPanel } from "@/components/story-workspace/StoryRelationshipsPanel";
@@ -56,37 +53,10 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
 
   const { story } = context;
 
-  const [{ bundle, error: bibleError }, { project: projectContext }] =
-    await Promise.all([
-      getStoryBibleBundle(storyId),
-      getStoryProjectContext(storyId, worldId),
-    ]);
-
-  if (!bundle) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-10">
-        <CreatorContextTrail
-          project={
-            projectContext
-              ? {
-                  label: projectContext.title,
-                  href: `/dashboard/projects/${projectContext.id}`,
-                }
-              : null
-          }
-          story={{ label: story.title }}
-          world={{
-            label: world.name,
-            href: `/dashboard/worlds/${worldId}`,
-          }}
-        />
-        <p className="mt-6 rounded-lg border border-[var(--status-info-border)] bg-[var(--status-info-bg)] px-3 py-2 text-sm text-[var(--status-info-text)]">
-          {bibleError ??
-            "Could not load story workspace. Run the story_bible migration in Supabase."}
-        </p>
-      </div>
-    );
-  }
+  const { project: projectContext } = await getStoryProjectContext(
+    storyId,
+    worldId
+  );
 
   const { chapters } = await getChaptersByStoryId(storyId);
   const { scenes, error: scenesError } = await getScenesByStoryId(storyId);
@@ -101,14 +71,10 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
     characterCount: context.cast.length,
     sceneCount: scenes.length,
     locationCount: context.locations.length,
-    hasCoverImage: Boolean(story.featured_image_id ?? bundle.featuredImageId),
+    hasCoverImage: Boolean(story.featured_image_id),
   });
 
-  const migrationError =
-    bibleError?.includes("story_bible") ||
-    bibleError?.includes("story_image_slot_assignments")
-      ? bibleError
-      : context.worldbuildingError;
+  const migrationError = context.worldbuildingError;
 
   return (
     <div className="mx-auto w-full max-w-[1280px]">
@@ -193,32 +159,6 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
           mapBundle={context.mapBundle}
           moodboardBundle={context.moodboardBundle}
           embedded
-        />
-      </CollapsibleWorkspaceSection>
-
-      <CollapsibleWorkspaceSection
-        id="story-bible"
-        title="Story Bible"
-        hint="Overview, themes, events, and reference planning."
-      >
-        <StoryBibleView
-          bundle={{
-            story: bundle.story,
-            bible: bundle.bible,
-            images: bundle.images,
-            slotAssignments: bundle.slotAssignments,
-            featuredImageId: bundle.featuredImageId,
-            referenceGraph: bundle.referenceGraph,
-            scores: bundle.scores,
-            recommendations: bundle.recommendations,
-          }}
-          migrationError={
-            bibleError?.includes("story_bible") ||
-            bibleError?.includes("story_image_slot_assignments")
-              ? bibleError
-              : undefined
-          }
-          variant="advanced"
         />
       </CollapsibleWorkspaceSection>
 
