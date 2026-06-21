@@ -5,6 +5,11 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidateStoryWorkspacePagesForWorld } from "@/app/actions/stories";
 import { uploadWorldImage } from "@/app/actions/world-images";
 import {
+  createSignedUrlCache,
+  lookupSignedUrl,
+  signStorageUrls,
+} from "@/lib/storage/signed-url";
+import {
   normalizeWorldMoodboard,
   normalizeWorldMoodboardItem,
   type WorldMoodboardBundle,
@@ -28,15 +33,6 @@ function formatError(message: string, code?: string): string {
 function revalidateWorld(worldId: string) {
   revalidatePath(`/dashboard/worlds/${worldId}`);
   void revalidateStoryWorkspacePagesForWorld(worldId);
-}
-
-async function getSignedUrl(path: string | null): Promise<string | null> {
-  if (!path) return null;
-  const supabase = await createClient();
-  const { data } = await supabase.storage
-    .from("character-photos")
-    .createSignedUrl(path, 3600);
-  return data?.signedUrl ?? null;
 }
 
 async function ensureMoodboard(
@@ -147,14 +143,17 @@ export async function getWorldMoodboardBundle(
     }
   }
 
-  const itemsWithUrl = await Promise.all(
-    items.map(async (item) => ({
-      item,
-      imageUrl: await getSignedUrl(
-        imagePaths.get(item.world_image_id) ?? null
-      ),
-    }))
+  const cache = createSignedUrlCache();
+  await signStorageUrls(
+    supabase,
+    items.map((item) => imagePaths.get(item.world_image_id) ?? null),
+    { cache }
   );
+
+  const itemsWithUrl = items.map((item) => ({
+    item,
+    imageUrl: lookupSignedUrl(cache, imagePaths.get(item.world_image_id) ?? null),
+  }));
 
   return { bundle: { moodboard, items: itemsWithUrl } };
 }

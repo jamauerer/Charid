@@ -13,10 +13,17 @@ import { normalizeWorld, slugifyWorldName } from "@/types/world";
 import { scanUploadedImage } from "@/lib/moderation/scan-image";
 import { scanSavedText } from "@/lib/moderation/scan-text";
 import { getOrCreateDefaultProject } from "@/app/actions/projects";
+import {
+  CHARACTER_PHOTOS_BUCKET,
+  createSignedUrlCache,
+  getSignedStorageUrl,
+  lookupSignedUrl,
+  signStorageUrls,
+} from "@/lib/storage/signed-url";
 import { shouldShowWorldInSettingsIndex } from "@/lib/project-setting";
 import type { ProjectWorkIntent } from "@/types/project";
 
-const BUCKET = "character-photos";
+const BUCKET = CHARACTER_PHOTOS_BUCKET;
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
@@ -110,22 +117,11 @@ async function resolveAvailableSlug(
   throw new Error("Unable to allocate a unique world slug.");
 }
 
-async function getSignedStorageUrl(
+export async function getWorldCoverUrl(
   path: string | null
 ): Promise<string | null> {
-  if (!path) return null;
-
   const supabase = await createClient();
-  const { data, error } = await supabase.storage
-    .from(BUCKET)
-    .createSignedUrl(path, 3600);
-
-  if (error) {
-    console.error("Failed to create signed URL:", error.message);
-    return null;
-  }
-
-  return data.signedUrl;
+  return getSignedStorageUrl(supabase, path);
 }
 
 async function attachCharacterCounts(
@@ -179,12 +175,6 @@ async function revalidateWorldPaths(
       revalidatePath(`/u/${profile.username}/worlds/${oldSlug}`);
     }
   }
-}
-
-export async function getWorldCoverUrl(
-  path: string | null
-): Promise<string | null> {
-  return getSignedStorageUrl(path);
 }
 
 export async function getWorlds(): Promise<WorldsResult> {
@@ -662,13 +652,17 @@ export async function getPublicWorlds(
   }
 
   const worlds = (data ?? []).map((row) => normalizeWorld(row as WorldRow));
-  const coverUrls: Record<string, string | null> = {};
-
-  await Promise.all(
-    worlds.map(async (world) => {
-      coverUrls[world.id] = await getSignedStorageUrl(world.cover_image_path);
-    })
+  const cache = createSignedUrlCache();
+  await signStorageUrls(
+    supabase,
+    worlds.map((world) => world.cover_image_path),
+    { cache }
   );
+
+  const coverUrls: Record<string, string | null> = {};
+  for (const world of worlds) {
+    coverUrls[world.id] = lookupSignedUrl(cache, world.cover_image_path);
+  }
 
   return { worlds, coverUrls };
 }
@@ -742,9 +736,6 @@ export async function getPublicWorld(
   }
 
   const world = normalizeWorld(worldRow as WorldRow);
-  const coverUrl = await getSignedStorageUrl(world.cover_image_path);
-  const stories = await getPublicStoriesByWorld(world.id);
-  const storyCoverUrls = await getStoryCoverUrls(stories.map((story) => story.id));
 
   const { data: characterRows } = await supabase
     .from("characters")
@@ -754,17 +745,29 @@ export async function getPublicWorld(
     .eq("is_public", true)
     .order("created_at", { ascending: false });
 
+  const cache = createSignedUrlCache();
   const characters = (characterRows ?? []).map((row) =>
     normalizeCharacter(row as CharacterRow)
   );
 
-  const characterPhotos: Record<string, string | null> = {};
-  await Promise.all(
-    characters.map(async (character) => {
-      characterPhotos[character.id] = await getSignedStorageUrl(
-        character.photo_path
-      );
-    })
+  await signStorageUrls(
+    supabase,
+    [
+      world.cover_image_path,
+      ...characters.map((character) => character.photo_path),
+    ],
+    { cache }
+  );
+
+  const coverUrl = lookupSignedUrl(cache, world.cover_image_path);
+  const stories = await getPublicStoriesByWorld(world.id);
+  const storyCoverUrls = await getStoryCoverUrls(stories.map((story) => story.id));
+
+  const characterPhotos = Object.fromEntries(
+    characters.map((character) => [
+      character.id,
+      lookupSignedUrl(cache, character.photo_path),
+    ])
   );
 
   return {

@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getCharacterPhotoUrl } from "@/app/actions/characters";
+import {
+  createSignedUrlCache,
+  lookupSignedUrl,
+  signStorageUrls,
+} from "@/lib/storage/signed-url";
 import {
   isRelationshipType,
   type RelationshipType,
@@ -266,13 +270,24 @@ export async function deleteCharacterRelationship(
 export async function getRelationshipPhotoUrls(
   entries: CharacterRelationshipEntry[]
 ): Promise<Record<string, string | null>> {
-  const urls: Record<string, string | null> = {};
-  await Promise.all(
-    entries.map(async (entry) => {
-      urls[entry.otherCharacter.id] = await getCharacterPhotoUrl(
-        entry.otherCharacter.photo_path
-      );
-    })
+  if (entries.length === 0) {
+    return {};
+  }
+
+  const supabase = await createClient();
+  const cache = createSignedUrlCache();
+  await signStorageUrls(
+    supabase,
+    entries.map((entry) => entry.otherCharacter.photo_path),
+    { cache }
   );
+
+  const urls: Record<string, string | null> = {};
+  for (const entry of entries) {
+    urls[entry.otherCharacter.id] = lookupSignedUrl(
+      cache,
+      entry.otherCharacter.photo_path
+    );
+  }
   return urls;
 }

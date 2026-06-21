@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { revalidateStoryWorkspacePagesForWorld } from "@/app/actions/stories";
 import { assignWorldImageToSlot, uploadWorldImage } from "@/app/actions/world-images";
+import { getSignedStorageUrl } from "@/lib/storage/signed-url";
 import {
   normalizeMapLocationPin,
   normalizeWorldMap,
@@ -29,15 +30,6 @@ function formatError(message: string, code?: string): string {
 function revalidateWorld(worldId: string) {
   revalidatePath(`/dashboard/worlds/${worldId}`);
   void revalidateStoryWorkspacePagesForWorld(worldId);
-}
-
-async function getSignedUrl(path: string | null): Promise<string | null> {
-  if (!path) return null;
-  const supabase = await createClient();
-  const { data } = await supabase.storage
-    .from("character-photos")
-    .createSignedUrl(path, 3600);
-  return data?.signedUrl ?? null;
 }
 
 async function ensurePrimaryMap(
@@ -132,7 +124,10 @@ export async function getWorldMapBundle(
       .select("image_path")
       .eq("id", map.image_id)
       .maybeSingle();
-    imageUrl = await getSignedUrl((image?.image_path as string | null) ?? null);
+    imageUrl = await getSignedStorageUrl(
+      supabase,
+      (image?.image_path as string | null) ?? null
+    );
   }
 
   const { data: pinRows, error: pinError } = await supabase

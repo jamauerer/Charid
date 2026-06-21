@@ -10,6 +10,11 @@ import {
 } from "@/types/world-location";
 
 import { revalidateStoryWorkspacePagesForWorld } from "@/app/actions/stories";
+import {
+  createSignedUrlCache,
+  lookupSignedUrl,
+  signStorageUrls,
+} from "@/lib/storage/signed-url";
 
 function formatError(message: string, code?: string): string {
   if (
@@ -30,15 +35,6 @@ function revalidateWorld(worldId: string) {
   revalidatePath(`/dashboard/worlds/${worldId}`);
   revalidatePath("/dashboard/worlds");
   void revalidateStoryWorkspacePagesForWorld(worldId);
-}
-
-async function getSignedUrl(path: string | null): Promise<string | null> {
-  if (!path) return null;
-  const supabase = await createClient();
-  const { data } = await supabase.storage
-    .from("character-photos")
-    .createSignedUrl(path, 3600);
-  return data?.signedUrl ?? null;
 }
 
 export async function getWorldLocations(
@@ -84,13 +80,24 @@ export async function getWorldLocations(
     }
   }
 
-  const locationsWithCover: WorldLocationWithCover[] = await Promise.all(
-    locations.map(async (location) => ({
+  const cache = createSignedUrlCache();
+  await signStorageUrls(
+    supabase,
+    locations.map((location) =>
+      location.cover_image_id
+        ? (imagePaths.get(location.cover_image_id) ?? null)
+        : null
+    ),
+    { cache }
+  );
+
+  const locationsWithCover: WorldLocationWithCover[] = locations.map(
+    (location) => ({
       location,
       coverUrl: location.cover_image_id
-        ? await getSignedUrl(imagePaths.get(location.cover_image_id) ?? null)
+        ? lookupSignedUrl(cache, imagePaths.get(location.cover_image_id) ?? null)
         : null,
-    }))
+    })
   );
 
   return { locations: locationsWithCover };

@@ -13,6 +13,11 @@ import {
 } from "@/types/story";
 import { deleteAllStoryImageFiles, getPublicStoryImages } from "@/app/actions/story-images";
 import { scanSavedText } from "@/lib/moderation/scan-text";
+import {
+  createSignedUrlCache,
+  lookupSignedUrl,
+  signStorageUrls,
+} from "@/lib/storage/signed-url";
 import type { StoryImageWithUrl } from "@/types/story-image";
 import type { World, WorldRow } from "@/types/world";
 import { normalizeWorld } from "@/types/world";
@@ -1081,20 +1086,18 @@ export async function getPublicStory(
     );
   }
 
-  const BUCKET = "character-photos";
-  const characterPhotos: Record<string, string | null> = {};
+  const cache = createSignedUrlCache();
+  await signStorageUrls(
+    supabase,
+    characters.map((character) => character.photo_path),
+    { cache }
+  );
 
-  await Promise.all(
-    characters.map(async (character) => {
-      if (!character.photo_path) {
-        characterPhotos[character.id] = null;
-        return;
-      }
-      const { data } = await supabase.storage
-        .from(BUCKET)
-        .createSignedUrl(character.photo_path, 3600);
-      characterPhotos[character.id] = data?.signedUrl ?? null;
-    })
+  const characterPhotos = Object.fromEntries(
+    characters.map((character) => [
+      character.id,
+      lookupSignedUrl(cache, character.photo_path),
+    ])
   );
 
   const images = await getPublicStoryImages(story.id);

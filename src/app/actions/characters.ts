@@ -13,8 +13,18 @@ import { ensureCharacterBible } from "@/app/actions/character-bible";
 import { scanUploadedImage } from "@/lib/moderation/scan-image";
 import { getOrCreateDefaultProject } from "@/app/actions/projects";
 import { scanSavedText } from "@/lib/moderation/scan-text";
+import {
+  CHARACTER_PHOTOS_BUCKET,
+  createSignedUrlCache,
+  getSignedStorageUrl,
+  lookupSignedUrl,
+  signStorageUrls,
+  type SignedUrlCache,
+  type SignStorageUrlsOptions,
+} from "@/lib/storage/signed-url";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-const BUCKET = "character-photos";
+const BUCKET = CHARACTER_PHOTOS_BUCKET;
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
@@ -141,24 +151,39 @@ export async function getCharacterById(
   return { character };
 }
 
+export type CharacterPhotoUrlOptions = {
+  supabase?: SupabaseClient;
+  cache?: SignedUrlCache;
+} & SignStorageUrlsOptions;
+
 export async function getCharacterPhotoUrl(
-  photoPath: string | null
+  photoPath: string | null,
+  options: CharacterPhotoUrlOptions = {}
 ): Promise<string | null> {
   if (!photoPath) {
     return null;
   }
 
-  const supabase = await createClient();
-  const { data, error } = await supabase.storage
-    .from(BUCKET)
-    .createSignedUrl(photoPath, 3600);
+  const supabase = options.supabase ?? (await createClient());
+  return getSignedStorageUrl(supabase, photoPath, options);
+}
 
-  if (error) {
-    console.error("Failed to create signed URL:", error.message);
-    return null;
+export async function getCharacterPhotoUrls(
+  photoPaths: Record<string, string | null>,
+  options: CharacterPhotoUrlOptions = {}
+): Promise<Record<string, string | null>> {
+  const supabase = options.supabase ?? (await createClient());
+  const cache = options.cache ?? createSignedUrlCache();
+  await signStorageUrls(supabase, Object.values(photoPaths), {
+    ...options,
+    cache,
+  });
+
+  const urls: Record<string, string | null> = {};
+  for (const [id, path] of Object.entries(photoPaths)) {
+    urls[id] = lookupSignedUrl(cache, path);
   }
-
-  return data.signedUrl;
+  return urls;
 }
 
 export async function getCharactersForPicker(): Promise<{

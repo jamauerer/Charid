@@ -17,8 +17,15 @@ import {
 } from "@/types/profile";
 import { scanUploadedImage } from "@/lib/moderation/scan-image";
 import { scanSavedText } from "@/lib/moderation/scan-text";
+import {
+  CHARACTER_PHOTOS_BUCKET,
+  createSignedUrlCache,
+  getSignedStorageUrl,
+  lookupSignedUrl,
+  signStorageUrls,
+} from "@/lib/storage/signed-url";
 
-const BUCKET = "character-photos";
+const BUCKET = CHARACTER_PHOTOS_BUCKET;
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
@@ -114,22 +121,12 @@ async function resolveAvailableUsername(
   throw new Error("Unable to allocate a unique username.");
 }
 
-async function getSignedStorageUrl(
-  path: string | null
+async function getProfileAvatarUrl(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  path: string | null,
+  cache?: ReturnType<typeof createSignedUrlCache>
 ): Promise<string | null> {
-  if (!path) return null;
-
-  const supabase = await createClient();
-  const { data, error } = await supabase.storage
-    .from(BUCKET)
-    .createSignedUrl(path, 3600);
-
-  if (error) {
-    console.error("Failed to create signed URL:", error.message);
-    return null;
-  }
-
-  return data.signedUrl;
+  return getSignedStorageUrl(supabase, path, { cache });
 }
 
 export async function getOrCreateProfile(): Promise<{
@@ -162,7 +159,7 @@ export async function getOrCreateProfile(): Promise<{
 
   if (existing) {
     const profile = normalizeProfile(existing as ProfileRow);
-    const avatarUrl = await getSignedStorageUrl(profile.avatar_url);
+    const avatarUrl = await getProfileAvatarUrl(supabase, profile.avatar_url);
     return { profile, avatarUrl };
   }
 
@@ -300,7 +297,7 @@ export async function updateProfile(
   }
 
   const profile = normalizeProfile(updated as ProfileRow);
-  const avatarUrl = await getSignedStorageUrl(profile.avatar_url);
+  const avatarUrl = await getProfileAvatarUrl(supabase, profile.avatar_url);
 
   revalidatePath("/dashboard/portfolio");
   revalidatePath(`/u/${existing.username}`);
@@ -391,15 +388,22 @@ export async function getPublicPortfolio(
     normalizeCharacter(row as CharacterRow)
   );
 
-  const avatarUrl = await getSignedStorageUrl(profile.avatar_url);
+  const cache = createSignedUrlCache();
+  await signStorageUrls(
+    supabase,
+    [
+      profile.avatar_url,
+      ...characters.map((character) => character.photo_path),
+    ],
+    { cache }
+  );
 
-  const characterPhotos: Record<string, string | null> = {};
-  await Promise.all(
-    characters.map(async (character) => {
-      characterPhotos[character.id] = await getSignedStorageUrl(
-        character.photo_path
-      );
-    })
+  const avatarUrl = lookupSignedUrl(cache, profile.avatar_url);
+  const characterPhotos = Object.fromEntries(
+    characters.map((character) => [
+      character.id,
+      lookupSignedUrl(cache, character.photo_path),
+    ])
   );
 
   const { worlds, coverUrls: worldCovers } = await getPublicWorlds(
@@ -480,8 +484,12 @@ export async function getPublicCharacter(
   const character = normalizeCharacter(characterRow as CharacterRow);
   const bibleAge = await getPublicCharacterBibleAge(characterId);
   const characterDisplay = withBibleAge(character, bibleAge);
-  const photoUrl = await getSignedStorageUrl(character.photo_path);
-  const avatarUrl = await getSignedStorageUrl(profile.avatar_url);
+  const cache = createSignedUrlCache();
+  await signStorageUrls(supabase, [character.photo_path, profile.avatar_url], {
+    cache,
+  });
+  const photoUrl = lookupSignedUrl(cache, character.photo_path);
+  const avatarUrl = lookupSignedUrl(cache, profile.avatar_url);
   const images = await getPublicCharacterImages(characterId);
 
   return {

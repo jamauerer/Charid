@@ -15,8 +15,12 @@ import {
   type WorldImageSlotAssignment,
 } from "@/types/world-image-slot";
 import { scanUploadedImage } from "@/lib/moderation/scan-image";
+import {
+  attachSignedUrls,
+  CHARACTER_PHOTOS_BUCKET,
+} from "@/lib/storage/signed-url";
 
-const BUCKET = "character-photos";
+const BUCKET = CHARACTER_PHOTOS_BUCKET;
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
@@ -65,24 +69,17 @@ function formatWorldSlotError(message: string, code?: string): string {
   return message;
 }
 
-async function getSignedStorageUrl(
-  path: string | null
-): Promise<string | null> {
-  if (!path) return null;
-
-  const supabase = await createClient();
-  const { data, error } = await supabase.storage
-    .from(BUCKET)
-    .createSignedUrl(path, 3600);
-
-  if (error) {
-    console.error("Failed to create signed URL:", error.message);
-    return null;
-  }
-
-  return data.signedUrl;
+async function attachUrls(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  images: WorldImage[]
+): Promise<WorldImageWithUrl[]> {
+  return attachSignedUrls(
+    supabase,
+    images,
+    (image) => image.image_path,
+    (image, url) => ({ ...image, url })
+  );
 }
-
 async function revalidateWorldPaths(
   supabase: Awaited<ReturnType<typeof createClient>>,
   worldId: string,
@@ -158,17 +155,6 @@ async function assertWorldOwner(worldId: string) {
   return { error: null, supabase, user, world };
 }
 
-async function attachUrls(
-  images: WorldImage[]
-): Promise<WorldImageWithUrl[]> {
-  return Promise.all(
-    images.map(async (image) => ({
-      ...image,
-      url: await getSignedStorageUrl(image.image_path),
-    }))
-  );
-}
-
 async function fetchSlotAssignments(
   supabase: Awaited<ReturnType<typeof createClient>>,
   worldId: string
@@ -234,7 +220,7 @@ export async function getWorldImages(
   const slotResult = await fetchSlotAssignments(auth.supabase, worldId);
 
   return {
-    images: await attachUrls(images),
+    images: await attachUrls(auth.supabase, images),
     slotAssignments: slotResult.assignments,
     slotError: slotResult.error,
   };
@@ -261,7 +247,7 @@ export async function getPublicWorldImages(
     normalizeWorldImage(row as WorldImage)
   );
 
-  return attachUrls(images);
+  return attachUrls(supabase, images);
 }
 
 export async function getPublicWorldSlotAssignments(

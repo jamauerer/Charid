@@ -17,8 +17,16 @@ import {
 } from "@/types/story-image-slot";
 import { scanUploadedImage } from "@/lib/moderation/scan-image";
 import { scanSavedText } from "@/lib/moderation/scan-text";
+import {
+  attachSignedUrls,
+  CHARACTER_PHOTOS_BUCKET,
+  createSignedUrlCache,
+  getSignedStorageUrl,
+  lookupSignedUrl,
+  signStorageUrls,
+} from "@/lib/storage/signed-url";
 
-const BUCKET = "character-photos";
+const BUCKET = CHARACTER_PHOTOS_BUCKET;
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
@@ -75,22 +83,16 @@ function formatStorySlotError(message: string, code?: string): string {
   return message;
 }
 
-async function getSignedStorageUrl(
-  path: string | null
-): Promise<string | null> {
-  if (!path) return null;
-
-  const supabase = await createClient();
-  const { data, error } = await supabase.storage
-    .from(BUCKET)
-    .createSignedUrl(path, 3600);
-
-  if (error) {
-    console.error("Failed to create signed URL:", error.message);
-    return null;
-  }
-
-  return data.signedUrl;
+async function attachUrls(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  images: StoryImage[]
+): Promise<StoryImageWithUrl[]> {
+  return attachSignedUrls(
+    supabase,
+    images,
+    (image) => image.image_path,
+    (image, url) => ({ ...image, url })
+  );
 }
 
 async function assertStoryOwner(storyId: string) {
@@ -167,17 +169,6 @@ async function revalidateStoryImagePaths(
       );
     }
   }
-}
-
-async function attachUrls(
-  images: StoryImage[]
-): Promise<StoryImageWithUrl[]> {
-  return Promise.all(
-    images.map(async (image) => ({
-      ...image,
-      url: await getSignedStorageUrl(image.image_path),
-    }))
-  );
 }
 
 async function fetchSlotAssignments(
@@ -364,7 +355,7 @@ export async function getStoryImages(
   const slotResult = await fetchSlotAssignments(auth.supabase, storyId);
 
   return {
-    images: await attachUrls(images),
+    images: await attachUrls(auth.supabase, images),
     featuredImageId: auth.story.featured_image_id,
     slotAssignments: slotResult.assignments,
     slotError: slotResult.error,
@@ -392,7 +383,7 @@ export async function getPublicStoryImages(
     normalizeStoryImage(row as StoryImage)
   );
 
-  return attachUrls(images);
+  return attachUrls(supabase, images);
 }
 
 export async function getStoryCoverUrl(
@@ -416,7 +407,7 @@ export async function getStoryCoverUrl(
     .eq("id", story.featured_image_id)
     .maybeSingle();
 
-  return getSignedStorageUrl(image?.image_path ?? null);
+  return getSignedStorageUrl(supabase, image?.image_path ?? null);
 }
 
 export async function getStoryCoverUrls(
@@ -452,18 +443,26 @@ export async function getStoryCoverUrls(
     (stories ?? []).map((story) => [story.id, story.featured_image_id])
   );
 
+  const cache = createSignedUrlCache();
+  const paths = storyIds.map((storyId) => {
+    const featuredId = featuredByStoryId.get(storyId);
+    if (!featuredId) {
+      return null;
+    }
+    return pathByImageId.get(featuredId) ?? null;
+  });
+  await signStorageUrls(supabase, paths, { cache });
+
   const result: Record<string, string | null> = {};
-  await Promise.all(
-    storyIds.map(async (storyId) => {
-      const featuredId = featuredByStoryId.get(storyId);
-      if (!featuredId) {
-        result[storyId] = null;
-        return;
-      }
-      const path = pathByImageId.get(featuredId);
-      result[storyId] = path ? await getSignedStorageUrl(path) : null;
-    })
-  );
+  for (const storyId of storyIds) {
+    const featuredId = featuredByStoryId.get(storyId);
+    if (!featuredId) {
+      result[storyId] = null;
+      continue;
+    }
+    const path = pathByImageId.get(featuredId);
+    result[storyId] = lookupSignedUrl(cache, path);
+  }
 
   return result;
 }

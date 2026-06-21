@@ -14,12 +14,17 @@ import {
 } from "@/types/scene";
 import { scanSavedText } from "@/lib/moderation/scan-text";
 import {
+  attachSignedUrls,
+  CHARACTER_PHOTOS_BUCKET,
+  getSignedStorageUrl,
+} from "@/lib/storage/signed-url";
+import {
   commitSceneRecord,
   syncSceneCharacters,
 } from "@/lib/scenes/commit-scene";
 import { parseSceneInsertPlacement, applySceneSortOrder } from "@/lib/scenes/scene-insert-order";
 
-const COVER_BUCKET = "character-photos";
+const COVER_BUCKET = CHARACTER_PHOTOS_BUCKET;
 const MAX_COVER_BYTES = 5 * 1024 * 1024;
 
 export type SceneActionState = {
@@ -45,23 +50,28 @@ function formatSceneError(message: string, code?: string): string {
 }
 
 export async function getSceneCoverUrl(
-  coverPath: string | null
+  coverPath: string | null,
+  supabase?: Awaited<ReturnType<typeof createClient>>
 ): Promise<string | null> {
   if (!coverPath) {
     return null;
   }
 
-  const supabase = await createClient();
-  const { data, error } = await supabase.storage
-    .from(COVER_BUCKET)
-    .createSignedUrl(coverPath, 3600);
+  const client = supabase ?? (await createClient());
+  return getSignedStorageUrl(client, coverPath, { bucket: COVER_BUCKET });
+}
 
-  if (error) {
-    console.error("Failed to create scene cover signed URL:", error.message);
-    return null;
-  }
-
-  return data.signedUrl;
+async function attachCoverUrls(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  scenes: SceneWithCast[]
+): Promise<SceneWithCast[]> {
+  return attachSignedUrls(
+    supabase,
+    scenes,
+    (scene) => scene.cover_image_path,
+    (scene, cover_url) => ({ ...scene, cover_url }),
+    { bucket: COVER_BUCKET }
+  );
 }
 
 async function assertStoryOwner(
@@ -215,18 +225,6 @@ async function attachCastToScenes(
     characters: castByScene.get(scene.id) ?? [],
     location_display: resolveSceneLocationDisplay(scene, locationNameMap),
   }));
-}
-
-async function attachCoverUrls(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  scenes: SceneWithCast[]
-): Promise<SceneWithCast[]> {
-  return Promise.all(
-    scenes.map(async (scene) => ({
-      ...scene,
-      cover_url: await getSceneCoverUrl(scene.cover_image_path),
-    }))
-  );
 }
 
 async function revalidateScenePaths(
@@ -674,7 +672,7 @@ export async function uploadSceneCover(
     return { error: formatSceneError(updateError.message, updateError.code) };
   }
 
-  const coverUrl = await getSceneCoverUrl(coverPath);
+  const coverUrl = await getSceneCoverUrl(coverPath, supabase);
   await revalidateScenePaths(worldId, storyId, sceneId);
   return { coverUrl };
 }

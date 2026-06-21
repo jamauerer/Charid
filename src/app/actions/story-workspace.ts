@@ -11,6 +11,11 @@ import {
   type StoryCharacterEntry,
 } from "@/app/actions/stories";
 import { createClient } from "@/lib/supabase/server";
+import {
+  createSignedUrlCache,
+  lookupSignedUrl,
+  signStorageUrls,
+} from "@/lib/storage/signed-url";
 import { relationshipDisplayLabel } from "@/lib/relationship-types";
 import {
   normalizeCharacterRelationship,
@@ -58,7 +63,11 @@ function collectWorldbuildingError(
 }
 
 async function getCastBonds(
-  rosterIds: string[]
+  rosterIds: string[],
+  signing?: {
+    supabase: Awaited<ReturnType<typeof createClient>>;
+    cache: ReturnType<typeof createSignedUrlCache>;
+  }
 ): Promise<{
   bonds: StoryCastBond[];
   photoUrls: Record<string, string | null>;
@@ -166,14 +175,28 @@ async function getCastBonds(
   }
 
   const photoUrls: Record<string, string | null> = {};
-  await Promise.all(
-    characterIds.map(async (id) => {
-      const character = characterMap.get(id);
-      photoUrls[id] = await getCharacterPhotoUrl(
-        character?.photo_path ?? null
+  if (signing) {
+    await signStorageUrls(
+      signing.supabase,
+      characterIds.map((id) => characterMap.get(id)?.photo_path),
+      { cache: signing.cache }
+    );
+    for (const id of characterIds) {
+      photoUrls[id] = lookupSignedUrl(
+        signing.cache,
+        characterMap.get(id)?.photo_path
       );
-    })
-  );
+    }
+  } else {
+    await Promise.all(
+      characterIds.map(async (id) => {
+        const character = characterMap.get(id);
+        photoUrls[id] = await getCharacterPhotoUrl(
+          character?.photo_path ?? null
+        );
+      })
+    );
+  }
 
   return { bonds, photoUrls };
 }
@@ -200,29 +223,29 @@ export async function getStoryWorkspaceContext(
 
   const { entries: cast } = await getStoryCharacters(storyId);
   const rosterIds = cast.map(({ character }) => character.id);
+  const supabase = await createClient();
+  const urlCache = createSignedUrlCache();
 
-  const [
-    castPhotoUrlsEntries,
-    bondsResult,
-    locationsResult,
-    mapResult,
-    moodboardResult,
-  ] = await Promise.all([
-    Promise.all(
-      cast.map(async ({ character }) => ({
-        id: character.id,
-        url: await getCharacterPhotoUrl(character.photo_path),
-      }))
-    ),
-    getCastBonds(rosterIds),
-    getWorldLocations(worldId),
-    getWorldMapBundle(worldId),
-    getWorldMoodboardBundle(worldId),
-  ]);
+  await signStorageUrls(
+    supabase,
+    cast.map(({ character }) => character.photo_path),
+    { cache: urlCache }
+  );
 
   const castPhotoUrls = Object.fromEntries(
-    castPhotoUrlsEntries.map(({ id, url }) => [id, url])
+    cast.map(({ character }) => [
+      character.id,
+      lookupSignedUrl(urlCache, character.photo_path),
+    ])
   );
+
+  const [bondsResult, locationsResult, mapResult, moodboardResult] =
+    await Promise.all([
+      getCastBonds(rosterIds, { supabase, cache: urlCache }),
+      getWorldLocations(worldId),
+      getWorldMapBundle(worldId),
+      getWorldMoodboardBundle(worldId),
+    ]);
 
   const worldbuildingError = collectWorldbuildingError([
     bondsResult.error,
