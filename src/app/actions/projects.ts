@@ -407,7 +407,8 @@ export async function getProjectStories(
     .select("*")
     .eq("project_id", projectId)
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .order("project_sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
 
   if (error) {
     return {
@@ -466,6 +467,71 @@ export async function getProjectStories(
   }
 
   return { entries };
+}
+
+export async function reorderProjectStories(
+  projectId: string,
+  orderedStoryIds: string[]
+): Promise<{ error?: string }> {
+  const uniqueIds = [...new Set(orderedStoryIds.filter(Boolean))];
+  if (uniqueIds.length === 0) {
+    return { error: "No stories to reorder." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be logged in." };
+  }
+
+  const { data: project, error: projectError } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("id", projectId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (projectError || !project) {
+    return { error: "Project not found." };
+  }
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("stories")
+    .select("id")
+    .eq("project_id", projectId)
+    .eq("user_id", user.id);
+
+  if (fetchError) {
+    return { error: formatProjectError(fetchError.message, fetchError.code) };
+  }
+
+  const existingIds = new Set((existing ?? []).map((row) => row.id as string));
+  if (
+    uniqueIds.length !== existingIds.size ||
+    uniqueIds.some((id) => !existingIds.has(id))
+  ) {
+    return { error: "Story order does not match this project." };
+  }
+
+  for (let index = 0; index < uniqueIds.length; index += 1) {
+    const { error: updateError } = await supabase
+      .from("stories")
+      .update({ project_sort_order: index })
+      .eq("id", uniqueIds[index])
+      .eq("project_id", projectId)
+      .eq("user_id", user.id);
+
+    if (updateError) {
+      return { error: formatProjectError(updateError.message, updateError.code) };
+    }
+  }
+
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  revalidatePath("/dashboard/projects");
+  return {};
 }
 
 export async function getProjectCharacters(
@@ -953,7 +1019,8 @@ export async function getProjectStoryProgress(
     .select("id, title, world_id, project_type, created_at")
     .eq("project_id", projectId)
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .order("project_sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
 
   if (error) {
     return { stories: [], error: formatProjectError(error.message, error.code) };

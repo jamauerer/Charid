@@ -36,6 +36,7 @@ export type Story = {
   project_type: StoryProjectType;
   featured_image_id: string | null;
   created_at: string;
+  project_sort_order?: number;
 };
 
 export type StoryRow = Story & {
@@ -75,6 +76,8 @@ export function normalizeStory(row: StoryRow): Story {
     project_type: projectType,
     featured_image_id: row.featured_image_id ?? null,
     created_at: row.created_at,
+    project_sort_order: (row as StoryRow & { project_sort_order?: number })
+      .project_sort_order ?? 0,
   };
 }
 

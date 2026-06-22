@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { FormModalShell } from "@/components/dashboard/FormModalShell";
 import {
+  assignCharactersToProject,
   assignCharactersToWorld,
   getCharactersForPicker,
   type CharacterPickerItem,
@@ -10,8 +11,8 @@ import {
 import { addCharactersToStory } from "@/app/actions/stories";
 
 type CharacterPickerModalProps = {
-  mode: "world" | "story";
-  worldId: string;
+  mode: "world" | "story" | "project";
+  worldId?: string;
   worldName?: string;
   storyId?: string;
   projectId?: string | null;
@@ -20,7 +21,7 @@ type CharacterPickerModalProps = {
   triggerLabel?: string;
 };
 
-function isStoryAttachable(
+function isLibraryAttachable(
   character: CharacterPickerItem,
   excluded: Set<string>
 ): boolean {
@@ -56,7 +57,7 @@ export function CharacterPickerModal({
       );
     }
     return characters.filter((character) =>
-      isStoryAttachable(character, excluded)
+      isLibraryAttachable(character, excluded)
     );
   }, [characters, mode, worldId, excluded]);
 
@@ -118,7 +119,13 @@ export function CharacterPickerModal({
       setActionError(null);
 
       if (mode === "world") {
-        const result = await assignCharactersToWorld(worldId, ids);
+        const result = await assignCharactersToWorld(worldId!, ids);
+        if (result.error) {
+          setActionError(result.error);
+          return;
+        }
+      } else if (mode === "project" && projectId) {
+        const result = await assignCharactersToProject(projectId, ids);
         if (result.error) {
           setActionError(result.error);
           return;
@@ -140,7 +147,9 @@ export function CharacterPickerModal({
       ? worldName
         ? `Assign characters to ${worldName}`
         : "Assign existing characters to this setting"
-      : "Add characters from your library to this story";
+      : mode === "project"
+        ? "Add characters from your library to this project"
+        : "Add characters from your library to this story";
 
   return (
     <>
@@ -164,7 +173,9 @@ export function CharacterPickerModal({
             <p className="text-sm text-[var(--brand-text-secondary)]">
               {mode === "world"
                 ? "All your characters are already in this setting, or you have none to assign."
-                : "No characters are available to add. Create one first."}
+                : mode === "project"
+                  ? "All your characters are already in this project, or you have none to add."
+                  : "No characters are available to add. Create one first."}
             </p>
           ) : (
             <>
@@ -211,13 +222,13 @@ export function CharacterPickerModal({
                               {character.name}
                             </span>
                             <span className="block text-xs text-[var(--brand-text-secondary)]">
-                              {mode === "story"
-                                ? character.project_name
-                                  ? character.project_name
-                                  : "No project assigned"
-                                : character.world_name
+                              {mode === "world"
+                                ? character.world_name
                                   ? `Currently in ${character.world_name}`
-                                  : "Unassigned"}
+                                  : "Unassigned"
+                                : character.project_name
+                                  ? character.project_name
+                                  : "No project assigned"}
                             </span>
                           </span>
                         </label>

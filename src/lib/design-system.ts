@@ -104,6 +104,30 @@ export const dsProgressFill =
 export const dsChip =
   "rounded-md border border-[var(--brand-border)] bg-[var(--brand-surface-elevated)] px-2 py-0.5 text-[11px] font-medium text-[var(--brand-text-secondary)]";
 
+/* ── What's Next panels ── */
+
+export const dsWhatsNextHeading =
+  "text-sm font-semibold uppercase tracking-wider text-[var(--brand-text-secondary)]";
+
+export const dsWhatsNextHint =
+  "mt-1 text-sm text-[var(--brand-text-secondary)]";
+
+export const dsWhatsNextChecklist =
+  "mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-[var(--brand-text-secondary)]";
+
+export const dsWhatsNextCheckComplete = "text-[var(--tag-primary-text)]";
+
+export const dsWhatsNextCheckIncomplete = "text-[var(--brand-text-secondary)]";
+
+export const dsWhatsNextLabelComplete =
+  "font-medium text-[var(--brand-text-primary)]";
+
+export const dsWhatsNextHintLink =
+  "underline-offset-2 transition hover:text-[var(--brand-text-primary)] hover:underline";
+
+export const dsWhatsNextDisabledHint =
+  "text-xs text-[var(--brand-text-secondary)]";
+
 /* ── Modals ── */
 
 export const dsModalBackdrop = "fixed inset-0 bg-black/40 backdrop-blur-[2px]";

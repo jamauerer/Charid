@@ -7,10 +7,6 @@ import { SceneCreateStudio } from "@/components/scene-workspace/SceneCreateStudi
 import { StoryTimelinePanel } from "@/components/scene-workspace/StoryTimelinePanel";
 import type { StoryLocationOption } from "@/components/scene-workspace/SceneCard";
 import type { SceneInsertPlacement } from "@/lib/scenes/scene-insert-order";
-import { CREATOR_STORY } from "@/lib/creator-vocabulary";
-import { StudioEmptyState } from "@/components/studio/StudioEmptyState";
-import { STUDIO_EMPTY_COPY } from "@/lib/studio-empty-copy";
-import { studioBtnPrimarySm } from "@/lib/visual-identity";
 
 type StoryScenesPanelProps = {
   worldId: string;
@@ -55,21 +51,6 @@ export function StoryScenesPanel({
         scenes={scenes}
         onInsert={openStudio}
       />
-
-      {scenes.length === 0 && (
-        <StudioEmptyState
-          headline={STUDIO_EMPTY_COPY.scene.headline}
-          description={CREATOR_STORY.scenesEmptyHint}
-        >
-          <button
-            type="button"
-            onClick={() => openStudio({ mode: "end" })}
-            className={studioBtnPrimarySm}
-          >
-            {CREATOR_STORY.createSceneLabel}
-          </button>
-        </StudioEmptyState>
-      )}
 
       {studioOpen && (
         <SceneCreateStudio

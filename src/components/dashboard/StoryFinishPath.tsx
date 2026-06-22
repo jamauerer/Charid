@@ -1,7 +1,18 @@
 import Link from "next/link";
 import type { FinishPathResult } from "@/lib/story-finish-path";
 import { CREATOR_STORY } from "@/lib/creator-vocabulary";
-import { studioBtnPrimary, studioInspirePanel } from "@/lib/visual-identity";
+import {
+  dsWhatsNextCheckComplete,
+  dsWhatsNextCheckIncomplete,
+  dsWhatsNextChecklist,
+  dsWhatsNextDisabledHint,
+  dsWhatsNextHeading,
+  dsWhatsNextHint,
+  dsWhatsNextHintLink,
+  dsWhatsNextLabelComplete,
+  dsBtnPrimary,
+  dsPanel,
+} from "@/lib/design-system";
 
 type StoryFinishPathProps = {
   finishPath: FinishPathResult;
@@ -12,7 +23,7 @@ function PrimaryAction({ finishPath }: { finishPath: FinishPathResult }) {
 
   if (primary.kind === "link") {
     return (
-      <Link href={primary.href} className={studioBtnPrimary}>
+      <Link href={primary.href} className={dsBtnPrimary}>
         {primary.label}
       </Link>
     );
@@ -20,7 +31,7 @@ function PrimaryAction({ finishPath }: { finishPath: FinishPathResult }) {
 
   if (primary.kind === "scroll") {
     return (
-      <a href={`#${primary.hash}`} className={studioBtnPrimary}>
+      <a href={`#${primary.hash}`} className={dsBtnPrimary}>
         {primary.label}
       </a>
     );
@@ -31,28 +42,30 @@ function PrimaryAction({ finishPath }: { finishPath: FinishPathResult }) {
       <button
         type="button"
         disabled
-        className="inline-flex cursor-not-allowed items-center justify-center rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface-elevated)] px-5 py-2.5 text-sm font-medium text-neutral-400"
+        className="inline-flex cursor-not-allowed items-center justify-center rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface-elevated)] px-5 py-2.5 text-sm font-medium text-[var(--brand-text-secondary)]"
       >
         {primary.label}
       </button>
-      <p className="text-xs text-neutral-600">{primary.hint}</p>
+      <p className={dsWhatsNextDisabledHint}>{primary.hint}</p>
     </div>
   );
 }
 
 function ChecklistRow({ finishPath }: { finishPath: FinishPathResult }) {
   return (
-    <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-neutral-600">
+    <ul className={dsWhatsNextChecklist}>
       {finishPath.checklist.map((item) => (
         <li key={item.id} className="tabular-nums">
-          <span className={item.complete ? "text-neutral-900" : "text-neutral-500"}>
+          <span
+            className={
+              item.complete ? dsWhatsNextCheckComplete : dsWhatsNextCheckIncomplete
+            }
+          >
             {item.complete ? "✓" : "○"}
           </span>{" "}
-          <span className={item.complete ? "font-medium text-neutral-800" : ""}>
+          <span className={item.complete ? dsWhatsNextLabelComplete : undefined}>
             {item.id === "cover"
-              ? item.complete
-                ? "Cover image"
-                : "Cover image"
+              ? "Cover image"
               : `${item.count} ${item.label}`}
           </span>
         </li>
@@ -63,37 +76,25 @@ function ChecklistRow({ finishPath }: { finishPath: FinishPathResult }) {
 
 export function StoryFinishPath({ finishPath }: StoryFinishPathProps) {
   return (
-    <section
-      aria-labelledby="story-whats-next-heading"
-      className={studioInspirePanel}
-    >
-      <h2
-        id="story-whats-next-heading"
-        className="text-sm font-semibold uppercase tracking-wider text-neutral-600"
-      >
+    <section aria-labelledby="story-whats-next-heading" className={dsPanel}>
+      <h2 id="story-whats-next-heading" className={dsWhatsNextHeading}>
         {CREATOR_STORY.whatsNextLabel}
       </h2>
-      <p className="mt-1 text-sm text-neutral-600">{CREATOR_STORY.whatsNextHint}</p>
+      <p className={dsWhatsNextHint}>{CREATOR_STORY.whatsNextHint}</p>
       <ChecklistRow finishPath={finishPath} />
       <div className="mt-4">
         <PrimaryAction finishPath={finishPath} />
       </div>
       {finishPath.hints.length > 0 && (
-        <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-600">
+        <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--brand-text-secondary)]">
           {finishPath.hints.map((hint) => (
             <li key={hint.label}>
               {hint.href ? (
-                <Link
-                  href={hint.href}
-                  className="underline-offset-2 transition hover:text-neutral-900 hover:underline"
-                >
+                <Link href={hint.href} className={dsWhatsNextHintLink}>
                   {hint.label}
                 </Link>
               ) : hint.hash ? (
-                <a
-                  href={`#${hint.hash}`}
-                  className="underline-offset-2 transition hover:text-neutral-900 hover:underline"
-                >
+                <a href={`#${hint.hash}`} className={dsWhatsNextHintLink}>
                   {hint.label}
                 </a>
               ) : (

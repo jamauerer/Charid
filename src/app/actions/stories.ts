@@ -444,12 +444,26 @@ export async function createStory(
     };
   }
 
+  let projectSortOrder = 0;
+  if (projectId) {
+    const { data: lastStory } = await supabase
+      .from("stories")
+      .select("project_sort_order")
+      .eq("project_id", projectId)
+      .eq("user_id", user.id)
+      .order("project_sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    projectSortOrder = ((lastStory?.project_sort_order as number) ?? -1) + 1;
+  }
+
   const { data: created, error: insertError } = await supabase
     .from("stories")
     .insert({
       world_id: worldId,
       user_id: user.id,
       project_id: projectId,
+      project_sort_order: projectSortOrder,
       title,
       slug,
       summary,

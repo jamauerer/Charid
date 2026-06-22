@@ -1,5 +1,6 @@
 import type { ProjectWorkIntent } from "@/types/project";
 import type { StoryProjectType } from "@/types/story";
+import { CREATOR_STORY } from "@/lib/creator-vocabulary";
 import { PROJECT_SECTION_IDS } from "@/lib/project-tabs";
 
 export type ProjectFinishStepId =
@@ -70,6 +71,13 @@ function pickContinueStory(stories: ProjectStoryProgress[]): ProjectStoryProgres
   return [...pool].sort(
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   )[0];
+}
+
+function needIdeasHint(story: ProjectStoryProgress): ProjectFinishPathHint {
+  return {
+    label: CREATOR_STORY.needSceneIdeasLabel,
+    href: `/dashboard/worlds/${story.worldId}/stories/${story.id}#story-scene-suggestions`,
+  };
 }
 
 function buildChecklist(input: {
@@ -191,7 +199,7 @@ export function resolveProjectFinishPath(input: {
         href: `/dashboard/worlds/${primaryStory.worldId}/stories/${primaryStory.id}#story-timeline-section`,
         label: `Add first scene in ${primaryStory.title}`,
       },
-      hints: [{ label: "Set style references", hash: PROJECT_SECTION_IDS.styleReferences }],
+      hints: [needIdeasHint(primaryStory)],
       checklist,
     };
   }
@@ -204,19 +212,7 @@ export function resolveProjectFinishPath(input: {
         href: `/dashboard/worlds/${continueStory.worldId}/stories/${continueStory.id}`,
         label: `Continue ${continueStory.title}`,
       },
-      hints: [
-        ...(input.sceneCount > 0
-          ? [
-              {
-                label: "Add another scene",
-                href: `/dashboard/worlds/${continueStory.worldId}/stories/${continueStory.id}#story-timeline-section`,
-              },
-            ]
-          : []),
-        ...(!input.hasCover || input.styleReferenceCount === 0
-          ? [{ label: "Add style references", hash: PROJECT_SECTION_IDS.styleReferences }]
-          : []),
-      ],
+      hints: [needIdeasHint(continueStory)],
       checklist,
     };
   }
@@ -238,8 +234,8 @@ export function resolveProjectFinishPath(input: {
     primaryStep: "add_scene",
     primary: {
       kind: "scroll",
-      hash: PROJECT_SECTION_IDS.scenes,
-      label: "Review your scenes",
+      hash: PROJECT_SECTION_IDS.story,
+      label: "Review your stories",
     },
     hints: [],
     checklist,

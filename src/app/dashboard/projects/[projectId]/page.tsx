@@ -7,7 +7,6 @@ import {
   getProjectCoverUrl,
   getProjectProgressCounts,
   getProjectRelationships,
-  getProjectSceneRollup,
   getProjectStories,
   getProjectStoryProgress,
   getProjectWorlds,
@@ -57,7 +56,6 @@ export default async function ProjectPage({
     relationshipsResult,
     storyProgressResult,
     progressCountsResult,
-    sceneRollupResult,
   ] = await Promise.all([
     getProjectStories(projectId),
     getProjectCharacters(projectId),
@@ -65,7 +63,6 @@ export default async function ProjectPage({
     getProjectRelationships(projectId),
     getProjectStoryProgress(projectId),
     getProjectProgressCounts(projectId),
-    getProjectSceneRollup(projectId),
   ]);
 
   const relationshipPhotoUrls: Record<string, string | null> = {};
@@ -128,7 +125,6 @@ export default async function ProjectPage({
         worlds={worldsResult.entries}
         relationships={relationshipsResult.entries}
         relationshipPhotoUrls={relationshipPhotoUrls}
-        sceneRollup={sceneRollupResult.entries}
         primaryWorldId={primaryWorldId}
         moodboardBundle={moodboardBundle}
         galleryImages={galleryImages}

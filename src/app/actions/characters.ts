@@ -322,6 +322,62 @@ export async function assignCharactersToWorld(
   return { assignedCount };
 }
 
+export async function assignCharactersToProject(
+  projectId: string,
+  characterIds: string[]
+): Promise<{ error?: string; assignedCount?: number }> {
+  const uniqueIds = [...new Set(characterIds.filter(Boolean))];
+  if (uniqueIds.length === 0) {
+    return { error: "Select at least one character." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be logged in." };
+  }
+
+  const { data: project, error: projectError } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("id", projectId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (projectError || !project) {
+    return { error: "Project not found." };
+  }
+
+  const { data: updated, error: updateError } = await supabase
+    .from("characters")
+    .update({ project_id: projectId })
+    .eq("user_id", user.id)
+    .in("id", uniqueIds)
+    .select("id");
+
+  if (updateError) {
+    return { error: formatCharactersError(updateError.message, updateError.code) };
+  }
+
+  const assignedCount = updated?.length ?? 0;
+  if (assignedCount === 0) {
+    return { error: "No characters were assigned." };
+  }
+
+  revalidatePath("/dashboard/characters");
+  revalidatePath("/dashboard/projects");
+  revalidatePath(`/dashboard/projects/${projectId}`);
+
+  for (const row of updated ?? []) {
+    revalidatePath(`/dashboard/characters/${row.id}`);
+  }
+
+  return { assignedCount };
+}
+
 export async function createCharacter(
   _prevState: CharacterActionState,
   formData: FormData

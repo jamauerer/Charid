@@ -1,24 +1,21 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect } from "react";
 import { NewStoryModal } from "@/app/dashboard/NewStoryModal";
-import { ProjectAddCharacterButton } from "@/components/project/ProjectAddCharacterButton";
+import { ProjectCharacterActions } from "@/components/project/ProjectCharacterActions";
 import { ProjectCharactersSection } from "@/components/project/ProjectCharactersSection";
-import { ProjectFormatGuide } from "@/components/project/ProjectFormatGuide";
 import { ProjectNotesSection } from "@/components/project/ProjectNotesSection";
 import { ProjectRelationshipsSection } from "@/components/project/ProjectRelationshipsSection";
 import { ProjectRoadmapSection } from "@/components/project/ProjectRoadmapSection";
-import { ProjectScenesSection } from "@/components/project/ProjectScenesSection";
 import { ProjectStoriesSection } from "@/components/project/ProjectStoriesSection";
 import { ProjectStyleReferencesSection } from "@/components/project/ProjectStyleReferencesSection";
 import { ProjectWhatsNext } from "@/components/project/ProjectWhatsNext";
+import { ProjectWorkspaceHeader } from "@/components/project/ProjectWorkspaceHeader";
 import { ProjectWorldsSection } from "@/components/project/ProjectWorldsSection";
 import type {
   ProjectCharacterEntry,
   ProjectProgressCounts,
   ProjectRelationshipEntry,
-  ProjectSceneRollupEntry,
   ProjectStoryEntry,
   ProjectWorldEntry,
 } from "@/app/actions/projects";
@@ -28,9 +25,9 @@ import type {
 } from "@/lib/project-finish-path";
 import { PROJECT_SECTION_IDS } from "@/lib/project-tabs";
 import type { ProjectWithCounts } from "@/types/project";
-import { PROJECT_WORK_INTENT_LABELS } from "@/types/project";
 import type { WorldImageWithUrl } from "@/types/world-image";
 import type { WorldMoodboardBundle } from "@/types/world-moodboard";
+import { studioSection, studioSectionLabel } from "@/lib/visual-identity";
 
 type ProjectWorkspaceViewProps = {
   project: ProjectWithCounts;
@@ -44,7 +41,6 @@ type ProjectWorkspaceViewProps = {
   worlds: ProjectWorldEntry[];
   relationships: ProjectRelationshipEntry[];
   relationshipPhotoUrls: Record<string, string | null>;
-  sceneRollup: ProjectSceneRollupEntry[];
   primaryWorldId: string | null;
   moodboardBundle: WorldMoodboardBundle | null;
   galleryImages: WorldImageWithUrl[];
@@ -63,7 +59,6 @@ export function ProjectWorkspaceView({
   worlds,
   relationships,
   relationshipPhotoUrls,
-  sceneRollup,
   primaryWorldId,
   moodboardBundle,
   galleryImages,
@@ -78,7 +73,7 @@ export function ProjectWorkspaceView({
   }, [initialScrollSection]);
 
   const isWorldbuilding = project.work_intent === "worldbuilding";
-  const hasStory = progressCounts.storyCount > 0;
+  const characterIds = characters.map(({ character }) => character.id);
 
   return (
     <div className="mx-auto w-full max-w-[1280px]">
@@ -88,24 +83,10 @@ export function ProjectWorkspaceView({
         </div>
       )}
 
-      <div className="mb-5 border-b border-[var(--brand-border)] pb-5">
-        <Link
-          href="/dashboard/projects"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-[var(--brand-text-secondary)] transition hover:text-[var(--foreground)]"
-        >
-          ← All projects
-        </Link>
-        <h1 className="text-xl font-semibold tracking-tight text-[var(--foreground)] sm:text-2xl">
-          {project.title}
-        </h1>
-        <p className="mt-1 text-sm text-[var(--brand-text-muted)]">
-          {project.work_intent
-            ? PROJECT_WORK_INTENT_LABELS[project.work_intent]
-            : "Creative project"}
-        </p>
-      </div>
-
-      <ProjectFormatGuide projectId={project.id} workIntent={project.work_intent} />
+      <ProjectWorkspaceHeader
+        projectTitle={project.title}
+        workIntent={project.work_intent}
+      />
 
       <div className="mb-6">
         <ProjectWhatsNext finishPath={finishPath} />
@@ -121,56 +102,47 @@ export function ProjectWorkspaceView({
         />
       </div>
 
-      <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 sm:px-5">
-        <ProjectRoadmapSection
-          id={PROJECT_SECTION_IDS.story}
-          title="Story"
-          count={progressCounts.storyCount}
-          defaultExpanded
-          action={<NewStoryModal projectId={project.id} />}
-        >
-          <ProjectStoriesSection
+      <section
+        id={PROJECT_SECTION_IDS.story}
+        className={`${studioSection} mb-8 scroll-mt-6`}
+      >
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className={studioSectionLabel}>Stories</h2>
+            <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
+              Open a story to work on scenes, cast, and setting.
+            </p>
+          </div>
+          <NewStoryModal projectId={project.id} />
+        </div>
+        <ProjectStoriesSection
+          projectId={project.id}
+          entries={stories}
+          storyProgress={storyProgress}
+          projectTitle={project.title}
+        />
+      </section>
+
+      <section
+        id={PROJECT_SECTION_IDS.characters}
+        className={`${studioSection} mb-8 scroll-mt-6`}
+      >
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className={studioSectionLabel}>Characters</h2>
+            <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
+              Project cast — create new characters or add existing ones from your library.
+            </p>
+          </div>
+          <ProjectCharacterActions
             projectId={project.id}
-            entries={stories}
-            storyProgress={storyProgress}
-            projectTitle={project.title}
+            excludeCharacterIds={characterIds}
           />
-        </ProjectRoadmapSection>
+        </div>
+        <ProjectCharactersSection entries={characters} />
+      </section>
 
-        <ProjectRoadmapSection
-          id={PROJECT_SECTION_IDS.characters}
-          title="Characters"
-          count={progressCounts.characterCount}
-          defaultExpanded={progressCounts.characterCount > 0 || !hasStory}
-          action={<ProjectAddCharacterButton projectId={project.id} />}
-          preview={
-            progressCounts.characterCount === 0
-              ? "Add characters when you're ready — or start with a story first."
-              : undefined
-          }
-        >
-          <ProjectCharactersSection entries={characters} />
-        </ProjectRoadmapSection>
-
-        {hasStory && (
-          <ProjectRoadmapSection
-            id={PROJECT_SECTION_IDS.scenes}
-            title="Scenes"
-            count={progressCounts.sceneCount}
-            defaultExpanded={progressCounts.sceneCount > 0}
-            preview={
-              progressCounts.sceneCount === 0
-                ? "Scenes are beats in your story — add them from the story workspace."
-                : undefined
-            }
-          >
-            <ProjectScenesSection
-              entries={sceneRollup}
-              storyCount={progressCounts.storyCount}
-            />
-          </ProjectRoadmapSection>
-        )}
-
+      <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 sm:px-5">
         <ProjectRoadmapSection
           id={PROJECT_SECTION_IDS.setting}
           title="Setting"
@@ -178,7 +150,7 @@ export function ProjectWorkspaceView({
           defaultExpanded={isWorldbuilding}
           preview={
             progressCounts.locationCount === 0
-              ? "Locations and place details — add when a scene needs a place."
+              ? "Locations and place details — manage in a story or setting workspace."
               : `${worlds.length} setting${worlds.length === 1 ? "" : "s"} · ${progressCounts.locationCount} location${progressCounts.locationCount === 1 ? "" : "s"}`
           }
         >
@@ -189,7 +161,7 @@ export function ProjectWorkspaceView({
           id={PROJECT_SECTION_IDS.connections}
           title="Connections"
           count={relationships.length}
-          defaultExpanded={relationships.length > 0}
+          defaultExpanded={false}
           preview={
             relationships.length === 0
               ? "Character relationships appear here when you define them."

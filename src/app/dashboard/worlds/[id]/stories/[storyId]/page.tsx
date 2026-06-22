@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { redirect, notFound } from "next/navigation";
 import { getChaptersByStoryId } from "@/app/actions/chapters";
 import { getScenesByStoryId } from "@/app/actions/scenes";
@@ -11,7 +10,6 @@ import { StoryFinishPath } from "@/components/dashboard/StoryFinishPath";
 import { StoryChaptersPanel } from "@/components/dashboard/StoryChaptersPanel";
 import { StoryScenesPanel } from "@/components/scene-workspace/StoryScenesPanel";
 import { StorySceneSuggestionsSection } from "@/components/story-workspace/StorySceneSuggestionsSection";
-import { StoryWelcomeBanner } from "@/components/dashboard/StoryWelcomeBanner";
 import { StorySummarySection } from "@/components/story-workspace/StorySummarySection";
 import { StoryCharactersPanel } from "@/components/story-workspace/StoryCharactersPanel";
 import { StoryRelationshipsPanel } from "@/components/story-workspace/StoryRelationshipsPanel";
@@ -101,10 +99,6 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
       )}
 
       <StorySummarySection summary={story.summary} />
-
-      <Suspense fallback={null}>
-        <StoryWelcomeBanner storyTitle={story.title} />
-      </Suspense>
 
       <StoryFinishPath finishPath={finishPath} />
 
