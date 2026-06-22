@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { NewStoryModal } from "@/app/dashboard/NewStoryModal";
 import { ProjectCharacterActions } from "@/components/project/ProjectCharacterActions";
 import { ProjectCharactersSection } from "@/components/project/ProjectCharactersSection";
+import { ProjectDeleteSection } from "@/components/project/ProjectDeleteSection";
 import { ProjectNotesSection } from "@/components/project/ProjectNotesSection";
 import { ProjectRelationshipsSection } from "@/components/project/ProjectRelationshipsSection";
 import { ProjectRoadmapSection } from "@/components/project/ProjectRoadmapSection";
@@ -181,6 +182,10 @@ export function ProjectWorkspaceView({
           preview={project.description ? undefined : "Project description and notes."}
         >
           <ProjectNotesSection description={project.description} />
+          <ProjectDeleteSection
+            projectId={project.id}
+            projectTitle={project.title}
+          />
         </ProjectRoadmapSection>
       </div>
     </div>

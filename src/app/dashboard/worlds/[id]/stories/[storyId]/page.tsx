@@ -6,6 +6,7 @@ import { getStoryProjectContext } from "@/app/actions/projects";
 import { getStoryWorkspaceContext } from "@/app/actions/story-workspace";
 import { getWorldById } from "@/app/actions/worlds";
 import { EditStoryForm } from "@/app/dashboard/EditStoryForm";
+import { StoryDeleteSection } from "@/components/story-workspace/StoryDeleteSection";
 import { StoryFinishPath } from "@/components/dashboard/StoryFinishPath";
 import { StoryChaptersPanel } from "@/components/dashboard/StoryChaptersPanel";
 import { StoryScenesPanel } from "@/components/scene-workspace/StoryScenesPanel";
@@ -170,6 +171,11 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
               Story details
             </h2>
             <EditStoryForm story={story} worldId={worldId} />
+            <StoryDeleteSection
+              storyId={storyId}
+              storyTitle={story.title}
+              projectId={projectContext?.id ?? null}
+            />
           </aside>
         </div>
       </CollapsibleWorkspaceSection>

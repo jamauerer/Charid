@@ -1293,3 +1293,52 @@ export async function updateProjectCover(
 
   return { success: true };
 }
+
+export async function deleteProject(
+  projectId: string
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be logged in." };
+  }
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("projects")
+    .select("id, cover_image_path")
+    .eq("id", projectId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (fetchError) {
+    return { error: formatProjectError(fetchError.message, fetchError.code) };
+  }
+
+  if (!existing) {
+    return { error: "Project not found." };
+  }
+
+  const { error: deleteError } = await supabase
+    .from("projects")
+    .delete()
+    .eq("id", projectId)
+    .eq("user_id", user.id);
+
+  if (deleteError) {
+    return { error: formatProjectError(deleteError.message, deleteError.code) };
+  }
+
+  const coverPath = existing.cover_image_path as string | null;
+  if (coverPath) {
+    await supabase.storage.from(BUCKET).remove([coverPath]);
+  }
+
+  revalidateProjectPaths(projectId);
+  revalidatePath("/dashboard/projects");
+  revalidatePath("/dashboard");
+
+  return {};
+}

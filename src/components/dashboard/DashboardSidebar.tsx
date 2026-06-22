@@ -39,18 +39,22 @@ export function DashboardSidebar({
   const pathname = usePathname();
 
   const isHome = pathname === "/dashboard";
+  const isStoryWorkspace =
+    /^\/dashboard\/worlds\/[^/]+\/stories(\/|$)/.test(pathname);
   const isProjects =
     pathname === "/dashboard/projects" ||
     pathname.startsWith("/dashboard/projects/");
   const isStories =
     pathname === "/dashboard/stories" ||
-    pathname.startsWith("/dashboard/stories/");
+    pathname.startsWith("/dashboard/stories/") ||
+    isStoryWorkspace;
   const isCharacters =
     pathname === "/dashboard/characters" ||
     pathname.startsWith("/dashboard/characters/");
   const isWorlds =
-    pathname === "/dashboard/worlds" ||
-    pathname.startsWith("/dashboard/worlds/");
+    (pathname === "/dashboard/worlds" ||
+      pathname.startsWith("/dashboard/worlds/")) &&
+    !isStoryWorkspace;
   const isAdminSection = pathname.startsWith("/dashboard/admin");
   const isModerationSection = pathname.startsWith("/dashboard/admin/moderation");
 
