@@ -10,13 +10,14 @@ import { EditStoryForm } from "@/app/dashboard/EditStoryForm";
 import { StoryFinishPath } from "@/components/dashboard/StoryFinishPath";
 import { StoryChaptersPanel } from "@/components/dashboard/StoryChaptersPanel";
 import { StoryScenesPanel } from "@/components/scene-workspace/StoryScenesPanel";
+import { StorySceneSuggestionsSection } from "@/components/story-workspace/StorySceneSuggestionsSection";
 import { StoryWelcomeBanner } from "@/components/dashboard/StoryWelcomeBanner";
+import { StorySummarySection } from "@/components/story-workspace/StorySummarySection";
 import { StoryCharactersPanel } from "@/components/story-workspace/StoryCharactersPanel";
 import { StoryRelationshipsPanel } from "@/components/story-workspace/StoryRelationshipsPanel";
 import { StorySettingPanel } from "@/components/story-workspace/StorySettingPanel";
 import { StoryFormatGuide } from "@/components/story-workspace/StoryFormatGuide";
-import { StoryStatusBadge } from "@/components/StoryStatusBadge";
-import { CreatorContextTrail } from "@/components/studio/CreatorContextTrail";
+import { StoryWorkspaceHeader } from "@/components/story-workspace/StoryWorkspaceHeader";
 import { CollapsibleWorkspaceSection } from "@/components/dashboard/CollapsibleWorkspaceSection";
 import { resolveStoryFinishPath } from "@/lib/story-finish-path";
 import { studioSection } from "@/lib/visual-identity";
@@ -75,34 +76,23 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
   });
 
   const migrationError = context.worldbuildingError;
+  const storyLocations = context.locations.map(({ location }) => ({
+    id: location.id,
+    name: location.name,
+  }));
 
   return (
     <div className="mx-auto w-full max-w-[1280px]">
-      <CreatorContextTrail
-        className="mb-6"
-        project={
+      <StoryWorkspaceHeader
+        storyTitle={story.title}
+        storyStatus={story.status}
+        projectTitle={projectContext?.title ?? null}
+        projectHref={
           projectContext
-            ? {
-                label: projectContext.title,
-                href: `/dashboard/projects/${projectContext.id}`,
-              }
+            ? `/dashboard/projects/${projectContext.id}`
             : null
         }
-        story={{ label: story.title }}
-        world={{
-          label: world.name,
-          href: `/dashboard/worlds/${worldId}`,
-        }}
       />
-
-      <div className="mb-6 flex flex-wrap items-end gap-3">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-[var(--brand-text-secondary)] sm:text-3xl">
-            {story.title}
-          </h1>
-        </div>
-        <StoryStatusBadge status={story.status} />
-      </div>
 
       {migrationError && (
         <div className="mb-4 rounded-lg border border-[var(--status-info-border)] bg-[var(--status-info-bg)] px-3 py-2.5 text-sm text-[var(--foreground)]">
@@ -110,11 +100,33 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
         </div>
       )}
 
+      <StorySummarySection summary={story.summary} />
+
       <Suspense fallback={null}>
         <StoryWelcomeBanner storyTitle={story.title} />
       </Suspense>
 
       <StoryFinishPath finishPath={finishPath} />
+
+      <StorySceneSuggestionsSection
+        worldId={worldId}
+        storyId={storyId}
+        storyTitle={story.title}
+        initialBatch={suggestionBatch}
+        cast={context.cast}
+        chapters={chapters}
+        locations={storyLocations}
+        batchError={suggestionError}
+      />
+
+      <StoryScenesPanel
+        worldId={worldId}
+        storyId={storyId}
+        scenes={scenes}
+        cast={context.cast}
+        locations={storyLocations}
+        scenesError={scenesError}
+      />
 
       <StoryCharactersPanel
         storyId={storyId}
@@ -128,22 +140,6 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
       <StoryRelationshipsPanel
         castBonds={context.castBonds}
         bondPhotoUrls={context.bondPhotoUrls}
-      />
-
-      <StoryScenesPanel
-        worldId={worldId}
-        storyId={storyId}
-        storyTitle={story.title}
-        scenes={scenes}
-        cast={context.cast}
-        chapters={chapters}
-        locations={context.locations.map(({ location }) => ({
-          id: location.id,
-          name: location.name,
-        }))}
-        suggestionBatch={suggestionBatch}
-        scenesError={scenesError}
-        suggestionError={suggestionError}
       />
 
       <CollapsibleWorkspaceSection
@@ -175,7 +171,7 @@ export default async function StoryDetailPage({ params }: StoryDetailPageProps) 
             chapters={chapters}
             continueChapter={finishPath.continueChapter}
           />
-          <aside className={studioSection}>
+          <aside id="story-details" className={`${studioSection} scroll-mt-6`}>
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--brand-text-secondary)]">
               Story details
             </h2>

@@ -1,3 +1,4 @@
+import { CREATOR_STORY } from "@/lib/creator-vocabulary";
 import type { Chapter } from "@/types/chapter";
 import type { StoryProjectType } from "@/types/story";
 
@@ -230,9 +231,12 @@ export function resolveStoryFinishPath(input: {
         hash: "story-timeline-section",
         label: "Add another scene",
       },
-      hints: locationCount === 0
-        ? [{ label: "Explore places in Setting", hash: "story-setting" }]
-        : [],
+      hints: [
+        {
+          label: CREATOR_STORY.needSceneIdeasLabel,
+          hash: "story-scene-suggestions",
+        },
+      ],
       continueChapter: null,
       checklist,
     };

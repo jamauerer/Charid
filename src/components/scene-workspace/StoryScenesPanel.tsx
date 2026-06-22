@@ -1,14 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import type { Chapter } from "@/types/chapter";
 import type { StoryCharacterEntry } from "@/app/actions/stories";
 import type { SceneWithCast } from "@/types/scene";
 import { SceneCreateStudio } from "@/components/scene-workspace/SceneCreateStudio";
 import { StoryTimelinePanel } from "@/components/scene-workspace/StoryTimelinePanel";
-import { SceneSuggestionStagingPanel } from "@/components/scene-workspace/SceneSuggestionStagingPanel";
 import type { StoryLocationOption } from "@/components/scene-workspace/SceneCard";
-import type { SceneSuggestionBatchView } from "@/types/scene-suggestion";
 import type { SceneInsertPlacement } from "@/lib/scenes/scene-insert-order";
 import { CREATOR_STORY } from "@/lib/creator-vocabulary";
 import { StudioEmptyState } from "@/components/studio/StudioEmptyState";
@@ -18,27 +15,19 @@ import { studioBtnPrimarySm, studioSectionLabel } from "@/lib/visual-identity";
 type StoryScenesPanelProps = {
   worldId: string;
   storyId: string;
-  storyTitle: string;
   scenes: SceneWithCast[];
   cast: StoryCharacterEntry[];
-  chapters: Chapter[];
   locations: StoryLocationOption[];
-  suggestionBatch: SceneSuggestionBatchView | null;
   scenesError?: string;
-  suggestionError?: string;
 };
 
 export function StoryScenesPanel({
   worldId,
   storyId,
-  storyTitle,
   scenes,
   cast,
-  chapters,
   locations,
-  suggestionBatch,
   scenesError,
-  suggestionError,
 }: StoryScenesPanelProps) {
   const [studioOpen, setStudioOpen] = useState(false);
   const [studioSession, setStudioSession] = useState(0);
@@ -103,27 +92,6 @@ export function StoryScenesPanel({
           </button>
         </StudioEmptyState>
       )}
-
-      <div
-        id="story-scene-suggestions"
-        className="mt-6 scroll-mt-6 border-t border-[var(--brand-border)] pt-5"
-      >
-        <SceneSuggestionStagingPanel
-          key={
-            suggestionBatch
-              ? `${suggestionBatch.id}-${suggestionBatch.updated_at}`
-              : "scene-suggestions-empty"
-          }
-          worldId={worldId}
-          storyId={storyId}
-          storyTitle={storyTitle}
-          initialBatch={suggestionBatch}
-          cast={cast}
-          chapters={chapters}
-          locations={locations}
-          batchError={suggestionError}
-        />
-      </div>
 
       {studioOpen && (
         <SceneCreateStudio
