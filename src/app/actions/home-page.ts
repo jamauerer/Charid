@@ -20,6 +20,7 @@ export type HomeCreativeMoment = {
   title: string;
   subtitle: string | null;
   imageUrl: string | null;
+  portraitFocalY?: number | null;
   href: string;
   sortKey: string;
 };
@@ -129,6 +130,7 @@ async function fetchCreativeMoments(): Promise<HomeCreativeMoment[]> {
       title: character.name,
       subtitle: character.species,
       imageUrl: await getCharacterPhotoUrl(character.photo_path),
+      portraitFocalY: character.portrait_focal_y,
       href: `/dashboard/characters/${character.id}`,
       sortKey: character.created_at,
     });

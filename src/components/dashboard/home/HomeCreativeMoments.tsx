@@ -1,6 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
+import Image from "next/image";
 import type { HomeCreativeMoment } from "@/app/actions/home-page";
+import { CharacterPortraitImage } from "@/components/character-bible/CharacterPortraitImage";
 import {
   studioEmptyArt,
   studioSectionHeading,
@@ -36,13 +37,21 @@ export function HomeCreativeMoments({ moments }: HomeCreativeMomentsProps) {
           >
             <div className="relative aspect-square overflow-hidden bg-[var(--studio-empty-fill)]">
               {moment.imageUrl ? (
-                <Image
-                  src={moment.imageUrl}
-                  alt={moment.title}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
+                moment.kind === "character" ? (
+                  <CharacterPortraitImage
+                    photoUrl={moment.imageUrl}
+                    focalY={moment.portraitFocalY}
+                    alt={moment.title}
+                  />
+                ) : (
+                  <Image
+                    src={moment.imageUrl}
+                    alt={moment.title}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                )
               ) : (
                 <div className={studioEmptyArt}>
                   <span className="text-[9px] uppercase tracking-wide">

@@ -106,6 +106,7 @@ export function CharacterWorkspaceView({
 
       <CharacterGallery
         characterId={character.id}
+        portraitFocalY={character.portrait_focal_y}
         images={images}
         slotAssignments={slotAssignments}
         identityArchetype={bible.identity_archetype}

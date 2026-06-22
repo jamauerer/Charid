@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { deleteCharacter } from "@/app/actions/characters";
 import { EditCharacterModal } from "@/app/dashboard/EditCharacterModal";
+import { CharacterPortraitImage } from "@/components/character-bible/CharacterPortraitImage";
 import { ConfirmDialog } from "@/components/studio/ConfirmDialog";
 import { CardCoverPlaceholder } from "@/components/studio/CardCoverPlaceholder";
 import { studioCardSurface } from "@/lib/visual-identity";
@@ -77,13 +77,12 @@ export function CharacterCard({
           className="relative block aspect-[4/5] overflow-hidden bg-[var(--studio-empty-fill)]"
         >
           {photoUrl ? (
-            <Image
-              src={photoUrl}
+            <CharacterPortraitImage
+              photoUrl={photoUrl}
+              focalY={character.portrait_focal_y}
               alt={character.name}
-              fill
-              className="object-cover transition duration-300 group-hover:scale-[1.02]"
+              className="transition duration-300 group-hover:scale-[1.02]"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-              unoptimized
             />
           ) : (
             <CardCoverPlaceholder

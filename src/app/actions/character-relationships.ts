@@ -15,6 +15,7 @@ import {
   normalizeCharacterRelationship,
   type CharacterRelationshipEntry,
 } from "@/types/character-relationship";
+import { resolvePortraitFocalY } from "@/types/character";
 
 function formatError(message: string, code?: string): string {
   if (
@@ -109,7 +110,7 @@ export async function getCharacterRelationships(
 
   const { data: characters } = await supabase
     .from("characters")
-    .select("id, name, photo_path")
+    .select("id, name, photo_path, portrait_focal_y")
     .in("id", otherIds);
 
   const characterMap = new Map(
@@ -119,6 +120,9 @@ export async function getCharacterRelationships(
         id: c.id as string,
         name: c.name as string,
         photo_path: (c.photo_path as string | null) ?? null,
+        portrait_focal_y: resolvePortraitFocalY(
+          c.portrait_focal_y as number | null | undefined
+        ),
       },
     ])
   );

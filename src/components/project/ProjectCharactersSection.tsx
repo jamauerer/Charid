@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { ProjectCharacterEntry } from "@/app/actions/projects";
+import { CharacterPortraitImage } from "@/components/character-bible/CharacterPortraitImage";
 import { StudioEmptyState } from "@/components/studio/StudioEmptyState";
 import { STUDIO_EMPTY_COPY } from "@/lib/studio-empty-copy";
 import { studioCardSurface, studioEmptyArt } from "@/lib/visual-identity";
@@ -31,12 +31,11 @@ export function ProjectCharactersSection({
         >
           <div className="relative aspect-[4/5] overflow-hidden bg-[var(--studio-empty-fill)]">
             {photoUrl ? (
-              <Image
-                src={photoUrl}
+              <CharacterPortraitImage
+                photoUrl={photoUrl}
+                focalY={character.portrait_focal_y}
                 alt={character.name}
-                fill
-                className="object-cover transition duration-500 group-hover/card:scale-[1.02]"
-                unoptimized
+                className="transition duration-500 group-hover/card:scale-[1.02]"
               />
             ) : (
               <div className={studioEmptyArt}>

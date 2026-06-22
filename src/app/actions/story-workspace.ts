@@ -1,6 +1,7 @@
 "use server";
 
 import { getCharacterPhotoUrl } from "@/app/actions/characters";
+import { resolvePortraitFocalY } from "@/types/character";
 import { getWorldLocations } from "@/app/actions/world-locations";
 import { getWorldMapBundle } from "@/app/actions/world-maps";
 import { getWorldMoodboardBundle } from "@/app/actions/world-moodboards";
@@ -29,8 +30,18 @@ import type { WorldMoodboardBundle } from "@/types/world-moodboard";
 
 export type StoryCastBond = {
   relationship: CharacterRelationship;
-  fromCharacter: { id: string; name: string; photo_path: string | null };
-  toCharacter: { id: string; name: string; photo_path: string | null };
+  fromCharacter: {
+    id: string;
+    name: string;
+    photo_path: string | null;
+    portrait_focal_y: number;
+  };
+  toCharacter: {
+    id: string;
+    name: string;
+    photo_path: string | null;
+    portrait_focal_y: number;
+  };
   label: string;
 };
 
@@ -142,7 +153,7 @@ async function getCastBonds(
 
   const { data: characters } = await supabase
     .from("characters")
-    .select("id, name, photo_path")
+    .select("id, name, photo_path, portrait_focal_y")
     .in("id", characterIds);
 
   const characterMap = new Map(
@@ -152,6 +163,9 @@ async function getCastBonds(
         id: c.id as string,
         name: c.name as string,
         photo_path: (c.photo_path as string | null) ?? null,
+        portrait_focal_y: resolvePortraitFocalY(
+          c.portrait_focal_y as number | null | undefined
+        ),
       },
     ])
   );

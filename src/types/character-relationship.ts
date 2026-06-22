@@ -47,5 +47,6 @@ export type CharacterRelationshipEntry = {
     id: string;
     name: string;
     photo_path: string | null;
+    portrait_focal_y?: number | null;
   };
 };

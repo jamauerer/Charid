@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { MainPortraitSlotCard } from "@/components/character-bible/MainPortraitSlotCard";
 import { ReferenceSlotCard } from "@/components/character-bible/ReferenceSlotCard";
 import { assignableRolesForArchetype } from "@/lib/assignable-image-roles";
 import {
@@ -26,6 +27,7 @@ const PORTRAIT_HINT =
 
 type CharacterGalleryProps = {
   characterId: string;
+  portraitFocalY: number;
   images: CharacterImageWithUrl[];
   slotAssignments: CharacterImageSlotAssignment[];
   identityArchetype: IdentityArchetype;
@@ -33,6 +35,7 @@ type CharacterGalleryProps = {
 
 export function CharacterGallery({
   characterId,
+  portraitFocalY,
   images,
   slotAssignments,
   identityArchetype,
@@ -68,14 +71,14 @@ export function CharacterGallery({
       </div>
 
       <div className="mb-6">
-        <ReferenceSlotCard
+        <MainPortraitSlotCard
           characterId={characterId}
-          slotRole="canonical"
           hint={PORTRAIT_HINT}
           image={portrait}
           assignmentSource={slotMap.canonical?.source ?? null}
           galleryImages={gallery}
           slotMap={slotMap}
+          portraitFocalY={portraitFocalY}
           onUpdated={refresh}
         />
       </div>

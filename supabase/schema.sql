@@ -8,6 +8,7 @@ create table public.characters (
   location text,
   backstory text,
   photo_path text,
+  portrait_focal_y numeric not null default 50,
   featured_image_id uuid,
   world_id uuid,
   is_public boolean not null default true,

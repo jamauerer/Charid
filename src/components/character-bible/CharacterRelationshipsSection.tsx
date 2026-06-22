@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { deleteCharacterRelationship } from "@/app/actions/character-relationships";
+import { CharacterPortraitImage } from "@/components/character-bible/CharacterPortraitImage";
 import { ConfirmDialog } from "@/components/studio/ConfirmDialog";
 import { AddRelationshipModal } from "@/components/character-bible/AddRelationshipModal";
 import { formatRelationshipForViewer } from "@/lib/relationship-plain-language";
@@ -94,12 +94,10 @@ export function CharacterRelationshipsSection({
                 >
                   <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-[var(--brand-border)] bg-[var(--studio-empty-fill)]">
                     {photoUrl ? (
-                      <Image
-                        src={photoUrl}
-                        alt=""
-                        fill
-                        className="object-cover"
-                        unoptimized
+                      <CharacterPortraitImage
+                        photoUrl={photoUrl}
+                        focalY={otherCharacter.portrait_focal_y}
+                        alt={otherCharacter.name}
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center text-xs text-[var(--brand-text-secondary)]">

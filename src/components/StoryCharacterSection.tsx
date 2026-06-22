@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import {
   addCharacterToStory,
@@ -10,6 +9,7 @@ import {
 } from "@/app/actions/stories";
 import { CharacterPickerModal } from "@/components/dashboard/CharacterPickerModal";
 import { ContextualCharacterCreateModal } from "@/components/dashboard/ContextualCharacterCreateModal";
+import { CharacterPortraitImage } from "@/components/character-bible/CharacterPortraitImage";
 import { ConfirmDialog } from "@/components/studio/ConfirmDialog";
 import type { StoryCharacterEntry } from "@/app/actions/stories";
 
@@ -124,13 +124,12 @@ export function StoryCharacterSection({
                 className="relative block aspect-[4/3] overflow-hidden bg-[var(--studio-empty-fill)]"
               >
                 {photoUrls[character.id] ? (
-                  <Image
-                    src={photoUrls[character.id]!}
+                  <CharacterPortraitImage
+                    photoUrl={photoUrls[character.id]!}
+                    focalY={character.portrait_focal_y}
                     alt={character.name}
-                    fill
-                    className="object-cover transition duration-300 hover:scale-[1.02]"
+                    className="transition duration-300 hover:scale-[1.02]"
                     sizes="(max-width: 640px) 100vw, 25vw"
-                    unoptimized
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center bg-[var(--studio-empty-fill)] text-[10px] text-[var(--brand-text-secondary)]">

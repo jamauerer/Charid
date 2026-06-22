@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { StoryCastBond } from "@/app/actions/story-workspace";
+import { CharacterPortraitImage } from "@/components/character-bible/CharacterPortraitImage";
 import { formatDirectedRelationship } from "@/lib/relationship-plain-language";
 
 type StoryRelationshipStripProps = {
@@ -12,10 +12,12 @@ function CharacterAvatar({
   id,
   name,
   photoUrl,
+  focalY,
 }: {
   id: string;
   name: string;
   photoUrl: string | null;
+  focalY?: number | null;
 }) {
   return (
     <Link
@@ -25,12 +27,10 @@ function CharacterAvatar({
     >
       <div className="relative h-8 w-8 overflow-hidden rounded-full bg-zinc-800 ring-1 ring-white/10">
         {photoUrl ? (
-          <Image
-            src={photoUrl}
+          <CharacterPortraitImage
+            photoUrl={photoUrl}
+            focalY={focalY}
             alt={name}
-            fill
-            className="object-cover"
-            unoptimized
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-[10px] text-[var(--brand-text-secondary)]">
@@ -82,6 +82,7 @@ export function StoryRelationshipStrip({
                 id={fromCharacter.id}
                 name={fromCharacter.name}
                 photoUrl={photoUrls[fromCharacter.id] ?? null}
+                focalY={fromCharacter.portrait_focal_y}
               />
               <p className="min-w-0 flex-1 text-sm text-[var(--brand-text-secondary)]">
                 {sentence}
@@ -90,6 +91,7 @@ export function StoryRelationshipStrip({
                 id={toCharacter.id}
                 name={toCharacter.name}
                 photoUrl={photoUrls[toCharacter.id] ?? null}
+                focalY={toCharacter.portrait_focal_y}
               />
             </li>
           );

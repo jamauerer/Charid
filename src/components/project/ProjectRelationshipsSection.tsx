@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { ProjectRelationshipEntry } from "@/app/actions/projects";
+import { CharacterPortraitImage } from "@/components/character-bible/CharacterPortraitImage";
 
 type ProjectRelationshipsSectionProps = {
   entries: ProjectRelationshipEntry[];
@@ -11,10 +11,12 @@ function CharacterChip({
   id,
   name,
   photoUrl,
+  focalY,
 }: {
   id: string;
   name: string;
   photoUrl: string | null;
+  focalY?: number | null;
 }) {
   return (
     <Link
@@ -23,13 +25,7 @@ function CharacterChip({
     >
       <div className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full bg-zinc-800">
         {photoUrl ? (
-          <Image
-            src={photoUrl}
-            alt={name}
-            fill
-            className="object-cover"
-            unoptimized
-          />
+          <CharacterPortraitImage photoUrl={photoUrl} focalY={focalY} alt={name} />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-[10px] text-[var(--brand-text-secondary)]">
             ?
@@ -69,6 +65,7 @@ export function ProjectRelationshipsSection({
               id={fromCharacter.id}
               name={fromCharacter.name}
               photoUrl={photoUrls[fromCharacter.id] ?? null}
+              focalY={fromCharacter.portrait_focal_y}
             />
             <span className="rounded-full border border-[var(--brand-border)] bg-[var(--tag-primary-bg)] px-2.5 py-1 text-xs font-medium text-[var(--tag-primary-text)]">
               {label}
@@ -77,6 +74,7 @@ export function ProjectRelationshipsSection({
               id={toCharacter.id}
               name={toCharacter.name}
               photoUrl={photoUrls[toCharacter.id] ?? null}
+              focalY={toCharacter.portrait_focal_y}
             />
           </div>
           {relationship.notes && (

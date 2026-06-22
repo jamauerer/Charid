@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { CharacterDisplay } from "@/types/character";
+import { CharacterPortraitImage } from "@/components/character-bible/CharacterPortraitImage";
 import { getPublicCharacterPath } from "@/lib/public-profile";
 
 type PublicCharacterCardProps = {
@@ -28,13 +28,12 @@ export function PublicCharacterCard({
     <article className="overflow-hidden rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] transition hover:border-[var(--brand-border)] hover:bg-[var(--brand-sidebar)]">
       <Link href={href} className="relative block aspect-[4/3] overflow-hidden bg-[var(--studio-empty-fill)]">
         {photoUrl ? (
-          <Image
-            src={photoUrl}
+          <CharacterPortraitImage
+            photoUrl={photoUrl}
+            focalY={character.portrait_focal_y}
             alt={character.name}
-            fill
-            className="object-cover transition duration-300 hover:scale-[1.02]"
+            className="transition duration-300 hover:scale-[1.02]"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw"
-            unoptimized
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-1 bg-[var(--studio-empty-fill)]">

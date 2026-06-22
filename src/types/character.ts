@@ -9,6 +9,7 @@ export type Character = {
   location: string | null;
   backstory: string | null;
   photo_path: string | null;
+  portrait_focal_y: number;
   featured_image_id: string | null;
   world_id: string | null;
   project_id: string | null;
@@ -22,12 +23,22 @@ export type CharacterRow = Character & {
   age?: string | null;
   is_public?: boolean;
   featured_image_id?: string | null;
+  portrait_focal_y?: number;
   world_id?: string | null;
   project_id?: string | null;
   species?: string | null;
   core_personality?: string | null;
   permanent_features?: string | null;
 };
+
+export const DEFAULT_PORTRAIT_FOCAL_Y = 50;
+
+export function resolvePortraitFocalY(value: number | null | undefined): number {
+  if (typeof value === "number" && !Number.isNaN(value)) {
+    return Math.min(100, Math.max(0, value));
+  }
+  return DEFAULT_PORTRAIT_FOCAL_Y;
+}
 
 export function normalizeCharacter(row: CharacterRow): Character {
   return {
@@ -41,6 +52,7 @@ export function normalizeCharacter(row: CharacterRow): Character {
     location: row.location ?? null,
     backstory: row.backstory ?? row.physical_description ?? null,
     photo_path: row.photo_path ?? null,
+    portrait_focal_y: resolvePortraitFocalY(row.portrait_focal_y),
     featured_image_id: row.featured_image_id ?? null,
     world_id: row.world_id ?? null,
     project_id: row.project_id ?? null,

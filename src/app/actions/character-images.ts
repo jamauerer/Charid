@@ -114,7 +114,11 @@ async function syncPhotoPathFromFeatured(
   if (!featuredImageId) {
     await supabase
       .from("characters")
-      .update({ photo_path: null, featured_image_id: null })
+      .update({
+        photo_path: null,
+        featured_image_id: null,
+        portrait_focal_y: 50,
+      })
       .eq("id", characterId);
     return;
   }
@@ -130,6 +134,7 @@ async function syncPhotoPathFromFeatured(
     .update({
       photo_path: image?.image_path ?? null,
       featured_image_id: featuredImageId,
+      portrait_focal_y: 50,
     })
     .eq("id", characterId);
 }

@@ -754,6 +754,72 @@ export async function saveCharacterPersonality(
   return { success: true };
 }
 
+export async function updateCharacterPortraitFocal(
+  characterId: string,
+  focalY: number
+): Promise<{ error?: string }> {
+  if (!characterId) {
+    return { error: "Character ID is required." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be logged in." };
+  }
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("characters")
+    .select("id, user_id, world_id")
+    .eq("id", characterId)
+    .maybeSingle();
+
+  if (fetchError) {
+    return { error: fetchError.message };
+  }
+
+  if (!existing || existing.user_id !== user.id) {
+    return { error: "Character not found or you do not have permission to edit it." };
+  }
+
+  const clampedY = Math.min(100, Math.max(0, focalY));
+
+  const { error: updateError } = await supabase
+    .from("characters")
+    .update({ portrait_focal_y: clampedY })
+    .eq("id", characterId)
+    .eq("user_id", user.id);
+
+  if (updateError) {
+    return { error: updateError.message };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/characters");
+  revalidatePath(`/dashboard/characters/${characterId}`);
+  revalidatePath("/dashboard/portfolio");
+  revalidatePath("/dashboard/worlds");
+  revalidatePath("/dashboard/projects");
+  if (existing.world_id) {
+    revalidatePath(`/dashboard/worlds/${existing.world_id}`);
+  }
+  if (profile?.username) {
+    revalidatePath(`/u/${profile.username}`);
+    revalidatePath(`/u/${profile.username}/characters/${characterId}`);
+  }
+
+  return {};
+}
+
 export type DeleteCharacterResult = {
   error?: string;
   success?: boolean;

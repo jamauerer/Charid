@@ -8,7 +8,7 @@ import { getStoryCoverUrls } from "@/app/actions/story-images";
 import { getWorldCoverUrl } from "@/app/actions/worlds";
 import { relationshipDisplayLabel } from "@/lib/relationship-types";
 import type { Character, CharacterRow } from "@/types/character";
-import { normalizeCharacter } from "@/types/character";
+import { normalizeCharacter, resolvePortraitFocalY } from "@/types/character";
 import {
   normalizeCharacterRelationship,
   type CharacterRelationship,
@@ -69,8 +69,8 @@ export type ProjectWorldEntry = {
 
 export type ProjectRelationshipEntry = {
   relationship: CharacterRelationship;
-  fromCharacter: { id: string; name: string; photo_path: string | null };
-  toCharacter: { id: string; name: string; photo_path: string | null };
+  fromCharacter: { id: string; name: string; photo_path: string | null; portrait_focal_y: number };
+  toCharacter: { id: string; name: string; photo_path: string | null; portrait_focal_y: number };
   label: string;
 };
 
@@ -666,7 +666,7 @@ export async function getProjectRelationships(
 
   const { data: characters } = await supabase
     .from("characters")
-    .select("id, name, photo_path")
+    .select("id, name, photo_path, portrait_focal_y")
     .in(
       "id",
       characterIds.length > 0
@@ -681,6 +681,9 @@ export async function getProjectRelationships(
         id: c.id as string,
         name: c.name as string,
         photo_path: (c.photo_path as string | null) ?? null,
+        portrait_focal_y: resolvePortraitFocalY(
+          c.portrait_focal_y as number | null | undefined
+        ),
       },
     ])
   );
