@@ -22,18 +22,9 @@ type CharacterPickerModalProps = {
 
 function isStoryAttachable(
   character: CharacterPickerItem,
-  excluded: Set<string>,
-  projectId?: string | null
+  excluded: Set<string>
 ): boolean {
-  if (excluded.has(character.id)) {
-    return false;
-  }
-  if (projectId) {
-    return (
-      character.project_id === projectId || character.project_id === null
-    );
-  }
-  return true;
+  return !excluded.has(character.id);
 }
 
 export function CharacterPickerModal({
@@ -65,9 +56,9 @@ export function CharacterPickerModal({
       );
     }
     return characters.filter((character) =>
-      isStoryAttachable(character, excluded, projectId)
+      isStoryAttachable(character, excluded)
     );
-  }, [characters, mode, worldId, excluded, projectId]);
+  }, [characters, mode, worldId, excluded]);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -149,9 +140,7 @@ export function CharacterPickerModal({
       ? worldName
         ? `Assign characters to ${worldName}`
         : "Assign existing characters to this setting"
-      : projectId
-        ? "Add characters from this project to the story"
-        : "Add characters to this story";
+      : "Add characters from your library to this story";
 
   return (
     <>
@@ -175,9 +164,7 @@ export function CharacterPickerModal({
             <p className="text-sm text-[var(--brand-text-secondary)]">
               {mode === "world"
                 ? "All your characters are already in this setting, or you have none to assign."
-                : projectId
-                  ? "No characters in this project are available to add. Create one first."
-                  : "No characters are available to add. Create one first."}
+                : "No characters are available to add. Create one first."}
             </p>
           ) : (
             <>
@@ -225,8 +212,8 @@ export function CharacterPickerModal({
                             </span>
                             <span className="block text-xs text-[var(--brand-text-secondary)]">
                               {mode === "story"
-                                ? character.project_id
-                                  ? "In this project"
+                                ? character.project_name
+                                  ? character.project_name
                                   : "No project assigned"
                                 : character.world_name
                                   ? `Currently in ${character.world_name}`

@@ -10,7 +10,7 @@ import type { SceneInsertPlacement } from "@/lib/scenes/scene-insert-order";
 import { CREATOR_STORY } from "@/lib/creator-vocabulary";
 import { StudioEmptyState } from "@/components/studio/StudioEmptyState";
 import { STUDIO_EMPTY_COPY } from "@/lib/studio-empty-copy";
-import { studioBtnPrimarySm, studioSectionLabel } from "@/lib/visual-identity";
+import { studioBtnPrimarySm } from "@/lib/visual-identity";
 
 type StoryScenesPanelProps = {
   worldId: string;
@@ -42,29 +42,7 @@ export function StoryScenesPanel({
   }
 
   return (
-    <section
-      id="story-timeline-section"
-      aria-labelledby="story-timeline-heading"
-      className="mb-10 scroll-mt-6"
-    >
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 id="story-timeline-heading" className={studioSectionLabel}>
-            Timeline
-          </h2>
-          <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
-            {CREATOR_STORY.scenesHint}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => openStudio({ mode: "end" })}
-          className={studioBtnPrimarySm}
-        >
-          {CREATOR_STORY.createSceneLabel}
-        </button>
-      </div>
-
+    <section id="story-timeline-section" className="mb-10 scroll-mt-6">
       {scenesError && (
         <p className="mb-4 rounded-lg border border-[var(--status-info-border)] bg-[var(--status-info-bg)] px-3 py-2 text-sm text-[var(--status-info-text)]">
           {scenesError}

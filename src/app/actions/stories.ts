@@ -698,24 +698,6 @@ export async function addCharacterToStory(
     return { error: "Character not found." };
   }
 
-  const { data: storyRow } = await supabase
-    .from("stories")
-    .select("project_id")
-    .eq("id", storyId)
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  const storyProjectId = (storyRow?.project_id as string | null) ?? null;
-  const characterProjectId = (character.project_id as string | null) ?? null;
-
-  if (
-    storyProjectId &&
-    characterProjectId &&
-    storyProjectId !== characterProjectId
-  ) {
-    return { error: "This character belongs to a different project." };
-  }
-
   const { error: insertError } = await supabase.from("story_characters").insert({
     story_id: storyId,
     character_id: characterId,

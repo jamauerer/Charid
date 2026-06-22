@@ -71,6 +71,7 @@ export type CharacterPickerItem = {
   world_id: string | null;
   world_name: string | null;
   project_id: string | null;
+  project_name: string | null;
 };
 
 export type CharactersResult = {
@@ -231,6 +232,26 @@ export async function getCharactersForPicker(): Promise<{
     }
   }
 
+  const projectIds = [
+    ...new Set(
+      (data ?? [])
+        .map((row) => row.project_id as string | null)
+        .filter((id): id is string => Boolean(id))
+    ),
+  ];
+
+  const projectNames = new Map<string, string>();
+  if (projectIds.length > 0) {
+    const { data: projects } = await supabase
+      .from("projects")
+      .select("id, title")
+      .eq("user_id", user.id)
+      .in("id", projectIds);
+    for (const project of projects ?? []) {
+      projectNames.set(project.id, project.title);
+    }
+  }
+
   return {
     characters: (data ?? []).map((row) => ({
       id: row.id,
@@ -238,6 +259,9 @@ export async function getCharactersForPicker(): Promise<{
       world_id: row.world_id ?? null,
       world_name: row.world_id ? (worldNames.get(row.world_id) ?? null) : null,
       project_id: (row.project_id as string | null) ?? null,
+      project_name: row.project_id
+        ? (projectNames.get(row.project_id as string) ?? null)
+        : null,
     })),
   };
 }
