@@ -22,7 +22,7 @@ import type { CharacterImageSlotAssignment } from "@/types/character-image-slot"
 import type { IdentityArchetype } from "@/types/identity-archetype";
 
 const PORTRAIT_HINT =
-  "Your main portrait — the face of this character across stories and comics.";
+  "Your main portrait — the face of this character across stories and graphic novels.";
 
 type CharacterGalleryProps = {
   characterId: string;

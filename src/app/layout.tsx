@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "CharID — A place where stories begin",
   description:
-    "Create characters, worlds, scenes, comics, and books with an AI creative partner that helps turn ideas into finished work.",
+    "Create characters, worlds, scenes, graphic novels, and books with an AI creative partner that helps turn ideas into finished work.",
   icons: {
     icon: [
       { url: "/brand/favicon.svg", type: "image/svg+xml" },

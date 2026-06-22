@@ -12,7 +12,7 @@ export const PROJECT_WORK_INTENTS = [
 export type ProjectWorkIntent = (typeof PROJECT_WORK_INTENTS)[number];
 
 export const PROJECT_WORK_INTENT_LABELS: Record<ProjectWorkIntent, string> = {
-  comic: "Comic",
+  comic: "Graphic Novel",
   novel: "Novel",
   picture_book: "Picture Book",
   screenplay: "Film / Screenplay",
@@ -52,7 +52,7 @@ export const WORK_INTENT_DEFAULT_STORY_TYPE: Partial<
 export const WORK_INTENT_SUGGESTED_TITLES: Partial<
   Record<ProjectWorkIntent, string>
 > = {
-  comic: "My Comic",
+  comic: "My Graphic Novel",
   novel: "My Novel",
   picture_book: "My Picture Book",
   screenplay: "My Screenplay",

@@ -45,7 +45,7 @@ export function LegacyProjectRenamePrompt({
       <p className="mt-1 text-xs leading-relaxed text-[var(--brand-text-secondary)]">
         Your existing work was grouped under a default project. What finished
         work is this? You can create separate projects anytime for unrelated
-        comics, novels, scripts, and more.
+        graphic novels, novels, scripts, and more.
       </p>
       <form action={formAction} className="mt-3 flex flex-col gap-2 sm:flex-row">
         <input type="hidden" name="project_id" value={legacy.id} />
@@ -55,7 +55,7 @@ export function LegacyProjectRenamePrompt({
           required
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Children's Dragon Comic"
+          placeholder="Children's Dragon Graphic Novel"
           className={`min-w-0 flex-1 ${dsInput}`}
         />
         <div className="flex shrink-0 gap-2">

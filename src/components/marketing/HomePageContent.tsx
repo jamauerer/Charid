@@ -14,7 +14,7 @@ const PIPELINE = [
   "Idea",
   "Story",
   "Scene",
-  "Comic",
+  "Graphic Novel",
   "Publish",
 ] as const;
 
@@ -44,7 +44,7 @@ export function HomePageContent() {
             A place where stories begin.
           </h1>
           <p className={`mt-3 max-w-xl ${studioMarketingBody}`}>
-            Characters, worlds, scenes, comics, and books — with an AI partner
+            Characters, worlds, scenes, graphic novels, and books — with an AI partner
             that helps turn ideas into finished work you own.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">

@@ -66,7 +66,7 @@ export function ProjectForm({ onSuccess, onCreated }: ProjectFormProps) {
           type="text"
           required
           className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-accent)]"
-          placeholder="Children's Dragon Comic"
+          placeholder="Children's Dragon Graphic Novel"
         />
       </div>
 

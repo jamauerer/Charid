@@ -18,6 +18,10 @@ function guideForWorkIntent(workIntent: ProjectWorkIntent | null): GuideContent 
         body: "Start with a story and scenes. Characters and style references keep everything consistent as you write.",
       };
     case "comic":
+      return {
+        title: "How this graphic novel project works",
+        body: "Set your style references early, then build scenes beat by beat. Pages and panels come later.",
+      };
     case "picture_book":
       return {
         title: "How this illustrated project works",

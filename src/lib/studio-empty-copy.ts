@@ -4,7 +4,7 @@ export const STUDIO_EMPTY_COPY = {
   project: {
     headline: "What do you want to create?",
     description:
-      "A comic, a picture book, a setting — start a project and your art will live here.",
+      "A graphic novel, a picture book, a setting — start a project and your art will live here.",
   },
   story: {
     headline: "No stories yet",

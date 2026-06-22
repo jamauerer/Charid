@@ -330,7 +330,7 @@ export function StartNewProjectWizard({
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder={suggestedTitle || "Children's Dragon Comic"}
+              placeholder={suggestedTitle || "Children's Dragon Graphic Novel"}
               className="w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2.5 text-sm text-[var(--brand-text-secondary)] placeholder:text-[var(--brand-text-secondary)] focus:border-[var(--brand-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-accent)]"
             />
             <p className="mt-1.5 text-xs text-[var(--brand-text-secondary)]">

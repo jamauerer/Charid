@@ -16,7 +16,7 @@ export const IDENTITY_ARCHETYPE_LABELS: Record<IdentityArchetype, string> = {
   humanoid_realistic: "Realistic human",
   humanoid_stylized: "Stylized human",
   humanoid_anime: "Anime",
-  humanoid_comic: "Comic",
+  humanoid_comic: "Graphic Novel",
   humanoid_cartoon: "Cartoon",
   humanoid_fantasy: "Fantasy humanoid",
   anthropomorphic: "Anthropomorphic",
