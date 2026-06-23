@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { isFounderExempt } from "@/lib/billing/isFounderExempt";
 import type { ProfileRole } from "@/types/profile";
 
 export async function getCurrentProfileRole(): Promise<ProfileRole | null> {
@@ -22,6 +23,5 @@ export async function getCurrentProfileRole(): Promise<ProfileRole | null> {
 }
 
 export async function isFounderAdmin(): Promise<boolean> {
-  const role = await getCurrentProfileRole();
-  return role === "admin";
+  return isFounderExempt(await getCurrentProfileRole());
 }

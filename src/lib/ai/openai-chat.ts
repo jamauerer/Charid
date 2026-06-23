@@ -3,6 +3,8 @@ type OpenAIChatMessage = {
   content: string;
 };
 
+// Billing/credit gates run in server actions via enforceAiBillingGate() — not here.
+
 type OpenAIChatResponse = {
   choices?: { message?: { content?: string } }[];
   error?: { message?: string };

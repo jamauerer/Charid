@@ -14,6 +14,9 @@ import {
   resolveDraftToPayload,
 } from "@/lib/ai/generate-scene-suggestions";
 import { commitSceneRecord } from "@/lib/scenes/commit-scene";
+import { enforceAiBillingGate } from "@/lib/billing/exempt";
+import { consumeCredits } from "@/app/actions/credits";
+import { AI_CREDIT_COSTS } from "@/types/credit";
 import { createClient } from "@/lib/supabase/server";
 import type {
   CreativeProposalBatch,
@@ -279,6 +282,11 @@ export async function generateSceneSuggestions(input: {
     return { batch: null, error: "You must be logged in." };
   }
 
+  const gate = await enforceAiBillingGate(user.id);
+  if (gate.error) {
+    return { batch: null, error: gate.error };
+  }
+
   const loaded = await loadSuggestionContext(
     input.worldId,
     input.storyId,
@@ -342,6 +350,30 @@ export async function generateSceneSuggestions(input: {
         insertError?.code
       ),
     };
+  }
+
+  if (items.length > 0) {
+    const consumed = await consumeCredits(
+      user.id,
+      AI_CREDIT_COSTS.scene_suggestion,
+      "ai_usage",
+      {
+        action: "scene_suggestion",
+        story_id: input.storyId,
+        world_id: input.worldId,
+        batch_id: created.id,
+      }
+    );
+    if (!consumed.success) {
+      await supabase
+        .from("creative_proposal_batches")
+        .delete()
+        .eq("id", created.id);
+      return {
+        batch: null,
+        error: consumed.error ?? "Failed to deduct credits.",
+      };
+    }
   }
 
   const batch: BatchRow = {
@@ -539,6 +571,11 @@ export async function regenerateSceneSuggestionItem(input: {
     return { error: "You must be logged in." };
   }
 
+  const gate = await enforceAiBillingGate(user.id);
+  if (gate.error) {
+    return { error: gate.error };
+  }
+
   const { batch, error: batchError } = await getBatchForUser(
     supabase,
     input.batchId,
@@ -592,6 +629,23 @@ export async function regenerateSceneSuggestionItem(input: {
   const saveError = await saveBatchItems(supabase, batch.id, updatedItems);
   if (saveError) {
     return { error: saveError };
+  }
+
+  const consumed = await consumeCredits(
+    user.id,
+    AI_CREDIT_COSTS.regenerate_scene_suggestion,
+    "ai_usage",
+    {
+      action: "regenerate_scene_suggestion",
+      story_id: input.storyId,
+      world_id: input.worldId,
+      batch_id: batch.id,
+      item_id: input.itemId,
+    }
+  );
+  if (!consumed.success) {
+    await saveBatchItems(supabase, batch.id, batch.items);
+    return { error: consumed.error ?? "Failed to deduct credits." };
   }
 
   revalidateStoryScenes(input.worldId, input.storyId);

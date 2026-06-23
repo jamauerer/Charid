@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import { allocateMonthlyCredits } from "@/lib/billing/allocate-monthly-credits";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { planFromStripePriceId } from "@/lib/stripe/config";
 import type { SubscriptionPlan } from "@/types/billing";
@@ -142,6 +143,16 @@ export async function syncSubscriptionFromStripe(
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  if (
+    (subscription.status === "active" || subscription.status === "trialing") &&
+    (plan === "basic" || plan === "pro")
+  ) {
+    const allocation = await allocateMonthlyCredits(userId, plan);
+    if (allocation.error) {
+      throw new Error(allocation.error);
+    }
   }
 }
 
