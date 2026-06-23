@@ -21,19 +21,30 @@ function toIso(unixSeconds: number | null | undefined): string | null {
   return new Date(unixSeconds * 1000).toISOString();
 }
 
-/** Stripe SDK v22 types omit period fields; API responses may still include them. */
+/** Stripe Basil (2025-03+) moved period fields to subscription items; legacy top-level fallback kept. */
 function getSubscriptionPeriod(subscription: Stripe.Subscription): {
   start: number | null;
   end: number | null;
 } {
+  const firstItem = subscription.items.data[0] as
+    | (Stripe.SubscriptionItem & {
+        current_period_start?: number;
+        current_period_end?: number;
+      })
+    | undefined;
+
   const legacy = subscription as Stripe.Subscription & {
     current_period_start?: number;
     current_period_end?: number;
   };
 
   return {
-    start: legacy.current_period_start ?? null,
-    end: legacy.current_period_end ?? null,
+    start:
+      firstItem?.current_period_start ??
+      legacy.current_period_start ??
+      null,
+    end:
+      firstItem?.current_period_end ?? legacy.current_period_end ?? null,
   };
 }
 
