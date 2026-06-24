@@ -2,24 +2,31 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getCharacterPhotoUrl } from "@/app/actions/characters";
 import {
+  getProjectAssetRollup,
   getProjectById,
   getProjectCharacters,
   getProjectCoverUrl,
+  getProjectLocationRollup,
   getProjectProgressCounts,
   getProjectRelationships,
+  getProjectSceneRollup,
   getProjectStories,
   getProjectStoryProgress,
+  getProjectTimelineStories,
   getProjectWorlds,
 } from "@/app/actions/projects";
 import { getWorldImages } from "@/app/actions/world-images";
 import { getWorldMoodboardBundle } from "@/app/actions/world-moodboards";
 import { ProjectWorkspaceView } from "@/components/project/ProjectWorkspaceView";
 import { resolveProjectFinishPath } from "@/lib/project-finish-path";
-import { isProjectTab, projectTabToSectionHash } from "@/lib/project-tabs";
+import {
+  isProjectWorkspaceSection,
+  resolveProjectScrollSection,
+} from "@/lib/project-tabs";
 
 type ProjectPageProps = {
   params: Promise<{ projectId: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; section?: string }>;
 };
 
 export default async function ProjectPage({
@@ -27,10 +34,14 @@ export default async function ProjectPage({
   searchParams,
 }: ProjectPageProps) {
   const { projectId } = await params;
-  const { tab: tabParam } = await searchParams;
-  const initialScrollSection =
-    tabParam && isProjectTab(tabParam)
-      ? projectTabToSectionHash(tabParam)
+  const { tab: tabParam, section: sectionParam } = await searchParams;
+  const initialScrollSection = resolveProjectScrollSection({
+    tab: tabParam,
+    section: sectionParam,
+  });
+  const activeSection =
+    sectionParam && isProjectWorkspaceSection(sectionParam)
+      ? sectionParam
       : null;
 
   const { project, error: projectError } = await getProjectById(projectId);
@@ -56,6 +67,10 @@ export default async function ProjectPage({
     relationshipsResult,
     storyProgressResult,
     progressCountsResult,
+    sceneRollupResult,
+    locationRollupResult,
+    assetRollupResult,
+    timelineResult,
   ] = await Promise.all([
     getProjectStories(projectId),
     getProjectCharacters(projectId),
@@ -63,6 +78,10 @@ export default async function ProjectPage({
     getProjectRelationships(projectId),
     getProjectStoryProgress(projectId),
     getProjectProgressCounts(projectId),
+    getProjectSceneRollup(projectId, 100),
+    getProjectLocationRollup(projectId),
+    getProjectAssetRollup(projectId),
+    getProjectTimelineStories(projectId),
   ]);
 
   const relationshipPhotoUrls: Record<string, string | null> = {};
@@ -120,11 +139,16 @@ export default async function ProjectPage({
         progressCounts={progressCounts}
         storyProgress={storyProgressResult.stories}
         initialScrollSection={initialScrollSection}
+        activeSection={activeSection}
         stories={storiesResult.entries}
         characters={charactersResult.entries}
         worlds={worldsResult.entries}
         relationships={relationshipsResult.entries}
         relationshipPhotoUrls={relationshipPhotoUrls}
+        sceneRollup={sceneRollupResult.entries}
+        locationRollup={locationRollupResult.entries}
+        assetRollup={assetRollupResult.entries}
+        timelineStories={timelineResult.stories}
         primaryWorldId={primaryWorldId}
         moodboardBundle={moodboardBundle}
         galleryImages={galleryImages}

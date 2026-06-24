@@ -39,22 +39,9 @@ export function DashboardSidebar({
   const pathname = usePathname();
 
   const isHome = pathname === "/dashboard";
-  const isStoryWorkspace =
-    /^\/dashboard\/worlds\/[^/]+\/stories(\/|$)/.test(pathname);
   const isProjects =
     pathname === "/dashboard/projects" ||
     pathname.startsWith("/dashboard/projects/");
-  const isStories =
-    pathname === "/dashboard/stories" ||
-    pathname.startsWith("/dashboard/stories/") ||
-    isStoryWorkspace;
-  const isCharacters =
-    pathname === "/dashboard/characters" ||
-    pathname.startsWith("/dashboard/characters/");
-  const isWorlds =
-    (pathname === "/dashboard/worlds" ||
-      pathname.startsWith("/dashboard/worlds/")) &&
-    !isStoryWorkspace;
   const isAdminSection = pathname.startsWith("/dashboard/admin");
   const isModerationSection = pathname.startsWith("/dashboard/admin/moderation");
 
@@ -102,49 +89,6 @@ export function DashboardSidebar({
             </NavIcon>
           }
         />
-        <DashboardNavItem
-          href="/dashboard/stories"
-          label="Stories"
-          active={isStories}
-          onNavigate={onNavigate}
-          icon={
-            <NavIcon>
-              <path
-                fillRule="evenodd"
-                d="M2 3.5A1.5 1.5 0 0 1 3.5 2h9A1.5 1.5 0 0 1 14 3.5v11.75A2.75 2.75 0 0 0 16.75 18h-12A2.75 2.75 0 0 1 2 15.25V3.5Zm3.75 7a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5Zm0 3a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5ZM3.5 9.75a.75.75 0 0 1 .75-.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1-.75-.75Zm.75 2.25a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5Z"
-                clipRule="evenodd"
-              />
-            </NavIcon>
-          }
-        />
-        <DashboardNavItem
-          href="/dashboard/characters"
-          label="Characters"
-          active={isCharacters}
-          onNavigate={onNavigate}
-          icon={
-            <NavIcon>
-              <path d="M10 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM6 8a2 2 0 1 1 4 0 2 2 0 0 1-4 0Zm-4.25 8.25a5.25 5.25 0 1 1 10.5 0 .75.75 0 0 1-1.5 0 3.75 3.75 0 1 0-7.5 0 .75.75 0 0 1-1.5 0ZM15.75 12a4.5 4.5 0 0 0-4.5 4.5.75.75 0 0 1-1.5 0 6 6 0 1 1 12 0 .75.75 0 0 1-1.5 0 4.5 4.5 0 0 0-4.5-4.5Z" />
-            </NavIcon>
-          }
-        />
-        <DashboardNavItem
-          href="/dashboard/worlds"
-          label="Worlds"
-          active={isWorlds}
-          onNavigate={onNavigate}
-          icon={
-            <NavIcon>
-              <path
-                fillRule="evenodd"
-                d="M4.25 5.5a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 .75.75v9a.75.75 0 0 1-.75.75H5a.75.75 0 0 1-.75-.75v-9Zm1.5.75v7.5h9v-7.5h-9Z"
-                clipRule="evenodd"
-              />
-              <path d="M8 8.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5A.75.75 0 0 1 8 8.25ZM8 11a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 0 1.5h-4.5A.75.75 0 0 1 8 11Z" />
-            </NavIcon>
-          }
-        />
-
         <div className="my-2 border-t border-[var(--brand-border)]" />
         <DashboardNavItem
           href="/dashboard/explore"

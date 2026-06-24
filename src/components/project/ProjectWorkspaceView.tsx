@@ -2,22 +2,32 @@
 
 import { useEffect } from "react";
 import { NewStoryModal } from "@/app/dashboard/NewStoryModal";
+import { ProjectAssetsSection } from "@/components/project/ProjectAssetsSection";
 import { ProjectCharacterActions } from "@/components/project/ProjectCharacterActions";
 import { ProjectCharactersSection } from "@/components/project/ProjectCharactersSection";
 import { ProjectDeleteSection } from "@/components/project/ProjectDeleteSection";
+import { ProjectFormatGuide } from "@/components/project/ProjectFormatGuide";
+import { ProjectLocationsSection } from "@/components/project/ProjectLocationsSection";
 import { ProjectNotesSection } from "@/components/project/ProjectNotesSection";
+import { ProjectOrganizationsSection } from "@/components/project/ProjectOrganizationsSection";
+import { ProjectProductionSection } from "@/components/project/ProjectProductionSection";
 import { ProjectRelationshipsSection } from "@/components/project/ProjectRelationshipsSection";
 import { ProjectRoadmapSection } from "@/components/project/ProjectRoadmapSection";
+import { ProjectScenesSection } from "@/components/project/ProjectScenesSection";
 import { ProjectStoriesSection } from "@/components/project/ProjectStoriesSection";
-import { ProjectStyleReferencesSection } from "@/components/project/ProjectStyleReferencesSection";
+import { ProjectTimelineSection } from "@/components/project/ProjectTimelineSection";
 import { ProjectWhatsNext } from "@/components/project/ProjectWhatsNext";
 import { ProjectWorkspaceHeader } from "@/components/project/ProjectWorkspaceHeader";
-import { ProjectWorldsSection } from "@/components/project/ProjectWorldsSection";
+import { ProjectWorkspaceNav } from "@/components/project/ProjectWorkspaceNav";
 import type {
+  ProjectAssetRollupEntry,
   ProjectCharacterEntry,
+  ProjectLocationRollupEntry,
   ProjectProgressCounts,
   ProjectRelationshipEntry,
+  ProjectSceneRollupEntry,
   ProjectStoryEntry,
+  ProjectTimelineStory,
   ProjectWorldEntry,
 } from "@/app/actions/projects";
 import type {
@@ -37,11 +47,16 @@ type ProjectWorkspaceViewProps = {
   progressCounts: ProjectProgressCounts;
   storyProgress: ProjectStoryProgress[];
   initialScrollSection: string | null;
+  activeSection?: string | null;
   stories: ProjectStoryEntry[];
   characters: ProjectCharacterEntry[];
   worlds: ProjectWorldEntry[];
   relationships: ProjectRelationshipEntry[];
   relationshipPhotoUrls: Record<string, string | null>;
+  sceneRollup: ProjectSceneRollupEntry[];
+  locationRollup: ProjectLocationRollupEntry[];
+  assetRollup: ProjectAssetRollupEntry[];
+  timelineStories: ProjectTimelineStory[];
   primaryWorldId: string | null;
   moodboardBundle: WorldMoodboardBundle | null;
   galleryImages: WorldImageWithUrl[];
@@ -55,11 +70,16 @@ export function ProjectWorkspaceView({
   progressCounts,
   storyProgress,
   initialScrollSection,
+  activeSection,
   stories,
   characters,
   worlds,
   relationships,
   relationshipPhotoUrls,
+  sceneRollup,
+  locationRollup,
+  assetRollup,
+  timelineStories,
   primaryWorldId,
   moodboardBundle,
   galleryImages,
@@ -73,7 +93,6 @@ export function ProjectWorkspaceView({
     }
   }, [initialScrollSection]);
 
-  const isWorldbuilding = project.work_intent === "worldbuilding";
   const characterIds = characters.map(({ character }) => character.id);
 
   return (
@@ -89,23 +108,62 @@ export function ProjectWorkspaceView({
         workIntent={project.work_intent}
       />
 
-      <div className="mb-6">
+      <div id={PROJECT_SECTION_IDS.whatsNext} className="mb-6 scroll-mt-6">
+        <ProjectFormatGuide
+          projectId={project.id}
+          workIntent={project.work_intent}
+        />
         <ProjectWhatsNext finishPath={finishPath} />
       </div>
 
-      <div className="mb-8">
-        <ProjectStyleReferencesSection
-          projectId={project.id}
-          coverUrl={coverUrl}
-          worldId={primaryWorldId}
-          moodboardBundle={moodboardBundle}
-          galleryImages={galleryImages}
-        />
-      </div>
+      <ProjectWorkspaceNav activeSection={activeSection} />
+
+      <section
+        id={PROJECT_SECTION_IDS.characters}
+        className={`${studioSection} mb-8 scroll-mt-24`}
+      >
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className={studioSectionLabel}>Characters</h2>
+            <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
+              Project cast — create new characters or add existing ones from your library.
+            </p>
+          </div>
+          <ProjectCharacterActions
+            projectId={project.id}
+            excludeCharacterIds={characterIds}
+          />
+        </div>
+        <ProjectCharactersSection entries={characters} />
+        {relationships.length > 0 && (
+          <div className="mt-6 border-t border-[var(--brand-border)] pt-6">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--brand-text-secondary)]">
+              Connections
+            </h3>
+            <ProjectRelationshipsSection
+              entries={relationships}
+              photoUrls={relationshipPhotoUrls}
+            />
+          </div>
+        )}
+      </section>
+
+      <section
+        id={PROJECT_SECTION_IDS.locations}
+        className={`${studioSection} mb-8 scroll-mt-24`}
+      >
+        <div className="mb-4">
+          <h2 className={studioSectionLabel}>Locations</h2>
+          <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
+            Places across your project settings — read-only rollup with links to edit.
+          </p>
+        </div>
+        <ProjectLocationsSection locations={locationRollup} worlds={worlds} />
+      </section>
 
       <section
         id={PROJECT_SECTION_IDS.story}
-        className={`${studioSection} mb-8 scroll-mt-6`}
+        className={`${studioSection} mb-8 scroll-mt-24`}
       >
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -125,56 +183,85 @@ export function ProjectWorkspaceView({
       </section>
 
       <section
-        id={PROJECT_SECTION_IDS.characters}
-        className={`${studioSection} mb-8 scroll-mt-6`}
+        id={PROJECT_SECTION_IDS.scenes}
+        className={`${studioSection} mb-8 scroll-mt-24`}
       >
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className={studioSectionLabel}>Characters</h2>
-            <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
-              Project cast — create new characters or add existing ones from your library.
-            </p>
-          </div>
-          <ProjectCharacterActions
-            projectId={project.id}
-            excludeCharacterIds={characterIds}
-          />
+        <div className="mb-4">
+          <h2 className={studioSectionLabel}>Scenes</h2>
+          <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
+            All scene beats across stories in this project.
+          </p>
         </div>
-        <ProjectCharactersSection entries={characters} />
+        <ProjectScenesSection
+          entries={sceneRollup}
+          storyCount={stories.length}
+        />
+      </section>
+
+      <section
+        id={PROJECT_SECTION_IDS.timeline}
+        className={`${studioSection} mb-8 scroll-mt-24`}
+      >
+        <div className="mb-4">
+          <h2 className={studioSectionLabel}>Timeline</h2>
+          <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
+            Scene order per story — drag to reorder in each timeline, or open the story
+            to add scenes.
+          </p>
+        </div>
+        <ProjectTimelineSection timelines={timelineStories} />
+      </section>
+
+      <section
+        id={PROJECT_SECTION_IDS.assets}
+        className={`${studioSection} mb-8 scroll-mt-24`}
+      >
+        <div className="mb-4">
+          <h2 className={studioSectionLabel}>Assets</h2>
+          <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
+            Style references and gallery images across this project.
+          </p>
+        </div>
+        <ProjectAssetsSection
+          projectId={project.id}
+          coverUrl={coverUrl}
+          primaryWorldId={primaryWorldId}
+          moodboardBundle={moodboardBundle}
+          galleryImages={galleryImages}
+          assetEntries={assetRollup}
+        />
+      </section>
+
+      <section
+        id={PROJECT_SECTION_IDS.organizations}
+        className={`${studioSection} mb-8 scroll-mt-24`}
+      >
+        <div className="mb-4">
+          <h2 className={studioSectionLabel}>Organizations</h2>
+          <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
+            Factions, nations, and groups — placeholder for a future release.
+          </p>
+        </div>
+        <ProjectOrganizationsSection />
+      </section>
+
+      <section
+        id={PROJECT_SECTION_IDS.production}
+        className={`${studioSection} mb-8 scroll-mt-24`}
+      >
+        <div className="mb-4">
+          <h2 className={studioSectionLabel}>Production</h2>
+          <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
+            Format-aware production layer — pages, spreads, and sluglines coming later.
+          </p>
+        </div>
+        <ProjectProductionSection
+          workIntent={project.work_intent}
+          stories={stories}
+        />
       </section>
 
       <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 sm:px-5">
-        <ProjectRoadmapSection
-          id={PROJECT_SECTION_IDS.setting}
-          title="Setting"
-          count={progressCounts.locationCount || worlds.length}
-          defaultExpanded={isWorldbuilding}
-          preview={
-            progressCounts.locationCount === 0
-              ? "Locations and place details — manage in a story or setting workspace."
-              : `${worlds.length} setting${worlds.length === 1 ? "" : "s"} · ${progressCounts.locationCount} location${progressCounts.locationCount === 1 ? "" : "s"}`
-          }
-        >
-          <ProjectWorldsSection entries={worlds} />
-        </ProjectRoadmapSection>
-
-        <ProjectRoadmapSection
-          id={PROJECT_SECTION_IDS.connections}
-          title="Connections"
-          count={relationships.length}
-          defaultExpanded={false}
-          preview={
-            relationships.length === 0
-              ? "Character relationships appear here when you define them."
-              : undefined
-          }
-        >
-          <ProjectRelationshipsSection
-            entries={relationships}
-            photoUrls={relationshipPhotoUrls}
-          />
-        </ProjectRoadmapSection>
-
         <ProjectRoadmapSection
           id={PROJECT_SECTION_IDS.notes}
           title="Notes"

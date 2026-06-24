@@ -30,6 +30,9 @@ import { normalizeWorld } from "@/types/world";
 import { scanSavedText } from "@/lib/moderation/scan-text";
 import { ensureProjectDefaultSetting } from "@/lib/project-setting";
 import type { ProjectStoryProgress } from "@/lib/project-finish-path";
+import { getScenesByStoryId } from "@/app/actions/scenes";
+import type { SceneWithCast } from "@/types/scene";
+import { normalizeWorldLocation, type WorldLocationRow } from "@/types/world-location";
 
 const BUCKET = "character-photos";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -96,6 +99,29 @@ export type ProjectSceneRollupEntry = {
   storyTitle: string;
   worldId: string;
   updatedAt: string;
+};
+
+export type ProjectLocationRollupEntry = {
+  locationId: string;
+  locationName: string;
+  locationType: string;
+  worldId: string;
+  worldName: string;
+};
+
+export type ProjectAssetRollupEntry = {
+  source: "character" | "world" | "story";
+  sourceId: string;
+  sourceName: string;
+  imageCount: number;
+  editHref: string;
+};
+
+export type ProjectTimelineStory = {
+  storyId: string;
+  storyTitle: string;
+  worldId: string;
+  scenes: SceneWithCast[];
 };
 
 function formatProjectError(message: string, code?: string): string {
@@ -1221,6 +1247,172 @@ export async function getProjectSceneRollup(
   }
 
   return { entries };
+}
+
+export async function getProjectLocationRollup(
+  projectId: string
+): Promise<{ entries: ProjectLocationRollupEntry[]; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { entries: [], error: "You must be logged in." };
+  }
+
+  const { data: worldRows } = await supabase
+    .from("worlds")
+    .select("id, name")
+    .eq("project_id", projectId)
+    .eq("user_id", user.id);
+
+  const worldMap = new Map(
+    (worldRows ?? []).map((row) => [row.id as string, row.name as string])
+  );
+  const worldIds = [...worldMap.keys()];
+  if (worldIds.length === 0) {
+    return { entries: [] };
+  }
+
+  const { data: locationRows, error } = await supabase
+    .from("world_locations")
+    .select("*")
+    .in("world_id", worldIds)
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
+
+  if (error) {
+    return { entries: [], error: error.message };
+  }
+
+  const entries: ProjectLocationRollupEntry[] = [];
+  for (const row of locationRows ?? []) {
+    const location = normalizeWorldLocation(row as WorldLocationRow);
+    const worldName = worldMap.get(location.world_id);
+    if (!worldName) continue;
+
+    entries.push({
+      locationId: location.id,
+      locationName: location.name,
+      locationType: location.location_type,
+      worldId: location.world_id,
+      worldName,
+    });
+  }
+
+  return { entries };
+}
+
+export async function getProjectAssetRollup(
+  projectId: string
+): Promise<{ entries: ProjectAssetRollupEntry[]; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { entries: [], error: "You must be logged in." };
+  }
+
+  const entries: ProjectAssetRollupEntry[] = [];
+
+  const { data: characterRows } = await supabase
+    .from("characters")
+    .select("id, name")
+    .eq("project_id", projectId)
+    .eq("user_id", user.id);
+
+  for (const row of characterRows ?? []) {
+    const characterId = row.id as string;
+    const { count } = await supabase
+      .from("character_images")
+      .select("id", { count: "exact", head: true })
+      .eq("character_id", characterId);
+
+    entries.push({
+      source: "character",
+      sourceId: characterId,
+      sourceName: row.name as string,
+      imageCount: count ?? 0,
+      editHref: `/dashboard/characters/${characterId}`,
+    });
+  }
+
+  const { data: worldRows } = await supabase
+    .from("worlds")
+    .select("id, name")
+    .eq("project_id", projectId)
+    .eq("user_id", user.id);
+
+  for (const row of worldRows ?? []) {
+    const worldId = row.id as string;
+    const { count } = await supabase
+      .from("world_images")
+      .select("id", { count: "exact", head: true })
+      .eq("world_id", worldId);
+
+    entries.push({
+      source: "world",
+      sourceId: worldId,
+      sourceName: row.name as string,
+      imageCount: count ?? 0,
+      editHref: `/dashboard/worlds/${worldId}`,
+    });
+  }
+
+  const { data: storyRows } = await supabase
+    .from("stories")
+    .select("id, title, world_id")
+    .eq("project_id", projectId)
+    .eq("user_id", user.id);
+
+  for (const row of storyRows ?? []) {
+    const storyId = row.id as string;
+    const worldId = row.world_id as string;
+    const { count } = await supabase
+      .from("story_images")
+      .select("id", { count: "exact", head: true })
+      .eq("story_id", storyId);
+
+    entries.push({
+      source: "story",
+      sourceId: storyId,
+      sourceName: row.title as string,
+      imageCount: count ?? 0,
+      editHref: `/dashboard/worlds/${worldId}/stories/${storyId}`,
+    });
+  }
+
+  entries.sort((a, b) => a.sourceName.localeCompare(b.sourceName));
+  return { entries };
+}
+
+export async function getProjectTimelineStories(
+  projectId: string
+): Promise<{ stories: ProjectTimelineStory[]; error?: string }> {
+  const storiesResult = await getProjectStories(projectId);
+  if (storiesResult.error) {
+    return { stories: [], error: storiesResult.error };
+  }
+
+  const stories: ProjectTimelineStory[] = [];
+  for (const entry of storiesResult.entries) {
+    const { scenes, error } = await getScenesByStoryId(entry.story.id);
+    if (error) {
+      return { stories: [], error };
+    }
+
+    stories.push({
+      storyId: entry.story.id,
+      storyTitle: entry.story.title,
+      worldId: entry.world.id,
+      scenes,
+    });
+  }
+
+  return { stories };
 }
 
 export async function updateProjectCover(
