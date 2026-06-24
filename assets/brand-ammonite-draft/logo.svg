@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 168" fill="none" role="img" aria-label="CharID">
+  <g transform="translate(0 0)">
+<g aria-hidden="true" stroke="#4e7470" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <path d="M 64 52 L 56.975 60.491"/>
+        <path d="M 56.975 60.491 L 53.001 52.692"/>
+        <path d="M 64 52 L 47.987 53.007"/>
+        <path d="M 47.987 53.007 L 52.304 41.017"/>
+        <path d="M 64 52 L 48.485 37.43"/>
+        <path d="M 48.485 37.43 L 64 30.716"/>
+        <path d="M 64 52 L 64 25.333"/>
+        <path d="M 64 25.333 L 83.439 33.745"/>
+        <path d="M 64 52 L 87.444 29.985"/>
+        <path d="M 87.444 29.985 L 96.097 54.019"/>
+        <path d="M 64 52 L 101.668 54.37"/>
+        <path d="M 101.668 54.37 L 88.058 81.081"/>
+        <path d="M 64 52 L 91.664 85.44"/>
+        <path d="M 91.664 85.44 L 58.561 95.058"/>
+        <path d="M 59.27 89.445 L 64 52"/>
+      </g>
+  </g>
+  <g transform="translate(4 118) scale(0.82)">
+    <g fill="#4e7470" aria-label="CharID">
+    <path d="M 18 8 C 8 8 4 18 4 28 C 4 38 8 48 18 48 L 18 42 C 12 42 10 36 10 28 C 10 20 12 14 18 14 Z"/>
+    <path d="M 28 8 L 28 48 L 34 48 L 34 30 C 34 24 38 22 42 22 L 42 16 C 36 16 34 20 34 24 L 34 8 Z"/>
+    <path d="M 58 22 C 52 22 48 26 48 32 L 48 48 L 54 48 L 54 34 C 54 30 56 28 58 28 C 60 28 62 30 62 34 L 62 48 L 68 48 L 68 32 C 68 24 64 22 58 22 Z M 58 16 C 62 16 66 18 68 22 L 68 16 C 66 14 62 12 58 12 C 52 12 48 16 48 22 L 54 22 C 54 18 56 16 58 16 Z"/>
+    <path d="M 74 22 L 74 48 L 80 48 L 80 34 C 80 28 82 26 86 26 L 86 22 C 80 22 78 24 76 28 L 76 22 Z"/>
+    <path d="M 94 8 L 94 48 L 100 48 L 100 8 Z"/>
+    <path d="M 108 8 C 98 8 92 16 92 28 C 92 40 98 48 108 48 L 118 48 L 118 8 Z M 108 14 L 112 14 L 112 42 L 108 42 C 102 42 98 36 98 28 C 98 20 102 14 108 14 Z"/>
+  </g>
+  </g>
+</svg>

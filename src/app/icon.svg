@@ -1,5 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="CharID">
-  <rect x="11" y="9" width="42" height="46" rx="7" stroke="#6d28d9" stroke-width="3"/>
-  <circle cx="32" cy="27" r="9" fill="#6d28d9"/>
-  <path fill="#6d28d9" d="M20 44c0-6.6 5.4-12 12-12s12 5.4 12 12"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" role="img" aria-label="CharID">
+<g aria-hidden="true" stroke="#4e7470" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M 16 16 L 11.554 21.374"/>
+    <path d="M 11.554 21.374 L 11.225 10.915"/>
+    <path d="M 16 16 L 8.804 8.337"/>
+    <path d="M 8.804 8.337 L 24.504 9.821"/>
+    <path d="M 16 16 L 27.488 7.653"/>
+    <path d="M 27.488 7.653 L 22.841 28.444"/>
+    <path d="M 21.064 25.212 L 16 16"/>
+  </g>
 </svg>

@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { AmmoniteMark } from "@/components/brand/AmmoniteMark";
 
 type CharIDLogoProps = {
   variant?: "mark" | "full";
@@ -22,13 +22,10 @@ export function CharIDLogo({
   if (variant === "full") {
     return (
       <div className={`inline-flex flex-col items-center gap-3 ${className}`}>
-        <Image
-          src="/brand/logo.svg"
-          alt=""
-          width={markSizes.lg}
-          height={markSizes.lg}
-          priority
-          aria-hidden
+        <AmmoniteMark
+          variant="mark"
+          className="h-12 w-12 text-[var(--brand-accent)]"
+          title=""
         />
         <span className="text-2xl font-bold tracking-tight text-[var(--foreground)]">
           CharID
@@ -38,13 +35,10 @@ export function CharIDLogo({
   }
 
   return (
-    <Image
-      src="/brand/logo.svg"
-      alt="CharID"
-      width={px}
-      height={px}
-      className={className}
-      priority
+    <AmmoniteMark
+      variant="mark"
+      className={`text-[var(--brand-accent)] ${className}`}
+      style={{ width: px, height: px }}
     />
   );
 }

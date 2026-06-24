@@ -8,10 +8,7 @@ type BrandLogoSlotProps = {
   showWordmark?: boolean;
 };
 
-/**
- * Single swap point for the CharID logo across the app.
- * Replace CharIDLogo usage here when the new mark ships.
- */
+/** Single swap point for the CharID logo across the app. */
 export function BrandLogoSlot({
   size = "md",
   variant = "mark",
