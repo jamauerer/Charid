@@ -15,6 +15,7 @@ import {
   getProjectTimelineStories,
   getProjectWorlds,
 } from "@/app/actions/projects";
+import { getProductionData } from "@/app/actions/production/index";
 import { getWorldImages } from "@/app/actions/world-images";
 import { getWorldMoodboardBundle } from "@/app/actions/world-moodboards";
 import { ProjectWorkspaceView } from "@/components/project/ProjectWorkspaceView";
@@ -130,6 +131,8 @@ export default async function ProjectPage({
     styleReferenceCount: progressCounts.styleReferenceCount,
   });
 
+  const productionResult = await getProductionData(projectId, project.work_intent);
+
   return (
     <Suspense fallback={null}>
       <ProjectWorkspaceView
@@ -152,6 +155,8 @@ export default async function ProjectPage({
         primaryWorldId={primaryWorldId}
         moodboardBundle={moodboardBundle}
         galleryImages={galleryImages}
+        productionData={productionResult.data}
+        productionError={productionResult.error}
         migrationError={projectError}
       />
     </Suspense>

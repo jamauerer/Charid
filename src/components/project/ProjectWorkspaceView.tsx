@@ -19,6 +19,7 @@ import { ProjectTimelineSection } from "@/components/project/ProjectTimelineSect
 import { ProjectWhatsNext } from "@/components/project/ProjectWhatsNext";
 import { ProjectWorkspaceHeader } from "@/components/project/ProjectWorkspaceHeader";
 import { ProjectWorkspaceNav } from "@/components/project/ProjectWorkspaceNav";
+import type { ProductionData } from "@/app/actions/production/index";
 import type {
   ProjectAssetRollupEntry,
   ProjectCharacterEntry,
@@ -60,6 +61,8 @@ type ProjectWorkspaceViewProps = {
   primaryWorldId: string | null;
   moodboardBundle: WorldMoodboardBundle | null;
   galleryImages: WorldImageWithUrl[];
+  productionData: ProductionData;
+  productionError?: string;
   migrationError?: string;
 };
 
@@ -83,6 +86,8 @@ export function ProjectWorkspaceView({
   primaryWorldId,
   moodboardBundle,
   galleryImages,
+  productionData,
+  productionError,
   migrationError,
 }: ProjectWorkspaceViewProps) {
   useEffect(() => {
@@ -252,12 +257,20 @@ export function ProjectWorkspaceView({
         <div className="mb-4">
           <h2 className={studioSectionLabel}>Production</h2>
           <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
-            Format-aware production layer — pages, spreads, and sluglines coming later.
+            Organize your story into format-specific production structures.
           </p>
         </div>
         <ProjectProductionSection
+          projectId={project.id}
           workIntent={project.work_intent}
+          productionData={productionData}
+          productionError={productionError}
           stories={stories}
+          sceneRollup={sceneRollup}
+          characters={characters}
+          moodboardBundle={moodboardBundle}
+          primaryWorldId={primaryWorldId}
+          styleReferenceCount={progressCounts.styleReferenceCount}
         />
       </section>
 
