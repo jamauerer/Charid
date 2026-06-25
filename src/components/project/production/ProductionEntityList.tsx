@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition, type ReactNode } from "react";
 import { reorderById } from "@/lib/production-reorder";
 import { ProductionEntityRow } from "@/components/project/production/ProductionEntityRow";
 
@@ -15,6 +15,9 @@ type ProductionEntityListProps = {
   onRename: (id: string, name: string) => Promise<{ error?: string }>;
   onDelete: (id: string) => Promise<{ error?: string }>;
   emptyMessage?: string;
+  emptyAction?: ReactNode;
+  selectedId?: string | null;
+  onSelect?: (id: string) => void;
 };
 
 export function ProductionEntityList({
@@ -23,6 +26,9 @@ export function ProductionEntityList({
   onRename,
   onDelete,
   emptyMessage = "No items yet.",
+  emptyAction,
+  selectedId,
+  onSelect,
 }: ProductionEntityListProps) {
   const [items, setItems] = useState(initialItems);
   const [draggedId, setDraggedId] = useState<string | null>(null);
@@ -64,7 +70,10 @@ export function ProductionEntityList({
 
   if (items.length === 0) {
     return (
-      <p className="text-sm text-[var(--brand-text-muted)]">{emptyMessage}</p>
+      <div className="space-y-3">
+        <p className="text-sm text-[var(--brand-text-muted)]">{emptyMessage}</p>
+        {emptyAction}
+      </div>
     );
   }
 
@@ -81,6 +90,8 @@ export function ProductionEntityList({
           key={item.id}
           id={item.id}
           name={item.name}
+          isSelected={selectedId === item.id}
+          onSelect={onSelect ? () => onSelect(item.id) : undefined}
           isDragging={draggedId === item.id}
           isDropTarget={dropTargetId === item.id}
           onDragStart={() => setDraggedId(item.id)}

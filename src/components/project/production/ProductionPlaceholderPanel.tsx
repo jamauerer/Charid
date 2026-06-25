@@ -25,9 +25,8 @@ export function ProductionPlaceholderPanel({
         {body}
       </p>
       <p className="mt-4 text-xs text-[var(--brand-text-muted)]">
-        Coming in a future milestone — no {title.toLowerCase()} functionality in
-        Production MVP v2. Your {productLabel} structure can still be organized
-        in the tabs above.
+        On the roadmap for a future milestone. Your {productLabel} structure can
+        still be organized in the tabs above.
       </p>
     </div>
   );

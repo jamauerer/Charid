@@ -10,12 +10,33 @@ const FIX_SQL_HINT =
   "Run supabase/migrations/20250711000000_production_mvp_v2.sql and " +
   "supabase/fix-production-mvp-v2-api.sql in the Supabase SQL Editor.";
 
+const CANVAS_FIX_SQL_HINT =
+  "Run supabase/migrations/20250712000000_production_canvas_phase_1.sql and " +
+  "supabase/fix-production-canvas-phase-1-api.sql in the Supabase SQL Editor.";
+
+const CANVAS_PHASE_2_FIX_SQL_HINT =
+  "Run supabase/migrations/20250713000000_production_canvas_phase_2.sql and " +
+  "supabase/fix-production-canvas-phase-2-api.sql in the Supabase SQL Editor.";
+
 export function formatProductionError(message: string, code?: string): string {
   if (
     code === "PGRST205" ||
     message.includes("schema cache") ||
     message.includes("Could not find")
   ) {
+    if (
+      message.includes("production_surfaces") ||
+      message.includes("canvas_document_versions")
+    ) {
+      return `Canvas tables are not exposed to the Supabase Data API yet. ${CANVAS_FIX_SQL_HINT}`;
+    }
+    if (
+      message.includes("surface_id") ||
+      message.includes("frame_x") ||
+      message.includes("frame_y")
+    ) {
+      return `Canvas linking columns are not exposed to the Supabase Data API yet. ${CANVAS_PHASE_2_FIX_SQL_HINT}`;
+    }
     return `Production tables are not exposed to the Supabase Data API yet. ${FIX_SQL_HINT}`;
   }
   return message;

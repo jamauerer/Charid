@@ -2,6 +2,10 @@
 
 import { createClient } from "@/lib/supabase/server";
 import {
+  createAndLinkSpreadSurface,
+  deleteSurfaceById,
+} from "@/lib/canvas/link-surface";
+import {
   assertProductionProject,
   defaultNameForSibling,
   formatProductionError,
@@ -161,8 +165,33 @@ export async function createStorybookSpread(
     };
   }
 
+  const linkResult = await createAndLinkSpreadSurface(supabase, projectId, data.id);
+  if (linkResult.error) {
+    await supabase.from("storybook_spreads").delete().eq("id", data.id);
+    return { error: linkResult.error };
+  }
+
+  const { data: linkedSpread, error: reloadError } = await supabase
+    .from("storybook_spreads")
+    .select("*")
+    .eq("id", data.id)
+    .single();
+
+  if (reloadError || !linkedSpread) {
+    if (linkResult.surface) {
+      await deleteSurfaceById(supabase, projectId, linkResult.surface.id);
+    }
+    await supabase.from("storybook_spreads").delete().eq("id", data.id);
+    return {
+      error: formatProductionError(
+        reloadError?.message ?? "Failed to load linked spread.",
+        reloadError?.code
+      ),
+    };
+  }
+
   revalidateProjectProduction(projectId);
-  return { spread: normalizeStorybookSpread(data as StorybookSpreadRow) };
+  return { spread: normalizeStorybookSpread(linkedSpread as StorybookSpreadRow) };
 }
 
 export async function renameStorybookSpread(
@@ -196,6 +225,28 @@ export async function deleteStorybookSpread(
   const supabase = await createClient();
   const check = await assertProductionProject(supabase, projectId, "picture_book");
   if (check.error) return { error: check.error };
+
+  const { data: spread } = await supabase
+    .from("storybook_spreads")
+    .select("id, surface_id")
+    .eq("id", spreadId)
+    .eq("project_id", projectId)
+    .maybeSingle();
+
+  if (!spread) {
+    return { error: "Spread not found." };
+  }
+
+  if (spread.surface_id) {
+    const surfaceDelete = await deleteSurfaceById(
+      supabase,
+      projectId,
+      spread.surface_id as string
+    );
+    if (surfaceDelete.error) {
+      return { error: surfaceDelete.error };
+    }
+  }
 
   const { error } = await supabase
     .from("storybook_spreads")

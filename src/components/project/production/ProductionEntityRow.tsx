@@ -15,6 +15,8 @@ type ProductionEntityRowProps = {
   onDrop?: () => void;
   onRename: (name: string) => Promise<{ error?: string } | void>;
   onDelete: () => Promise<{ error?: string } | void>;
+  isSelected?: boolean;
+  onSelect?: () => void;
 };
 
 export function ProductionEntityRow({
@@ -28,6 +30,8 @@ export function ProductionEntityRow({
   onDrop,
   onRename,
   onDelete,
+  isSelected,
+  onSelect,
 }: ProductionEntityRowProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(name);
@@ -88,12 +92,15 @@ export function ProductionEntityRow({
         onDragOver={onDragOver}
         onDrop={onDrop}
         className={`flex items-center gap-2 rounded-lg border px-3 py-2 transition ${
-          isDragging
-            ? "border-[var(--brand-accent)] opacity-60"
-            : isDropTarget
-              ? "border-[var(--brand-accent)] bg-[var(--tag-primary-bg)]"
-              : "border-[var(--brand-border)] bg-[var(--brand-surface-elevated)]"
+          isSelected
+            ? "border-[var(--brand-accent)] bg-[var(--tag-primary-bg)]"
+            : isDragging
+              ? "border-[var(--brand-accent)] opacity-60"
+              : isDropTarget
+                ? "border-[var(--brand-accent)] bg-[var(--tag-primary-bg)]"
+                : "border-[var(--brand-border)] bg-[var(--brand-surface-elevated)]"
         } ${draggable && !editing ? "cursor-grab active:cursor-grabbing" : ""}`}
+        onClick={onSelect}
       >
         {draggable && (
           <span
@@ -128,7 +135,10 @@ export function ProductionEntityRow({
           ) : (
             <button
               type="button"
-              onClick={() => setEditing(true)}
+              onClick={(event) => {
+                event.stopPropagation();
+                setEditing(true);
+              }}
               className="truncate text-left text-sm font-medium text-[var(--foreground)] hover:underline"
               title="Click to rename"
             >
@@ -142,7 +152,10 @@ export function ProductionEntityRow({
 
         <button
           type="button"
-          onClick={() => setShowDelete(true)}
+          onClick={(event) => {
+            event.stopPropagation();
+            setShowDelete(true);
+          }}
           disabled={pending}
           className="shrink-0 rounded px-2 py-1 text-xs font-medium text-[var(--status-danger-text)] transition hover:bg-[var(--status-danger-bg)] disabled:opacity-50"
         >

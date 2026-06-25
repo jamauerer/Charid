@@ -2,6 +2,10 @@
 
 import { createClient } from "@/lib/supabase/server";
 import {
+  createAndLinkPanelSurface,
+  deleteSurfaceById,
+} from "@/lib/canvas/link-surface";
+import {
   assertProductionProject,
   defaultNameForSibling,
   formatProductionError,
@@ -453,8 +457,33 @@ export async function createComicPanel(
     };
   }
 
+  const linkResult = await createAndLinkPanelSurface(supabase, projectId, data.id);
+  if (linkResult.error) {
+    await supabase.from("comic_panels").delete().eq("id", data.id);
+    return { error: linkResult.error };
+  }
+
+  const { data: linkedPanel, error: reloadError } = await supabase
+    .from("comic_panels")
+    .select("*")
+    .eq("id", data.id)
+    .single();
+
+  if (reloadError || !linkedPanel) {
+    if (linkResult.surface) {
+      await deleteSurfaceById(supabase, projectId, linkResult.surface.id);
+    }
+    await supabase.from("comic_panels").delete().eq("id", data.id);
+    return {
+      error: formatProductionError(
+        reloadError?.message ?? "Failed to load linked panel.",
+        reloadError?.code
+      ),
+    };
+  }
+
   revalidateProjectProduction(projectId);
-  return { panel: normalizeComicPanel(data as ComicPanelRow) };
+  return { panel: normalizeComicPanel(linkedPanel as ComicPanelRow) };
 }
 
 export async function renameComicPanel(
@@ -500,12 +529,23 @@ export async function deleteComicPanel(
 
   const { data: panel } = await supabase
     .from("comic_panels")
-    .select("id, page_id")
+    .select("id, page_id, surface_id")
     .eq("id", panelId)
     .maybeSingle();
 
   if (!panel || !(await assertComicPageOwned(supabase, projectId, panel.page_id as string))) {
     return { error: "Panel not found." };
+  }
+
+  if (panel.surface_id) {
+    const surfaceDelete = await deleteSurfaceById(
+      supabase,
+      projectId,
+      panel.surface_id as string
+    );
+    if (surfaceDelete.error) {
+      return { error: surfaceDelete.error };
+    }
   }
 
   const { error } = await supabase

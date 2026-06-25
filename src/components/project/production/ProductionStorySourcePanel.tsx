@@ -24,8 +24,8 @@ export function ProductionStorySourcePanel({
         Story Layer (source of truth)
       </h3>
       <p className="mt-1 text-xs text-[var(--brand-text-muted)]">
-        Production organizes your story — it does not replace it. Scene linking
-        comes in a future milestone.
+        Production reads from your Story Layer — it never replaces or edits your story reference.
+        Scene linking arrives in a future milestone.
       </p>
 
       <div className="mt-4 grid gap-4 md:grid-cols-3">

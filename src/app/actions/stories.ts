@@ -158,7 +158,7 @@ async function assertStoryOwner(
   return { error: null, story: normalizeStory(data as StoryRow) };
 }
 
-async function attachCharacterCounts(
+export async function attachCharacterCounts(
   supabase: Awaited<ReturnType<typeof createClient>>,
   stories: Story[]
 ): Promise<StoryWithCounts[]> {

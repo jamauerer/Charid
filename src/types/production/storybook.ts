@@ -12,6 +12,7 @@ export type StorybookSpread = {
   project_id: string;
   name: string;
   sort_order: number;
+  surface_id: string | null;
   created_at: string;
 };
 
@@ -29,6 +30,7 @@ export type StorybookSpreadRow = {
   project_id: string;
   name: string;
   sort_order?: number;
+  surface_id?: string | null;
   created_at: string;
 };
 
@@ -51,6 +53,7 @@ export function normalizeStorybookSpread(row: StorybookSpreadRow): StorybookSpre
     project_id: row.project_id,
     name: row.name,
     sort_order: row.sort_order ?? 0,
+    surface_id: row.surface_id ?? null,
     created_at: row.created_at,
   };
 }

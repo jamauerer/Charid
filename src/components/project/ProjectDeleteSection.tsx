@@ -33,7 +33,7 @@ export function ProjectDeleteSection({
 
   return (
     <>
-      <div className="mt-6 rounded-xl border border-red-500/20 bg-red-500/5 p-4">
+      <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--status-danger-text)]">
           Danger Zone
         </h3>

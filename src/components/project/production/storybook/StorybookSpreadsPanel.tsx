@@ -9,7 +9,10 @@ import {
   reorderStorybookSpreads,
 } from "@/app/actions/production/storybook";
 import { ProductionEntityList } from "@/components/project/production/ProductionEntityList";
+import { ProductionUnitCard } from "@/components/project/production/ProductionUnitCard";
 import { StudioEmptyState } from "@/components/studio/StudioEmptyState";
+import { flattenStorybookSpreads } from "@/lib/production-reading-order";
+import { storybookSpreadWorkspacePath } from "@/lib/production-routes";
 import { studioBtnPrimarySm } from "@/lib/visual-identity";
 import type { StorybookSpread } from "@/types/production/storybook";
 
@@ -25,13 +28,18 @@ export function StorybookSpreadsPanel({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const spreadItems = flattenStorybookSpreads(spreads);
+
+  function refresh() {
+    router.refresh();
+  }
 
   function runAction(action: () => Promise<{ error?: string }>) {
     startTransition(async () => {
       setError(null);
       const result = await action();
       if (result.error) setError(result.error);
-      else router.refresh();
+      else refresh();
     });
   }
 
@@ -45,7 +53,8 @@ export function StorybookSpreadsPanel({
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs text-[var(--brand-text-muted)]">
-          Spreads are your picture-book production units.
+          Open a spread to preview your picture book workspace. Layout editing
+          arrives in a future milestone.
         </p>
         <button
           type="button"
@@ -53,24 +62,45 @@ export function StorybookSpreadsPanel({
           disabled={pending}
           className={studioBtnPrimarySm}
         >
-          Add Spread
+          Add spread
         </button>
       </div>
 
-      {spreads.length === 0 ? (
+      {spreadItems.length === 0 ? (
         <StudioEmptyState
           headline="No spreads yet"
-          description="Add spreads to map your story across pages."
+          description="Add your first spread to start laying out your picture book."
         />
       ) : (
-        <ProductionEntityList
-          items={spreads}
-          onReorder={(orderedIds) =>
-            reorderStorybookSpreads(projectId, orderedIds)
-          }
-          onRename={(id, name) => renameStorybookSpread(projectId, id, name)}
-          onDelete={(id) => deleteStorybookSpread(projectId, id)}
-        />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {spreadItems.map((spread) => (
+            <ProductionUnitCard
+              key={spread.id}
+              href={storybookSpreadWorkspacePath(projectId, spread.id)}
+              indexLabel={`Spread ${spread.spreadNumber}`}
+              title={spread.name}
+              subtitle="Picture book spread"
+              meta="Two-page layout"
+              status={spread.status}
+            />
+          ))}
+        </div>
+      )}
+
+      {spreads.length > 0 && (
+        <details className="rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-3">
+          <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wider text-[var(--brand-text-secondary)]">
+            Reorder & manage spreads
+          </summary>
+          <div className="mt-3">
+            <ProductionEntityList
+              items={spreads.map((spread) => ({ id: spread.id, name: spread.name }))}
+              onReorder={(orderedIds) => reorderStorybookSpreads(projectId, orderedIds)}
+              onRename={(id, name) => renameStorybookSpread(projectId, id, name)}
+              onDelete={(id) => deleteStorybookSpread(projectId, id)}
+            />
+          </div>
+        </details>
       )}
     </div>
   );

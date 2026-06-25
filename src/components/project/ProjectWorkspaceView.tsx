@@ -5,15 +5,13 @@ import { NewStoryModal } from "@/app/dashboard/NewStoryModal";
 import { ProjectAssetsSection } from "@/components/project/ProjectAssetsSection";
 import { ProjectCharacterActions } from "@/components/project/ProjectCharacterActions";
 import { ProjectCharactersSection } from "@/components/project/ProjectCharactersSection";
-import { ProjectDeleteSection } from "@/components/project/ProjectDeleteSection";
 import { ProjectFormatGuide } from "@/components/project/ProjectFormatGuide";
 import { ProjectLocationsSection } from "@/components/project/ProjectLocationsSection";
-import { ProjectNotesSection } from "@/components/project/ProjectNotesSection";
 import { ProjectOrganizationsSection } from "@/components/project/ProjectOrganizationsSection";
 import { ProjectProductionSection } from "@/components/project/ProjectProductionSection";
 import { ProjectRelationshipsSection } from "@/components/project/ProjectRelationshipsSection";
-import { ProjectRoadmapSection } from "@/components/project/ProjectRoadmapSection";
 import { ProjectScenesSection } from "@/components/project/ProjectScenesSection";
+import { ProjectSettingsSection } from "@/components/project/ProjectSettingsSection";
 import { ProjectStoriesSection } from "@/components/project/ProjectStoriesSection";
 import { ProjectTimelineSection } from "@/components/project/ProjectTimelineSection";
 import { ProjectWhatsNext } from "@/components/project/ProjectWhatsNext";
@@ -218,6 +216,31 @@ export function ProjectWorkspaceView({
       </section>
 
       <section
+        id={PROJECT_SECTION_IDS.production}
+        className={`${studioSection} mb-8 scroll-mt-24`}
+      >
+        <div className="mb-4">
+          <h2 className={studioSectionLabel}>Production</h2>
+          <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
+            Turn your story into a finished book — pages, spreads, or manuscript
+            sections.
+          </p>
+        </div>
+        <ProjectProductionSection
+          projectId={project.id}
+          workIntent={project.work_intent}
+          productionData={productionData}
+          productionError={productionError}
+          stories={stories}
+          sceneRollup={sceneRollup}
+          characters={characters}
+          moodboardBundle={moodboardBundle}
+          primaryWorldId={primaryWorldId}
+          styleReferenceCount={progressCounts.styleReferenceCount}
+        />
+      </section>
+
+      <section
         id={PROJECT_SECTION_IDS.assets}
         className={`${studioSection} mb-8 scroll-mt-24`}
       >
@@ -250,44 +273,7 @@ export function ProjectWorkspaceView({
         <ProjectOrganizationsSection />
       </section>
 
-      <section
-        id={PROJECT_SECTION_IDS.production}
-        className={`${studioSection} mb-8 scroll-mt-24`}
-      >
-        <div className="mb-4">
-          <h2 className={studioSectionLabel}>Production</h2>
-          <p className="mt-1 text-xs text-[var(--brand-text-secondary)]">
-            Organize your story into format-specific production structures.
-          </p>
-        </div>
-        <ProjectProductionSection
-          projectId={project.id}
-          workIntent={project.work_intent}
-          productionData={productionData}
-          productionError={productionError}
-          stories={stories}
-          sceneRollup={sceneRollup}
-          characters={characters}
-          moodboardBundle={moodboardBundle}
-          primaryWorldId={primaryWorldId}
-          styleReferenceCount={progressCounts.styleReferenceCount}
-        />
-      </section>
-
-      <div className="rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 sm:px-5">
-        <ProjectRoadmapSection
-          id={PROJECT_SECTION_IDS.notes}
-          title="Notes"
-          defaultExpanded={Boolean(project.description)}
-          preview={project.description ? undefined : "Project description and notes."}
-        >
-          <ProjectNotesSection description={project.description} />
-          <ProjectDeleteSection
-            projectId={project.id}
-            projectTitle={project.title}
-          />
-        </ProjectRoadmapSection>
-      </div>
+      <ProjectSettingsSection projectId={project.id} projectTitle={project.title} />
     </div>
   );
 }

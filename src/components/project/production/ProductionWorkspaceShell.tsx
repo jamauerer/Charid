@@ -8,14 +8,19 @@ import type {
 } from "@/app/actions/projects";
 import type { ProductionData } from "@/app/actions/production/index";
 import { ComicArtDirectionPanel } from "@/components/project/production/comic/ComicArtDirectionPanel";
-import { ComicIssuesPanel } from "@/components/project/production/comic/ComicIssuesPanel";
-import { NovelPartsPanel } from "@/components/project/production/novel/NovelPartsPanel";
+import { ComicPagesPanel } from "@/components/project/production/comic/ComicPagesPanel";
+import { NovelChaptersPanel } from "@/components/project/production/novel/NovelChaptersPanel";
 import { ProductionOverviewPanel } from "@/components/project/production/ProductionOverviewPanel";
 import { ProductionPlaceholderPanel } from "@/components/project/production/ProductionPlaceholderPanel";
-import { ScreenplayActsPanel } from "@/components/project/production/screenplay/ScreenplayActsPanel";
+import { ScreenplayBeatsPanel } from "@/components/project/production/screenplay/ScreenplayBeatsPanel";
 import { StorybookSettingsForm } from "@/components/project/production/storybook/StorybookSettingsForm";
 import { StorybookSpreadsPanel } from "@/components/project/production/storybook/StorybookSpreadsPanel";
 import {
+  formatProductionStructureSummary,
+  isProductionStructureEmpty,
+} from "@/lib/production-structure";
+import {
+  getPrimaryStructureTab,
   getProductionTabs,
   type ProductionTabId,
 } from "@/lib/production-navigation";
@@ -38,43 +43,18 @@ type ProductionWorkspaceShellProps = {
   migrationError?: string;
 };
 
-function structureSummary(data: ProductionData): string | undefined {
-  if (!data) return undefined;
-
-  switch (data.kind) {
-    case "novel": {
-      const partCount = data.parts.length;
-      const chapterCount = data.parts.reduce(
-        (sum, part) => sum + part.chapters.length,
-        0
-      );
-      return `${partCount} part${partCount === 1 ? "" : "s"} · ${chapterCount} chapter${chapterCount === 1 ? "" : "s"}`;
-    }
-    case "comic": {
-      const issueCount = data.issues.length;
-      const pageCount = data.issues.reduce((sum, i) => sum + i.pages.length, 0);
-      const panelCount = data.issues.reduce(
-        (sum, i) => sum + i.pages.reduce((pSum, p) => pSum + p.panels.length, 0),
-        0
-      );
-      return `${issueCount} issue${issueCount === 1 ? "" : "s"} · ${pageCount} page${pageCount === 1 ? "" : "s"} · ${panelCount} panel${panelCount === 1 ? "" : "s"}`;
-    }
-    case "picture_book": {
-      const spreadCount = data.spreads.length;
-      return `${spreadCount} spread${spreadCount === 1 ? "" : "s"}`;
-    }
-    case "screenplay": {
-      const actCount = data.acts.length;
-      const beatCount = data.acts.reduce((sum, act) => sum + act.beats.length, 0);
-      return `${actCount} act${actCount === 1 ? "" : "s"} · ${beatCount} beat${beatCount === 1 ? "" : "s"}`;
-    }
-    default:
-      return undefined;
-  }
-}
-
 function productLabel(workIntent: ProjectWorkIntent): string {
   return PROJECT_WORK_INTENT_LABELS[workIntent].toLowerCase();
+}
+
+function resolveInitialTab(
+  workIntent: ProjectWorkIntent,
+  productionData: ProductionData
+): ProductionTabId {
+  if (isProductionStructureEmpty(productionData)) {
+    return getPrimaryStructureTab(workIntent);
+  }
+  return "overview";
 }
 
 export function ProductionWorkspaceShell({
@@ -90,14 +70,21 @@ export function ProductionWorkspaceShell({
   migrationError,
 }: ProductionWorkspaceShellProps) {
   const tabs = getProductionTabs(workIntent);
-  const [activeTab, setActiveTab] = useState<ProductionTabId>("overview");
+  const structureEmpty = isProductionStructureEmpty(productionData);
+  const [activeTab, setActiveTab] = useState<ProductionTabId>(() =>
+    resolveInitialTab(workIntent, productionData)
+  );
 
   if (!productionData) {
     return null;
   }
 
-  const summary = structureSummary(productionData);
+  const summary = formatProductionStructureSummary(productionData);
   const label = productLabel(workIntent);
+
+  function navigateToTab(tabId: ProductionTabId) {
+    setActiveTab(tabId);
+  }
 
   return (
     <div className="space-y-5">
@@ -117,13 +104,18 @@ export function ProductionWorkspaceShell({
               <button
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`inline-flex shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
                   activeTab === tab.id
                     ? "bg-[var(--brand-surface-elevated)] text-[var(--foreground)]"
                     : "text-[var(--brand-text-secondary)] hover:bg-[var(--brand-surface)] hover:text-[var(--foreground)]"
                 }`}
               >
                 {tab.label}
+                {tab.comingSoon && (
+                  <span className="rounded bg-[var(--brand-surface)] px-1 py-0.5 text-[10px] font-normal uppercase tracking-wide text-[var(--brand-text-muted)]">
+                    Soon
+                  </span>
+                )}
               </button>
             </li>
           ))}
@@ -137,15 +129,17 @@ export function ProductionWorkspaceShell({
           sceneRollup={sceneRollup}
           characters={characters}
           structureSummary={summary}
+          structureEmpty={structureEmpty}
+          onNavigateToTab={navigateToTab}
         />
       )}
 
       {activeTab === "parts" && productionData.kind === "novel" && (
-        <NovelPartsPanel projectId={projectId} parts={productionData.parts} />
+        <NovelChaptersPanel projectId={projectId} parts={productionData.parts} />
       )}
 
       {activeTab === "issues" && productionData.kind === "comic" && (
-        <ComicIssuesPanel projectId={projectId} issues={productionData.issues} />
+        <ComicPagesPanel projectId={projectId} issues={productionData.issues} />
       )}
 
       {activeTab === "art-direction" && productionData.kind === "comic" && (
@@ -173,7 +167,7 @@ export function ProductionWorkspaceShell({
       )}
 
       {activeTab === "acts" && productionData.kind === "screenplay" && (
-        <ScreenplayActsPanel projectId={projectId} acts={productionData.acts} />
+        <ScreenplayBeatsPanel projectId={projectId} acts={productionData.acts} />
       )}
 
       {activeTab === "compile" && (

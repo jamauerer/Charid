@@ -2,6 +2,7 @@ import type { ProjectWorkIntent } from "@/types/project";
 import type { StoryProjectType } from "@/types/story";
 import { CREATOR_STORY } from "@/lib/creator-vocabulary";
 import { PROJECT_SECTION_IDS } from "@/lib/project-tabs";
+import { isProductionWorkIntent } from "@/lib/production-navigation";
 
 export type ProjectFinishStepId =
   | "first_story"
@@ -78,6 +79,27 @@ function needIdeasHint(story: ProjectStoryProgress): ProjectFinishPathHint {
     label: CREATOR_STORY.needSceneIdeasLabel,
     href: `/dashboard/worlds/${story.worldId}/stories/${story.id}#story-scene-suggestions`,
   };
+}
+
+function productionSetupHint(): ProjectFinishPathHint {
+  return {
+    label: "Set up production",
+    hash: PROJECT_SECTION_IDS.production,
+  };
+}
+
+function withProductionHint(
+  workIntent: ProjectWorkIntent | null,
+  hints: ProjectFinishPathHint[],
+  sceneCount: number
+): ProjectFinishPathHint[] {
+  if (!isProductionWorkIntent(workIntent) || sceneCount < 1) {
+    return hints;
+  }
+  if (hints.some((hint) => hint.hash === PROJECT_SECTION_IDS.production)) {
+    return hints;
+  }
+  return [...hints, productionSetupHint()];
 }
 
 function buildChecklist(input: {
@@ -212,7 +234,11 @@ export function resolveProjectFinishPath(input: {
         href: `/dashboard/worlds/${continueStory.worldId}/stories/${continueStory.id}`,
         label: `Continue ${continueStory.title}`,
       },
-      hints: [needIdeasHint(continueStory)],
+      hints: withProductionHint(
+        input.workIntent,
+        [needIdeasHint(continueStory)],
+        input.sceneCount
+      ),
       checklist,
     };
   }
@@ -225,7 +251,7 @@ export function resolveProjectFinishPath(input: {
         hash: PROJECT_SECTION_IDS.styleReferences,
         label: "Add style references",
       },
-      hints: [],
+      hints: withProductionHint(input.workIntent, [], input.sceneCount),
       checklist,
     };
   }
@@ -237,7 +263,7 @@ export function resolveProjectFinishPath(input: {
       hash: PROJECT_SECTION_IDS.story,
       label: "Review your stories",
     },
-    hints: [],
+    hints: withProductionHint(input.workIntent, [], input.sceneCount),
     checklist,
   };
 }

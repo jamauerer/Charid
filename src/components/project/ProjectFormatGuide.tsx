@@ -15,22 +15,22 @@ function guideForWorkIntent(workIntent: ProjectWorkIntent | null): GuideContent 
     case "novel":
       return {
         title: "How this novel project works",
-        body: "Start with a story and scenes. Characters and style references keep everything consistent as you write.",
+        body: "Start with a story and scenes. When you're ready, open Production → Manuscript to organize your novel structure.",
       };
     case "comic":
       return {
         title: "How this graphic novel project works",
-        body: "Set your style references early, then build scenes beat by beat. Pages and panels come later.",
+        body: "Build your story and scenes first, then open Production → Pages to lay out pages and panels for your comic.",
       };
     case "picture_book":
       return {
-        title: "How this illustrated project works",
-        body: "Set your style references early, then build scenes beat by beat. Pages and panels come later.",
+        title: "How this picture book project works",
+        body: "Build your story and scenes first, then open Production → Spreads to lay out your picture book.",
       };
     case "screenplay":
       return {
         title: "How this screenplay project works",
-        body: "Scenes are the spine. Add characters and locations as they appear in your script.",
+        body: "Scenes are the spine. When you're ready, open Production → Beat Sheet to organize acts and beats.",
       };
     case "worldbuilding":
       return {

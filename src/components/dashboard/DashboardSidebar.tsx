@@ -42,6 +42,8 @@ export function DashboardSidebar({
   const isProjects =
     pathname === "/dashboard/projects" ||
     pathname.startsWith("/dashboard/projects/");
+  const isLibrary =
+    pathname === "/dashboard/library" || pathname.startsWith("/dashboard/library/");
   const isAdminSection = pathname.startsWith("/dashboard/admin");
   const isModerationSection = pathname.startsWith("/dashboard/admin/moderation");
 
@@ -86,6 +88,21 @@ export function DashboardSidebar({
           icon={
             <NavIcon>
               <path d="M2 4.25A2.25 2.25 0 0 1 4.25 2h3.027A2.25 2.25 0 0 1 9.25 3.5h1.5A2.25 2.25 0 0 1 13 5.75v9.5A2.25 2.25 0 0 1 10.75 17.5h-8.5A2.25 2.25 0 0 1 0 15.25V4.25Zm4.25-.75a.75.75 0 0 0-.75.75v12.5c0 .414.336.75.75.75h8.5a.75.75 0 0 0 .75-.75v-9.5a.75.75 0 0 0-.75-.75h-1.5a.75.75 0 0 1-.707-.473L9.22 4.72A.75.75 0 0 0 8.5 4.25H6.25Z" />
+            </NavIcon>
+          }
+        />
+        <DashboardNavItem
+          href="/dashboard/library"
+          label="Library"
+          active={isLibrary}
+          onNavigate={onNavigate}
+          icon={
+            <NavIcon>
+              <path
+                fillRule="evenodd"
+                d="M3.5 2A1.5 1.5 0 0 0 2 3.5v13A1.5 1.5 0 0 0 3.5 18h13a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 16.5 2h-13Zm1.25 5.75a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5H5.5a.75.75 0 0 1-.75-.75Zm0 3.5a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5H5.5a.75.75 0 0 1-.75-.75Zm0 3.5a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5H5.5a.75.75 0 0 1-.75-.75Z"
+                clipRule="evenodd"
+              />
             </NavIcon>
           }
         />

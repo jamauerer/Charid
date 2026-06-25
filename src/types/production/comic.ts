@@ -19,6 +19,12 @@ export type ComicPanel = {
   page_id: string;
   name: string;
   sort_order: number;
+  surface_id: string | null;
+  frame_x: number;
+  frame_y: number;
+  frame_width: number | null;
+  frame_height: number | null;
+  frame_rotation: number;
   created_at: string;
 };
 
@@ -59,6 +65,12 @@ export type ComicPanelRow = {
   page_id: string;
   name: string;
   sort_order?: number;
+  surface_id?: string | null;
+  frame_x?: number | null;
+  frame_y?: number | null;
+  frame_width?: number | null;
+  frame_height?: number | null;
+  frame_rotation?: number | null;
   created_at: string;
 };
 
@@ -96,6 +108,12 @@ export function normalizeComicPanel(row: ComicPanelRow): ComicPanel {
     page_id: row.page_id,
     name: row.name,
     sort_order: row.sort_order ?? 0,
+    surface_id: row.surface_id ?? null,
+    frame_x: Number(row.frame_x ?? 0),
+    frame_y: Number(row.frame_y ?? 0),
+    frame_width: row.frame_width != null ? Number(row.frame_width) : null,
+    frame_height: row.frame_height != null ? Number(row.frame_height) : null,
+    frame_rotation: Number(row.frame_rotation ?? 0),
     created_at: row.created_at,
   };
 }

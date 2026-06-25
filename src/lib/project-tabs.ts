@@ -29,9 +29,10 @@ export const PROJECT_WORKSPACE_SECTIONS = [
   { id: "stories", sectionId: "project-stories", label: "Stories" },
   { id: "scenes", sectionId: "project-scenes", label: "Scenes" },
   { id: "timeline", sectionId: "project-timeline", label: "Timeline" },
+  { id: "production", sectionId: "project-production", label: "Production" },
   { id: "assets", sectionId: "project-assets", label: "Assets" },
   { id: "organizations", sectionId: "project-organizations", label: "Organizations" },
-  { id: "production", sectionId: "project-production", label: "Production" },
+  { id: "settings", sectionId: "project-settings", label: "Settings" },
 ] as const;
 
 export type ProjectWorkspaceSection =
@@ -66,7 +67,7 @@ export const PROJECT_SECTION_IDS = {
   production: "project-production",
   setting: "project-setting",
   connections: "project-connections",
-  notes: "project-notes",
+  settings: "project-settings",
 } as const;
 
 /** Maps legacy ?tab= query values to section hashes for deep-link compatibility. */

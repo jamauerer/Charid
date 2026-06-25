@@ -1,3 +1,4 @@
+import { PROJECT_SECTION_IDS } from "@/lib/project-tabs";
 import type { ProjectWorkIntent } from "@/types/project";
 
 export type ProductionTabId =
@@ -14,6 +15,7 @@ export type ProductionTabId =
 export type ProductionTab = {
   id: ProductionTabId;
   label: string;
+  comingSoon?: boolean;
 };
 
 export const PRODUCTION_TABS_BY_INTENT: Partial<
@@ -21,64 +23,64 @@ export const PRODUCTION_TABS_BY_INTENT: Partial<
 > = {
   novel: [
     { id: "overview", label: "Overview" },
-    { id: "parts", label: "Parts" },
-    { id: "compile", label: "Compile" },
-    { id: "download", label: "Download" },
+    { id: "parts", label: "Manuscript" },
+    { id: "compile", label: "Compile", comingSoon: true },
+    { id: "download", label: "Download", comingSoon: true },
   ],
   comic: [
     { id: "overview", label: "Overview" },
-    { id: "issues", label: "Issues" },
+    { id: "issues", label: "Pages" },
     { id: "art-direction", label: "Art Direction" },
-    { id: "compile", label: "Compile" },
-    { id: "download", label: "Download" },
+    { id: "compile", label: "Compile", comingSoon: true },
+    { id: "download", label: "Download", comingSoon: true },
   ],
   picture_book: [
     { id: "overview", label: "Overview" },
-    { id: "book-settings", label: "Book Settings" },
     { id: "spreads", label: "Spreads" },
-    { id: "compile", label: "Compile" },
-    { id: "download", label: "Download" },
+    { id: "book-settings", label: "Book Settings" },
+    { id: "compile", label: "Compile", comingSoon: true },
+    { id: "download", label: "Download", comingSoon: true },
   ],
   screenplay: [
     { id: "overview", label: "Overview" },
-    { id: "acts", label: "Acts" },
-    { id: "compile", label: "Compile" },
-    { id: "download", label: "Download" },
+    { id: "acts", label: "Beat Sheet" },
+    { id: "compile", label: "Compile", comingSoon: true },
+    { id: "download", label: "Download", comingSoon: true },
   ],
 };
 
 export type ProductionPipelineStep = {
   label: string;
   muted?: boolean;
+  tabId?: ProductionTabId;
+  projectSectionId?: string;
 };
 
 export const PRODUCTION_PIPELINES: Partial<
   Record<ProjectWorkIntent, ProductionPipelineStep[]>
 > = {
   novel: [
-    { label: "Story" },
-    { label: "Parts" },
-    { label: "Chapters" },
-    { label: "Novel" },
+    { label: "Story", projectSectionId: PROJECT_SECTION_IDS.story },
+    { label: "Manuscript", tabId: "parts" },
+    { label: "Chapters", tabId: "parts" },
+    { label: "Novel", tabId: "compile", muted: true },
   ],
   comic: [
-    { label: "Story" },
-    { label: "Issue" },
-    { label: "Page" },
-    { label: "Panel" },
-    { label: "Graphic Novel" },
+    { label: "Story", projectSectionId: PROJECT_SECTION_IDS.story },
+    { label: "Pages", tabId: "issues" },
+    { label: "Art Direction", tabId: "art-direction" },
+    { label: "Graphic Novel", tabId: "compile", muted: true },
   ],
   picture_book: [
-    { label: "Story" },
-    { label: "Spreads" },
-    { label: "Illustrations", muted: true },
-    { label: "Storybook" },
+    { label: "Story", projectSectionId: PROJECT_SECTION_IDS.story },
+    { label: "Spreads", tabId: "spreads" },
+    { label: "Book Settings", tabId: "book-settings" },
+    { label: "Storybook", tabId: "compile", muted: true },
   ],
   screenplay: [
-    { label: "Story" },
-    { label: "Beat Sheet" },
-    { label: "Acts" },
-    { label: "Screenplay" },
+    { label: "Story", projectSectionId: PROJECT_SECTION_IDS.story },
+    { label: "Beat Sheet", tabId: "acts" },
+    { label: "Screenplay", tabId: "compile", muted: true },
   ],
 };
 
@@ -108,4 +110,47 @@ export function getProductionPipeline(
 ): ProductionPipelineStep[] {
   if (!workIntent) return [];
   return PRODUCTION_PIPELINES[workIntent] ?? [];
+}
+
+export function getPrimaryStructureTab(
+  workIntent: ProjectWorkIntent
+): ProductionTabId {
+  switch (workIntent) {
+    case "comic":
+      return "issues";
+    case "picture_book":
+      return "spreads";
+    case "novel":
+      return "parts";
+    case "screenplay":
+      return "acts";
+    default:
+      return "overview";
+  }
+}
+
+export function getStartProductionCtaLabel(workIntent: ProjectWorkIntent): string {
+  switch (workIntent) {
+    case "comic":
+      return "Add your first page";
+    case "picture_book":
+      return "Add your first spread";
+    case "novel":
+      return "Start your manuscript";
+    case "screenplay":
+      return "Add your first beat";
+    default:
+      return "Get started";
+  }
+}
+
+export function isProductionWorkIntent(
+  workIntent: ProjectWorkIntent | null
+): workIntent is "novel" | "comic" | "picture_book" | "screenplay" {
+  return (
+    workIntent === "novel" ||
+    workIntent === "comic" ||
+    workIntent === "picture_book" ||
+    workIntent === "screenplay"
+  );
 }
