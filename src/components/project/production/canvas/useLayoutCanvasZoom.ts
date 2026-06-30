@@ -45,31 +45,35 @@ export type LayoutCanvasZoomState = {
 export function useLayoutCanvasZoom(
   storageKey: string,
   fitPageScale: number,
-  fitWidthScale: number
+  fitWidthScale: number,
+  options?: { alwaysStartFitPage?: boolean }
 ): LayoutCanvasZoomState {
+  const alwaysStartFitPage = options?.alwaysStartFitPage ?? false;
   const [zoomMode, setZoomModeState] = useState<CanvasZoomMode>("fit-page");
   const [customScale, setCustomScaleState] = useState(1);
   const [hydrated, setHydrated] = useState(false);
   const [reportedFitPage, setReportedFitPage] = useState(fitPageScale);
 
   useEffect(() => {
-    setReportedFitPage(fitPageScale);
-  }, [fitPageScale]);
-
-  useEffect(() => {
+    if (alwaysStartFitPage) {
+      setZoomModeState("fit-page");
+      setCustomScaleState(1);
+      setHydrated(true);
+      return;
+    }
     const stored = readStoredZoom(storageKey);
     if (stored) {
       setZoomModeState(stored.zoomMode);
       setCustomScaleState(stored.customScale);
     }
     setHydrated(true);
-  }, [storageKey]);
+  }, [alwaysStartFitPage, storageKey]);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || alwaysStartFitPage) return;
     const payload: StoredZoom = { zoomMode, customScale };
     sessionStorage.setItem(storageKey, JSON.stringify(payload));
-  }, [customScale, hydrated, storageKey, zoomMode]);
+  }, [alwaysStartFitPage, customScale, hydrated, storageKey, zoomMode]);
 
   const effectiveScale = !hydrated
     ? fitPageScale
@@ -109,7 +113,10 @@ export function useLayoutCanvasZoom(
   }, [customScale, fitWidthScale, reportedFitPage, setCustomZoom, zoomMode]);
 
   const setEffectiveScaleRef = useCallback((scale: number) => {
-    setReportedFitPage(scale);
+    setReportedFitPage((previous) => {
+      if (Math.abs(previous - scale) < 0.001) return previous;
+      return scale;
+    });
   }, []);
 
   return {

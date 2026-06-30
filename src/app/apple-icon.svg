@@ -1,17 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" fill="none" role="img" aria-label="CharID">
-  <rect width="180" height="180" rx="40" fill="#111111"/>
-<g aria-hidden="true" stroke="#4e7470" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M 90 90 L 76.151 106.74"/>
-    <path d="M 76.151 106.74 L 69.026 84.333"/>
-    <path d="M 90 90 L 57.49 81.216"/>
-    <path d="M 57.49 81.216 L 84.523 56.773"/>
-    <path d="M 90 90 L 82.497 44.48"/>
-    <path d="M 82.497 44.48 L 128.319 64.309"/>
-    <path d="M 90 90 L 138.952 57.18"/>
-    <path d="M 138.952 57.18 L 140.155 120.952"/>
-    <path d="M 90 90 L 151.272 127.813"/>
-    <path d="M 151.272 127.813 L 80.976 161.432"/>
-    <path d="M 82.613 148.472 L 90 90"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" role="img" aria-label="CharID">
+<g aria-hidden="true" stroke="#4e7470" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M 16 16 L 11.554 21.374"/>
+    <path d="M 11.554 21.374 L 11.225 10.915"/>
+    <path d="M 16 16 L 8.804 8.337"/>
+    <path d="M 8.804 8.337 L 24.504 9.821"/>
+    <path d="M 16 16 L 27.488 7.653"/>
+    <path d="M 27.488 7.653 L 22.841 28.444"/>
+    <path d="M 21.064 25.212 L 16 16"/>
   </g>
 </svg>

@@ -101,7 +101,7 @@ export function MissingPrimaryImageActions({
             primary
             title={
               generateEnabled
-                ? "Generate from your canon and references"
+                ? "Generate from your story references"
                 : comingSoonHint
             }
           />

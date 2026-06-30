@@ -7,6 +7,9 @@ type LayoutEditorKeyboardOptions = {
   enabled?: boolean;
   onDelete?: () => void;
   onEscape?: () => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  onDuplicate?: () => void;
 };
 
 export function useLayoutEditorKeyboard({
@@ -14,6 +17,9 @@ export function useLayoutEditorKeyboard({
   enabled = true,
   onDelete,
   onEscape,
+  onUndo,
+  onRedo,
+  onDuplicate,
 }: LayoutEditorKeyboardOptions) {
   useEffect(() => {
     if (!enabled) return;
@@ -30,6 +36,26 @@ export function useLayoutEditorKeyboard({
         return;
       }
 
+      const mod = event.metaKey || event.ctrlKey;
+
+      if (mod && event.key === "z" && !event.shiftKey) {
+        event.preventDefault();
+        onUndo?.();
+        return;
+      }
+
+      if (mod && (event.key === "y" || (event.key === "z" && event.shiftKey))) {
+        event.preventDefault();
+        onRedo?.();
+        return;
+      }
+
+      if (mod && event.key === "d") {
+        event.preventDefault();
+        onDuplicate?.();
+        return;
+      }
+
       if (event.key === "Escape") {
         onEscape?.();
         return;
@@ -42,5 +68,5 @@ export function useLayoutEditorKeyboard({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [enabled, onDelete, onEscape]);
+  }, [enabled, onDelete, onEscape, onUndo, onRedo, onDuplicate]);
 }

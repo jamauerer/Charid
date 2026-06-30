@@ -147,6 +147,9 @@ export function FounderDashboard({
           <Link href="/dashboard/admin/moderation" className={dsBtnGhost}>
             Moderation
           </Link>
+          <Link href="/dashboard/admin/ai" className={dsBtnGhost}>
+            Production AI
+          </Link>
         </nav>
       </header>
 

@@ -43,15 +43,24 @@ export function LayoutCanvasStage({
   const viewportRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
+  const reportFitPageScaleRef = useRef(zoom.setEffectiveScaleRef);
+
+  useEffect(() => {
+    reportFitPageScaleRef.current = zoom.setEffectiveScaleRef;
+  }, [zoom.setEffectiveScaleRef]);
 
   useEffect(() => {
     const element = viewportRef.current;
     if (!element) return;
 
     function measure() {
-      setViewportSize({
-        width: element?.clientWidth ?? 0,
-        height: element?.clientHeight ?? 0,
+      const nextWidth = element?.clientWidth ?? 0;
+      const nextHeight = element?.clientHeight ?? 0;
+      setViewportSize((previous) => {
+        if (previous.width === nextWidth && previous.height === nextHeight) {
+          return previous;
+        }
+        return { width: nextWidth, height: nextHeight };
       });
     }
 
@@ -86,8 +95,8 @@ export function LayoutCanvasStage({
       : 1;
 
   useEffect(() => {
-    zoom.setEffectiveScaleRef(fitPageScale);
-  }, [fitPageScale, zoom]);
+    reportFitPageScaleRef.current(fitPageScale);
+  }, [fitPageScale, width, height]);
 
   const effectiveScale =
     !zoom.hydrated
@@ -130,31 +139,50 @@ export function LayoutCanvasStage({
   return (
     <div className={shellClass}>
       {showZoomBar && (
-        <div className="flex flex-wrap items-center gap-1 border-b border-[var(--production-canvas-border)] bg-[var(--production-canvas-chrome)] px-2 py-1.5">
-          <ZoomBarButton
-            active={zoom.zoomMode === "fit-page"}
-            onClick={() => zoom.setZoomMode("fit-page")}
-            title="Fit entire page in view"
-          >
-            Fit Page
-          </ZoomBarButton>
-          <ZoomBarButton
-            active={zoom.zoomMode === "fit-width"}
-            onClick={() => zoom.setZoomMode("fit-width")}
-            title="Fit page width"
-          >
-            Fit Width
-          </ZoomBarButton>
-          <span className="mx-1 h-4 w-px bg-[var(--production-canvas-border)]" aria-hidden />
+        <div
+          className={
+            studioMode
+              ? "charid-editor-zoom-bar"
+              : "flex flex-wrap items-center gap-1 border-b border-[var(--production-canvas-border)] bg-[var(--production-canvas-chrome)] px-2 py-1.5"
+          }
+        >
+          {!studioMode && (
+            <>
+              <ZoomBarButton
+                active={zoom.zoomMode === "fit-page"}
+                onClick={() => zoom.setZoomMode("fit-page")}
+                title="Fit entire page in view"
+              >
+                Fit Page
+              </ZoomBarButton>
+              <ZoomBarButton
+                active={zoom.zoomMode === "fit-width"}
+                onClick={() => zoom.setZoomMode("fit-width")}
+                title="Fit page width"
+              >
+                Fit Width
+              </ZoomBarButton>
+              <span className="mx-1 h-4 w-px bg-[var(--production-canvas-border)]" aria-hidden />
+            </>
+          )}
           <ZoomBarButton onClick={zoom.zoomOut} title="Zoom out">
             −
           </ZoomBarButton>
-          <span className="min-w-[3rem] text-center text-xs tabular-nums text-[var(--production-canvas-text)]">
+          <span className={studioMode ? "charid-editor-zoom-val" : "min-w-[3rem] text-center text-xs tabular-nums text-[var(--production-canvas-text)]"}>
             {Math.round(effectiveScale * 100)}%
           </span>
           <ZoomBarButton onClick={zoom.zoomIn} title="Zoom in">
             +
           </ZoomBarButton>
+          {studioMode && (
+            <button
+              type="button"
+              className="charid-editor-zoom-fit"
+              onClick={() => zoom.setZoomMode("fit-page")}
+            >
+              Fit page
+            </button>
+          )}
         </div>
       )}
       <div

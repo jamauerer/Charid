@@ -8,6 +8,7 @@ import type {
 } from "@/app/actions/projects";
 import type { PageLayoutTemplateId } from "@/lib/canvas/page-layout-templates";
 import type { PanelBorderStyle } from "@/lib/canvas/page-layout-surface";
+import type { PanelResizeMode } from "@/lib/canvas/panel-resize-mode";
 import type { StudioEditorMode } from "@/components/project/production/studio/production-studio-editor";
 import type { ComicPanel } from "@/types/production/comic";
 
@@ -36,6 +37,7 @@ export type ComicPageEditorShellProps = {
   panels: ComicPanel[];
   templateId: PageLayoutTemplateId | null;
   panelBorderStyle: PanelBorderStyle;
+  panelResizeMode: PanelResizeMode;
   editorMode?: StudioEditorMode;
   reading: {
     currentIndex: number;

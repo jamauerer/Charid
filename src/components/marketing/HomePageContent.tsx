@@ -14,22 +14,22 @@ const PIPELINE = [
   "Idea",
   "Story",
   "Scene",
-  "Graphic Novel",
+  "CharID Studio",
   "Publish",
 ] as const;
 
 const AI_COLLAB = [
   {
-    title: "Suggest scenes",
-    body: "Ideas to review — you choose what enters your story.",
+    title: "Analyze stories",
+    body: "AI proposes page counts, pacing, and scene allocation — you approve before pages exist.",
   },
   {
-    title: "Suggest chapters",
-    body: "Outline beats without auto-writing your canon.",
+    title: "Plan panels",
+    body: "Camera angles, composition, and dialogue suggestions become editable data in CharID Studio.",
   },
   {
-    title: "Generate covers",
-    body: "Visual directions you approve before they go live.",
+    title: "Generate Comic",
+    body: "Choose story, art style, and model — review the full plan, then open CharID Studio.",
   },
 ] as const;
 
@@ -44,8 +44,8 @@ export function HomePageContent() {
             A place where stories begin.
           </h1>
           <p className={`mt-3 max-w-xl ${studioMarketingBody}`}>
-            Characters, worlds, scenes, graphic novels, and books — with an AI partner
-            that helps turn ideas into finished work you own.
+            Characters, worlds, scenes, and CharID Studio — with an AI partner that analyzes stories,
+            plans comic pages, and helps you turn ideas into finished work you own.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Link href="/signup" className={studioBtnPrimary}>
@@ -103,9 +103,10 @@ export function HomePageContent() {
             </p>
           </div>
           <div>
-            <p className={studioEyebrow}>Stories</p>
+            <p className={studioEyebrow}>CharID Studio</p>
             <p className="mt-1 text-sm text-[var(--brand-text-secondary)]">
-              Chapters and scenes connected to your cast and settings.
+              Plan pages and panels, arrange layouts, add dialogue — Generate Comic starts from your
+              story.
             </p>
           </div>
         </div>

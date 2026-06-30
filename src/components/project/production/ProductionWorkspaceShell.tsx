@@ -111,11 +111,6 @@ export function ProductionWorkspaceShell({
                 }`}
               >
                 {tab.label}
-                {tab.comingSoon && (
-                  <span className="rounded bg-[var(--brand-surface)] px-1 py-0.5 text-[10px] font-normal uppercase tracking-wide text-[var(--brand-text-muted)]">
-                    Soon
-                  </span>
-                )}
               </button>
             </li>
           ))}
@@ -124,10 +119,12 @@ export function ProductionWorkspaceShell({
 
       {activeTab === "overview" && (
         <ProductionOverviewPanel
+          projectId={projectId}
           workIntent={workIntent}
           stories={stories}
           sceneRollup={sceneRollup}
           characters={characters}
+          comicIssues={productionData.kind === "comic" ? productionData.issues : undefined}
           structureSummary={summary}
           structureEmpty={structureEmpty}
           onNavigateToTab={navigateToTab}
@@ -139,7 +136,11 @@ export function ProductionWorkspaceShell({
       )}
 
       {activeTab === "issues" && productionData.kind === "comic" && (
-        <ComicPagesPanel projectId={projectId} issues={productionData.issues} />
+        <ComicPagesPanel
+          projectId={projectId}
+          issues={productionData.issues}
+          stories={stories}
+        />
       )}
 
       {activeTab === "art-direction" && productionData.kind === "comic" && (

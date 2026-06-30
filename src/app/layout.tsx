@@ -19,12 +19,9 @@ export const metadata: Metadata = {
   description:
     "Create characters, worlds, scenes, graphic novels, and books with an AI creative partner that helps turn ideas into finished work.",
   icons: {
-    icon: [
-      { url: "/brand/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon.ico", sizes: "32x32" },
-    ],
-    shortcut: "/favicon.ico",
-    apple: [{ url: "/apple-icon.svg", type: "image/svg+xml" }],
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    shortcut: "/favicon.svg",
+    apple: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },
 };
 

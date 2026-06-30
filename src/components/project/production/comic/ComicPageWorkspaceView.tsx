@@ -13,6 +13,7 @@ import {
 import { comicPageEditorPath } from "@/lib/production-routes";
 import type { PageLayoutTemplateId } from "@/lib/canvas/page-layout-templates";
 import type { PanelBorderStyle } from "@/lib/canvas/page-layout-surface";
+import type { PanelResizeMode } from "@/lib/canvas/panel-resize-mode";
 import type { ComicIssueWithPages } from "@/types/production/comic";
 
 type ComicPageWorkspaceViewProps = {
@@ -20,6 +21,7 @@ type ComicPageWorkspaceViewProps = {
   data: ComicPageWorkspaceData;
   templateId: PageLayoutTemplateId | null;
   panelBorderStyle: PanelBorderStyle;
+  panelResizeMode: PanelResizeMode;
   stories: ProjectStoryEntry[];
   sceneRollup: ProjectSceneRollupEntry[];
   characters: ProjectCharacterEntry[];
@@ -32,6 +34,7 @@ export function ComicPageWorkspaceView({
   data,
   templateId,
   panelBorderStyle,
+  panelResizeMode,
   stories,
   sceneRollup,
   characters,
@@ -69,6 +72,7 @@ export function ComicPageWorkspaceView({
       panels={page.panels}
       templateId={templateId}
       panelBorderStyle={panelBorderStyle}
+      panelResizeMode={panelResizeMode}
       editorMode={editorMode}
       reading={{
         currentIndex: reading.currentIndex,

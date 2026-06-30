@@ -19,8 +19,8 @@ export const CREDIT_LEDGER_REASON_LABELS: Record<CreditLedgerReason, string> = {
 /** Target monthly credits by subscription plan (allocation automation deferred). */
 export const PLAN_MONTHLY_CREDITS: Record<SubscriptionPlan, number> = {
   free: 0,
-  basic: 500,
-  pro: 1500,
+  basic: 100,
+  pro: 200,
 };
 
 export type CreditAccountRow = {
@@ -60,6 +60,10 @@ export type AvailableCredits = {
 export const AI_CREDIT_COSTS = {
   scene_suggestion: 1,
   regenerate_scene_suggestion: 1,
+  story_analysis: 2,
+  comic_page_planning: 3,
+  panel_planning: 1,
+  generate_comic_plan: 5,
 } as const;
 
 export type AiCreditAction = keyof typeof AI_CREDIT_COSTS;

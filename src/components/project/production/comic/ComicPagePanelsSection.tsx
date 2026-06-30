@@ -44,7 +44,7 @@ export function ComicPagePanelsSection({
 
   return (
     <ProductionPlaceholderSection
-      title="Panels"
+      title="Panel Layouts"
       description="Select a panel to highlight it on the page. Reorder, rename, or remove panels here."
     >
       <div className={pending ? "opacity-80" : undefined}>

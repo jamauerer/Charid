@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import type { ProjectStoryEntry } from "@/app/actions/projects";
 import {
   createComicIssue,
   createComicPage,
@@ -12,6 +13,7 @@ import {
   reorderComicIssues,
   reorderComicPages,
 } from "@/app/actions/production/comic";
+import { GenerateComicWizard } from "@/components/project/production/comic/GenerateComicWizard";
 import { ProductionEntityList } from "@/components/project/production/ProductionEntityList";
 import { ProductionUnitCard } from "@/components/project/production/ProductionUnitCard";
 import { StudioEmptyState } from "@/components/studio/StudioEmptyState";
@@ -26,11 +28,13 @@ import type { ComicIssueWithPages } from "@/types/production/comic";
 type ComicPagesPanelProps = {
   projectId: string;
   issues: ComicIssueWithPages[];
+  stories: ProjectStoryEntry[];
 };
 
-export function ComicPagesPanel({ projectId, issues }: ComicPagesPanelProps) {
+export function ComicPagesPanel({ projectId, issues, stories }: ComicPagesPanelProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [wizardOpen, setWizardOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const groups = groupComicPagesByIssue(issues);
   const hasPages = groups.some((group) => group.pages.length > 0);
@@ -54,24 +58,43 @@ export function ComicPagesPanel({ projectId, issues }: ComicPagesPanelProps) {
         {error && <ErrorBanner message={error} />}
         <StudioEmptyState
           headline="No pages yet"
-          description="Start your graphic novel by adding your first page."
+          description="Start your graphic novel manually or generate a plan from a story."
         />
-        <button
-          type="button"
-          onClick={() =>
-            runAction(async () => {
-              const issueResult = await createComicIssue(projectId);
-              if (issueResult.error || !issueResult.issue) {
-                return { error: issueResult.error ?? "Failed to create page." };
-              }
-              return createComicPage(projectId, issueResult.issue.id);
-            })
-          }
-          disabled={pending}
-          className={studioBtnPrimarySm}
-        >
-          Add first page
-        </button>
+        <div className="flex flex-wrap gap-2">
+          {stories.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setWizardOpen(true)}
+              disabled={pending}
+              className={studioBtnPrimarySm}
+            >
+              Generate Comic
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() =>
+              runAction(async () => {
+                const issueResult = await createComicIssue(projectId);
+                if (issueResult.error || !issueResult.issue) {
+                  return { error: issueResult.error ?? "Failed to create page." };
+                }
+                return createComicPage(projectId, issueResult.issue.id);
+              })
+            }
+            disabled={pending}
+            className="rounded-lg border border-[var(--brand-border)] px-3 py-1.5 text-xs font-medium"
+          >
+            Add first page
+          </button>
+        </div>
+        {wizardOpen && stories.length > 0 && (
+          <GenerateComicWizard
+            projectId={projectId}
+            stories={stories}
+            onClose={() => setWizardOpen(false)}
+          />
+        )}
       </div>
     );
   }
@@ -86,6 +109,16 @@ export function ComicPagesPanel({ projectId, issues }: ComicPagesPanelProps) {
           order.
         </p>
         <div className="flex flex-wrap gap-2">
+          {stories.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setWizardOpen(true)}
+              disabled={pending}
+              className={studioBtnPrimarySm}
+            >
+              Generate Comic
+            </button>
+          )}
           <button
             type="button"
             onClick={() => runAction(() => createComicIssue(projectId))}
@@ -178,6 +211,14 @@ export function ComicPagesPanel({ projectId, issues }: ComicPagesPanelProps) {
             />
           </div>
         </details>
+      )}
+
+      {wizardOpen && stories.length > 0 && (
+        <GenerateComicWizard
+          projectId={projectId}
+          stories={stories}
+          onClose={() => setWizardOpen(false)}
+        />
       )}
     </div>
   );

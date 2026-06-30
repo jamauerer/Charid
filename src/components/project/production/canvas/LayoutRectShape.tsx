@@ -23,16 +23,22 @@ type LayoutRectShapeProps = {
   item: LayoutRectItem;
   selected: boolean;
   borderStyle?: PanelBorderStyle;
-  onSelect: () => void;
+  resizeMode?: "linked" | "independent" | "freeform";
+  interactive?: boolean;
+  onSelect: (additive?: boolean) => void;
   onChange: (next: Pick<LayoutRectItem, "x" | "y" | "width" | "height">) => void;
+  onInteractionEnd?: () => void;
 };
 
 export function LayoutRectShape({
   item,
   selected,
   borderStyle = "black",
+  resizeMode = "linked",
+  interactive = true,
   onSelect,
   onChange,
+  onInteractionEnd,
 }: LayoutRectShapeProps) {
   const groupRef = useRef<Konva.Group>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
@@ -94,24 +100,27 @@ export function LayoutRectShape({
         ref={groupRef}
         x={item.x}
         y={item.y}
-        draggable
+        draggable={interactive}
+        listening={interactive}
         onMouseEnter={(event) => {
+          if (!interactive) return;
           setHovered(true);
           const container = event.target.getStage()?.container();
           if (container) container.style.cursor = "move";
         }}
         onMouseLeave={(event) => {
+          if (!interactive) return;
           setHovered(false);
           const container = event.target.getStage()?.container();
           if (container) container.style.cursor = "default";
         }}
         onClick={(event) => {
           event.cancelBubble = true;
-          onSelect();
+          onSelect(event.evt.shiftKey);
         }}
         onTap={(event) => {
           event.cancelBubble = true;
-          onSelect();
+          onSelect(false);
         }}
         onDragStart={() => {
           isInteractingRef.current = true;
@@ -119,6 +128,7 @@ export function LayoutRectShape({
         onDragEnd={() => {
           isInteractingRef.current = false;
           commitGeometry();
+          onInteractionEnd?.();
         }}
         onTransformStart={() => {
           isInteractingRef.current = true;
@@ -129,6 +139,7 @@ export function LayoutRectShape({
         onTransformEnd={() => {
           isInteractingRef.current = false;
           commitGeometry();
+          onInteractionEnd?.();
         }}
       >
         <Rect
@@ -141,7 +152,10 @@ export function LayoutRectShape({
           cornerRadius={2}
           perfectDrawEnabled={false}
           shadowForStrokeEnabled={false}
-          hitStrokeWidth={12}
+          hitStrokeWidth={selected ? 14 : hovered ? 10 : 8}
+          shadowBlur={selected ? 6 : hovered ? 2 : 0}
+          shadowColor="rgba(99, 102, 241, 0.35)"
+          shadowOpacity={selected ? 0.6 : 0.25}
         />
         <Text
           text={item.label}
@@ -149,12 +163,12 @@ export function LayoutRectShape({
           y={8}
           width={Math.max(0, item.width - 16)}
           fontSize={13}
-          fill="#475569"
+          fill={resizeMode === "freeform" ? "#6366f1" : "#475569"}
           listening={false}
           perfectDrawEnabled={false}
         />
       </Group>
-      {selected && (
+      {selected && interactive && (
         <Transformer
           ref={transformerRef}
           rotateEnabled={false}

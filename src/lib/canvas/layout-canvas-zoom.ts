@@ -26,13 +26,15 @@ export function computeFitPageScale(
   documentHeight: number,
   padding = CANVAS_WORKSPACE_PADDING
 ): number {
-  if (containerWidth <= 0 || containerHeight <= 0) return 1;
+  if (containerWidth < 200 || containerHeight < 200) return 1;
   const scaleX = (containerWidth - padding * 2) / documentWidth;
   const scaleY = (containerHeight - padding * 2) / documentHeight;
-  return clampZoom(Math.min(scaleX, scaleY));
+  const raw = Math.min(scaleX, scaleY);
+  if (raw < 0.15) return 1;
+  return clampZoom(raw);
 }
 
-/** Studio fit: tighter padding so the page uses more of the canvas viewport. */
+/** Studio fit: entire page visible in viewport (same as fit-page). */
 export function computeStudioFitPageScale(
   containerWidth: number,
   containerHeight: number,
@@ -40,6 +42,7 @@ export function computeStudioFitPageScale(
   documentHeight: number,
   padding = CANVAS_STUDIO_PADDING
 ): number {
+  if (containerWidth < 200 || containerHeight < 200) return 1;
   return computeFitPageScale(
     containerWidth,
     containerHeight,

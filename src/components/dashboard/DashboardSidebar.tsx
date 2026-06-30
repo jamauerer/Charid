@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { CreateModal } from "@/components/dashboard/CreateModal";
 import { LogoutButton } from "@/components/LogoutButton";
 import { BrandLogoSlot } from "@/components/brand/BrandLogoSlot";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { DashboardNavItem } from "./DashboardNavItem";
+import { LIBRARY_SECTIONS } from "@/lib/library-routes";
 
 type DashboardSidebarProps = {
   userEmail: string;
@@ -37,8 +38,15 @@ export function DashboardSidebar({
   className = "",
 }: DashboardSidebarProps) {
   const pathname = usePathname();
+  const [libraryOpen, setLibraryOpen] = useState(
+    pathname === "/dashboard/library" || pathname.startsWith("/dashboard/library/")
+  );
 
   const isHome = pathname === "/dashboard";
+  const isStudio =
+    pathname === "/dashboard/editor" ||
+    pathname.includes("/studio/pages/") ||
+    pathname.includes("/production/pages/");
   const isProjects =
     pathname === "/dashboard/projects" ||
     pathname.startsWith("/dashboard/projects/");
@@ -46,6 +54,7 @@ export function DashboardSidebar({
     pathname === "/dashboard/library" || pathname.startsWith("/dashboard/library/");
   const isAdminSection = pathname.startsWith("/dashboard/admin");
   const isModerationSection = pathname.startsWith("/dashboard/admin/moderation");
+  const isAiAdminSection = pathname.startsWith("/dashboard/admin/ai");
 
   return (
     <aside
@@ -92,11 +101,30 @@ export function DashboardSidebar({
           }
         />
         <DashboardNavItem
-          href="/dashboard/library"
-          label="Library"
-          active={isLibrary}
+          href="/dashboard/editor"
+          label="CharID Studio"
+          active={isStudio}
           onNavigate={onNavigate}
           icon={
+            <NavIcon>
+              <path
+                fillRule="evenodd"
+                d="M4.25 2A2.25 2.25 0 0 0 2 4.25v11.5A2.25 2.25 0 0 0 4.25 18h11.5A2.25 2.25 0 0 0 18 15.75V4.25A2.25 2.25 0 0 0 15.75 2H4.25Zm2.5 3a.75.75 0 0 0 0 1.5h6.5a.75.75 0 0 0 0-1.5h-6.5Zm0 3.5a.75.75 0 0 0 0 1.5h6.5a.75.75 0 0 0 0-1.5h-6.5Zm0 3.5a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-4.5Z"
+                clipRule="evenodd"
+              />
+            </NavIcon>
+          }
+        />
+        <div>
+          <button
+            type="button"
+            onClick={() => setLibraryOpen((open) => !open)}
+            className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition ${
+              isLibrary
+                ? "bg-[var(--brand-surface-elevated)] font-medium text-[var(--foreground)]"
+                : "text-[var(--brand-text-secondary)] hover:bg-[var(--brand-surface-elevated)] hover:text-[var(--foreground)]"
+            }`}
+          >
             <NavIcon>
               <path
                 fillRule="evenodd"
@@ -104,8 +132,29 @@ export function DashboardSidebar({
                 clipRule="evenodd"
               />
             </NavIcon>
-          }
-        />
+            Library
+            <span className="ml-auto text-[10px] text-[var(--brand-text-muted)]">{libraryOpen ? "▾" : "▸"}</span>
+          </button>
+          {libraryOpen && (
+            <ul className="ml-6 mt-0.5 space-y-0.5 border-l border-[var(--brand-border)] pl-2">
+              {LIBRARY_SECTIONS.map((section) => (
+                <li key={section.id}>
+                  <Link
+                    href={section.href}
+                    onClick={onNavigate}
+                    className={`block rounded-md px-2 py-1 text-xs transition ${
+                      pathname === section.href || pathname.startsWith(`${section.href}/`)
+                        ? "bg-[var(--brand-surface-elevated)] font-medium text-[var(--foreground)]"
+                        : "text-[var(--brand-text-secondary)] hover:text-[var(--foreground)]"
+                    }`}
+                  >
+                    {section.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <div className="my-2 border-t border-[var(--brand-border)]" />
         <DashboardNavItem
           href="/dashboard/explore"
@@ -142,13 +191,28 @@ export function DashboardSidebar({
             <DashboardNavItem
               href="/dashboard/admin"
               label="Admin"
-              active={isAdminSection && !isModerationSection}
+              active={isAdminSection && !isModerationSection && !isAiAdminSection}
               onNavigate={onNavigate}
               icon={
                 <NavIcon>
                   <path
                     fillRule="evenodd"
                     d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1Zm3 8V5.5a3 3 0 1 0-6 0V9h6Z"
+                    clipRule="evenodd"
+                  />
+                </NavIcon>
+              }
+            />
+            <DashboardNavItem
+              href="/dashboard/admin/ai"
+              label="Production AI"
+              active={isAiAdminSection}
+              onNavigate={onNavigate}
+              icon={
+                <NavIcon>
+                  <path
+                    fillRule="evenodd"
+                    d="M10 2a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 10 2ZM5.05 4.05a.75.75 0 0 1 1.06 0l1.06 1.06a.75.75 0 0 1-1.06 1.06L5.05 5.11a.75.75 0 0 1 0-1.06ZM14.95 4.05a.75.75 0 0 1 0 1.06l-1.06 1.06a.75.75 0 0 1-1.06-1.06l1.06-1.06a.75.75 0 0 1 1.06 0ZM10 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM2.75 10a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5A.75.75 0 0 1 2.75 10ZM14.75 10a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM5.05 14.95a.75.75 0 0 1 1.06 0l1.06 1.06a.75.75 0 0 1-1.06 1.06L5.05 16.01a.75.75 0 0 1 0-1.06ZM14.95 14.95a.75.75 0 0 1 0 1.06l-1.06 1.06a.75.75 0 0 1-1.06-1.06l1.06-1.06a.75.75 0 0 1 1.06 0Z"
                     clipRule="evenodd"
                   />
                 </NavIcon>

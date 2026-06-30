@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { studioCardSurface } from "@/lib/visual-identity";
 
 type LibraryItemCardProps = {
@@ -17,8 +18,8 @@ type LibraryItemCardProps = {
 };
 
 /**
- * Reusable library card — prepared for future drag into studio editors.
- * Editing links out to existing workspaces; no inline editing here.
+ * Reusable library card — main title/media link is separate from footer links
+ * to avoid nested anchors.
  */
 export function LibraryItemCard({
   href,
@@ -45,7 +46,7 @@ export function LibraryItemCard({
       data-library-insertable="pending"
     >
       {actions}
-      <a href={href} className="block">
+      <Link href={href} className="block transition hover:opacity-90">
         {image && <div className="library-item-card-media">{image}</div>}
         <div className="px-2.5 py-2">
           <div className="flex items-start justify-between gap-2 pr-6">
@@ -57,10 +58,10 @@ export function LibraryItemCard({
               {subtitle}
             </p>
           )}
-          {relationships && <div className="mt-2">{relationships}</div>}
-          {footer && <div className="mt-2">{footer}</div>}
         </div>
-      </a>
+      </Link>
+      {relationships && <div className="px-2.5 pb-1">{relationships}</div>}
+      {footer && <div className="px-2.5 pb-2">{footer}</div>}
     </article>
   );
 }

@@ -1,5 +1,3 @@
-import { AmmoniteMark } from "@/components/brand/AmmoniteMark";
-
 type CharIDLogoProps = {
   variant?: "mark" | "full";
   size?: "sm" | "md" | "lg";
@@ -22,11 +20,8 @@ export function CharIDLogo({
   if (variant === "full") {
     return (
       <div className={`inline-flex flex-col items-center gap-3 ${className}`}>
-        <AmmoniteMark
-          variant="mark"
-          className="h-12 w-12 text-[var(--brand-accent)]"
-          title=""
-        />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.svg" alt="" aria-hidden width={48} height={48} className="h-12 w-12" />
         <span className="text-2xl font-bold tracking-tight text-[var(--foreground)]">
           CharID
         </span>
@@ -35,9 +30,14 @@ export function CharIDLogo({
   }
 
   return (
-    <AmmoniteMark
-      variant="mark"
-      className={`text-[var(--brand-accent)] ${className}`}
+    /* eslint-disable-next-line @next/next/no-img-element */
+    <img
+      src="/logo.svg"
+      alt=""
+      aria-hidden
+      width={px}
+      height={px}
+      className={className}
       style={{ width: px, height: px }}
     />
   );

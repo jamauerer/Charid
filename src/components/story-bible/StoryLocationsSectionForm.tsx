@@ -39,7 +39,7 @@ export function StoryLocationsSectionForm({
       <StorySectionGuide
         title="Locations"
         why="Where scenes unfold shapes mood, composition, and reference choices."
-        consistency="Key locations tie your story's canon to the world's geography and atmosphere."
+        consistency="Key locations tie your story to the world's geography and atmosphere."
         creativeImpact="Location notes help you assign scene references and mood boards with intent."
       />
 

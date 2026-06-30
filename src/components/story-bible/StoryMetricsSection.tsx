@@ -36,8 +36,8 @@ export function StoryMetricsSection({ scores }: StoryMetricsSectionProps) {
           Story metrics
         </h3>
         <p className="mt-1 text-sm text-[var(--brand-text-secondary)]">
-          How complete and consistent your story profile is across canon and
-          references.
+          How complete and consistent your story profile is across story
+          information and references.
         </p>
       </div>
 

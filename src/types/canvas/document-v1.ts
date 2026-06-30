@@ -39,6 +39,13 @@ export type TextPayloadV1 = {
   font_size: number;
   font_family: string;
   align: "left" | "center" | "right";
+  font_preset?: import("@/lib/canvas/comic-font-presets").ComicFontPreset;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  letter_spacing?: number;
+  line_height?: number;
+  fill_color?: string;
 };
 
 export type ShapePayloadV1 = {

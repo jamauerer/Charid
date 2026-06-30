@@ -60,6 +60,7 @@ export function LibraryContinueCreatingView({ items, error }: LibraryContinueCre
                 data-library-project-id={item.project?.id}
                 data-library-story-id={item.story?.id}
               >
+                <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center">
                 <Link
                   href={item.href}
                   className="flex min-w-0 flex-1 items-center gap-3 transition hover:opacity-90"
@@ -94,14 +95,15 @@ export function LibraryContinueCreatingView({ items, error }: LibraryContinueCre
                         {item.subtitle}
                       </p>
                     )}
-                    <div className="mt-1 flex flex-wrap items-center gap-2">
-                      <LibraryProjectLink project={item.project} />
-                      <span className="text-[10px] text-[var(--brand-text-muted)]">
-                        · Last worked on {formatLibraryDate(item.workedAt)}
-                      </span>
-                    </div>
                   </div>
                 </Link>
+                <div className="flex flex-wrap items-center gap-2 pl-[3.75rem] sm:pl-0">
+                  <LibraryProjectLink project={item.project} />
+                  <span className="text-[10px] text-[var(--brand-text-muted)]">
+                    · Last worked on {formatLibraryDate(item.workedAt)}
+                  </span>
+                </div>
+                </div>
                 <div className="shrink-0 sm:pl-0 pl-[3.75rem]">
                   <LibraryCardLinks
                     openHref={item.href}

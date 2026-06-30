@@ -22,7 +22,7 @@ export function StoryBibleRecommendations({
           Your story profile is in great shape.
         </p>
         <p className="mt-1 text-sm text-[var(--brand-text-secondary)]">
-          Keep refining references and canon notes as your story evolves.
+          Keep refining references and story notes as your story evolves.
         </p>
       </div>
     );

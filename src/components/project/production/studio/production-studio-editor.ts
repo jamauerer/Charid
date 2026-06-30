@@ -4,18 +4,17 @@ export type StudioEditorMode = "embedded" | "full";
 
 export type ComicEditorSelection =
   | { kind: "none" }
-  | { kind: "panel"; panelId: string }
-  | { kind: "speech"; objectId: string }
-  | { kind: "thought"; objectId: string }
-  | { kind: "image"; objectId: string };
+  | { kind: "panel"; panelIds: string[] }
+  | { kind: "text"; panelId: string; objectId: string }
+  | { kind: "artwork"; panelId: string };
 
 export type ComicEditorContextTool =
   | "panels"
   | "panel-properties"
+  | "text-tools"
   | "speech"
   | "thought"
   | "captions"
-  | "inspector"
   | "layers"
   | "image";
 
@@ -25,12 +24,10 @@ export function contextToolForSelection(
   switch (selection.kind) {
     case "panel":
       return "panel-properties";
-    case "speech":
-      return "speech";
-    case "thought":
-      return "thought";
-    case "image":
-      return "image";
+    case "text":
+      return selection.objectId ? "text-tools" : "panels";
+    case "artwork":
+      return "panel-properties";
     default:
       return "panels";
   }
@@ -41,14 +38,18 @@ export const COMIC_CONTEXT_TOOLS: {
   label: string;
   soon?: boolean;
 }[] = [
-  { id: "panels", label: "Panels" },
-  { id: "panel-properties", label: "Panel Properties" },
-  { id: "speech", label: "Speech", soon: true },
-  { id: "thought", label: "Thought", soon: true },
-  { id: "captions", label: "Captions", soon: true },
-  { id: "inspector", label: "Inspector", soon: true },
-  { id: "layers", label: "Layers", soon: true },
+  { id: "panels", label: "Panel Layouts" },
+  { id: "panel-properties", label: "Properties" },
+  { id: "text-tools", label: "Text" },
+  { id: "layers", label: "Layers" },
 ];
+
+export const TEXT_TOOL_KINDS = [
+  { id: "speech", label: "Speech bubble" },
+  { id: "thought", label: "Thought bubble" },
+  { id: "caption", label: "Caption" },
+  { id: "sfx", label: "Sound effect" },
+] as const;
 
 export const LIBRARY_PLACEHOLDER_SECTIONS = [
   "Characters",
@@ -57,3 +58,5 @@ export const LIBRARY_PLACEHOLDER_SECTIONS = [
   "Scenes",
   "Reference Images",
 ] as const;
+
+export const AI_PROMPT_RESERVED_CLASS = "production-ai-prompt-reserved";

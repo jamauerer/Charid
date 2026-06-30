@@ -1,6 +1,12 @@
 import { buildProductionSurfaceInsert } from "@/lib/canvas/build-surface-insert";
 import { formatCanvasError } from "@/lib/canvas/canvas-server";
+import {
+  DEFAULT_PANEL_RESIZE_MODE,
+  parsePanelResizeMode,
+  type PanelResizeMode,
+} from "@/lib/canvas/panel-resize-mode";
 import type { PageLayoutTemplateId } from "@/lib/canvas/page-layout-templates";
+import { normalizePageLayoutTemplateId } from "@/lib/canvas/page-layout-templates";
 import {
   normalizeProductionSurface,
   type ProductionSurface,
@@ -17,6 +23,7 @@ type PageLayoutMetadataPatch = {
   template_id?: PageLayoutTemplateId | null;
   template_applied_at?: string | null;
   panel_border_style?: PanelBorderStyle;
+  panel_resize_mode?: PanelResizeMode;
 };
 
 function pageMetadata(surface: ProductionSurface): Record<string, unknown> {
@@ -148,7 +155,9 @@ export function templateIdFromPageLayoutSurface(
 ): PageLayoutTemplateId | null {
   if (!surface) return null;
   const templateId = pageMetadata(surface).template_id;
-  return typeof templateId === "string" ? (templateId as PageLayoutTemplateId) : null;
+  return normalizePageLayoutTemplateId(
+    typeof templateId === "string" ? templateId : null
+  );
 }
 
 export function panelBorderStyleFromPageLayoutSurface(
@@ -158,4 +167,22 @@ export function panelBorderStyleFromPageLayoutSurface(
   const style = pageMetadata(surface).panel_border_style;
   if (style === "white" || style === "none") return style;
   return "black";
+}
+
+export function panelResizeModeFromPageLayoutSurface(
+  surface: ProductionSurface | null
+): PanelResizeMode {
+  if (!surface) return DEFAULT_PANEL_RESIZE_MODE;
+  return parsePanelResizeMode(pageMetadata(surface).panel_resize_mode);
+}
+
+export async function setPageLayoutPanelResizeMode(
+  supabase: ServerClient,
+  projectId: string,
+  pageId: string,
+  panelResizeMode: PanelResizeMode
+): Promise<{ error?: string }> {
+  return updatePageLayoutMetadata(supabase, projectId, pageId, {
+    panel_resize_mode: panelResizeMode,
+  });
 }

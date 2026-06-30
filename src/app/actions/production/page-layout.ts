@@ -6,11 +6,14 @@ import {
   ensurePageLayoutSurface,
   findPageLayoutSurface,
   panelBorderStyleFromPageLayoutSurface,
+  panelResizeModeFromPageLayoutSurface,
   setPageLayoutPanelBorderStyle,
+  setPageLayoutPanelResizeMode,
   setPageLayoutTemplateId,
   templateIdFromPageLayoutSurface,
   type PanelBorderStyle,
 } from "@/lib/canvas/page-layout-surface";
+import type { PanelResizeMode } from "@/lib/canvas/panel-resize-mode";
 import {
   getPageLayoutTemplate,
   newPanelFrame,
@@ -163,16 +166,29 @@ export async function getComicPageLayoutState(
   panels: ComicPanel[];
   templateId: PageLayoutTemplateId | null;
   panelBorderStyle: PanelBorderStyle;
+  panelResizeMode: PanelResizeMode;
   error?: string;
 }> {
   const supabase = await createClient();
   const check = await assertProductionProject(supabase, projectId, "comic");
   if (check.error) {
-    return { panels: [], templateId: null, panelBorderStyle: "black", error: check.error };
+    return {
+      panels: [],
+      templateId: null,
+      panelBorderStyle: "black",
+      panelResizeMode: "linked",
+      error: check.error,
+    };
   }
 
   if (!(await assertComicPageOwned(supabase, projectId, pageId))) {
-    return { panels: [], templateId: null, panelBorderStyle: "black", error: "Page not found." };
+    return {
+      panels: [],
+      templateId: null,
+      panelBorderStyle: "black",
+      panelResizeMode: "linked",
+      error: "Page not found.",
+    };
   }
 
   const panels = await getPagePanels(supabase, pageId);
@@ -182,6 +198,7 @@ export async function getComicPageLayoutState(
     panels,
     templateId: templateIdFromPageLayoutSurface(layoutSurface),
     panelBorderStyle: panelBorderStyleFromPageLayoutSurface(layoutSurface),
+    panelResizeMode: panelResizeModeFromPageLayoutSurface(layoutSurface),
   };
 }
 
@@ -203,6 +220,32 @@ export async function saveComicPagePanelBorderStyle(
     projectId,
     pageId,
     panelBorderStyle
+  );
+  if (result.error) return result;
+
+  revalidateProjectProduction(projectId);
+  revalidateProjectCanvas(projectId);
+  return {};
+}
+
+export async function saveComicPagePanelResizeMode(
+  projectId: string,
+  pageId: string,
+  panelResizeMode: PanelResizeMode
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const check = await assertProductionProject(supabase, projectId, "comic");
+  if (check.error) return { error: check.error };
+
+  if (!(await assertComicPageOwned(supabase, projectId, pageId))) {
+    return { error: "Page not found." };
+  }
+
+  const result = await setPageLayoutPanelResizeMode(
+    supabase,
+    projectId,
+    pageId,
+    panelResizeMode
   );
   if (result.error) return result;
 

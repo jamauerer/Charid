@@ -35,6 +35,7 @@ export default async function ComicStudioPage({ params }: ComicStudioPageProps) 
       data={workspaceResult.data}
       templateId={layoutResult.templateId}
       panelBorderStyle={layoutResult.panelBorderStyle}
+      panelResizeMode={layoutResult.panelResizeMode}
       issues={comicResult.issues}
       stories={canon.stories}
       sceneRollup={canon.sceneRollup}

@@ -34,7 +34,7 @@ function statusClass(status: GenerateCoverReferenceItem["status"]): string {
 
 export function GenerateCoverReferencesPanel({
   title = "References CharID will use",
-  subtitle = "Your approved references first. CharID adds context from your canon.",
+  subtitle = "Your approved references first. CharID adds context from your story and characters.",
   items,
   interactive = false,
   onToggleRef,
