@@ -1,5 +1,6 @@
 "use client";
 
+import "@/styles/charid-editor-layout.css";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import type { ProjectCharacterEntry, ProjectSceneRollupEntry, ProjectStoryEntry } from "@/app/actions/projects";

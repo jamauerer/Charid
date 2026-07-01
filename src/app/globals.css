@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "../styles/charid-editor-layout.css";
 
 /* ── CharID Design System (light-first) — approved palette only ── */
 :root {
@@ -2230,7 +2229,7 @@ select option:disabled {
 }
 
 
-/* CharID editor root — layout integration with production routes */
+/* CharID editor — route integration (scoped to Studio root only) */
 .charid-editor-root,
 .charid-editor-root .shell {
   --rail-width: 56px;
@@ -2244,9 +2243,6 @@ select option:disabled {
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  background: var(--bg-base);
-  color: var(--text-primary);
-  font-size: 12px;
 }
 
 .charid-editor-root.production-comic-studio-full {
@@ -2255,32 +2251,32 @@ select option:disabled {
   width: 100vw !important;
 }
 
-.shell {
+.charid-editor-root .shell {
   flex: 1;
   min-height: 0;
 }
 
-.shell-pending {
+.charid-editor-root .shell-pending {
   opacity: 0.72;
   pointer-events: none;
 }
 
-.production-editor-canvas-column {
+.charid-editor-root .production-editor-canvas-column {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
 }
 
-.layout-thumb.active {
+.charid-editor-root .layout-thumb.active {
   border-color: var(--teal);
 }
 
-.insp-layer-item.selected {
+.charid-editor-root .insp-layer-item.selected {
   background: var(--teal-dim);
 }
 
-.insp-qa-btn-danger {
+.charid-editor-root .insp-qa-btn-danger {
   color: var(--red) !important;
 }
 

@@ -1,6 +1,9 @@
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-  .charid-editor-root, .shell {
+/**
+ * Studio editor layout — scoped exclusively to .charid-editor-root.
+ * Loaded only from ComicPageEditorView. Never import from globals.css.
+ */
+@scope (.charid-editor-root) {
+  :scope {
     --bg-base: #111113;
     --bg-surface: #1a1a1c;
     --bg-panel: #1e1e20;
@@ -23,13 +26,24 @@
     /* Legacy aliases used by grid rules */
     --iconrail-width: var(--rail-width);
     --icon-size: 40px;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 12px;
+    box-sizing: border-box;
   }
 
-  .charid-editor-root { height: 100%; overflow: hidden; background: var(--bg-base); color: var(--text-primary); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; }
+  :scope *,
+  :scope *::before,
+  :scope *::after {
+    box-sizing: border-box;
+  }
 
   /* ─── SHELL GRID ─── */
-.shell {
-  display: grid;
+  .shell {
+    display: grid;
   grid-template-rows: var(--topbar-height) 1fr;
   grid-template-columns: var(--rail-width) var(--sidebar-width) 1fr var(--inspector-width);
   flex: 1;
@@ -727,3 +741,4 @@
   /* Topbar context groups */
   .ctx-group { display: flex; align-items: center; gap: 1px; }
   .ctx-group.hidden { display: none; }
+}
