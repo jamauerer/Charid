@@ -1,0 +1,39 @@
+---
+description: Layout isolation — each app area owns its shell and scoped CSS; no cross-area layout leakage
+globs: src/app/**/*,src/components/**/*,src/styles/**/*
+alwaysApply: false
+---
+
+# Layout Isolation
+
+Read `docs/Layout_Isolation_Rules.md` before changing layouts, shells, or global CSS.
+
+## Each area owns its layout
+
+Dashboard · Studio · Reader · Character pages · Admin · Authentication — each has a root wrapper and scoped CSS imported only from that area’s entry component.
+
+| Area | Root | CSS import location |
+|------|------|---------------------|
+| Dashboard | `.charid-dashboard-shell` | `DashboardShell.tsx` |
+| Studio | `.charid-editor-root` | `ComicPageEditorView.tsx` |
+| Marketing | `.charid-marketing-shell` | `src/app/page.tsx` |
+| Auth | `.charid-auth-shell` | login/signup pages |
+
+## Scoping
+
+- **Studio** rules only beneath `.charid-editor-root` (`@scope` in `charid-editor-layout.css`)
+- **Dashboard** rules only beneath `.charid-dashboard-shell`
+- **Reader** rules only beneath `.charid-reader-shell` (when added)
+
+## Never
+
+- Import area layout CSS from `globals.css`
+- Unscoped selectors that reposition layouts (`.shell`, `.sidebar`, `* { padding: 0 }` at document root)
+- Modify shared layout components for Studio-specific fixes — create Studio-specific components instead
+- Modify `DashboardShell` to solve Studio problems
+
+## globals.css
+
+Design tokens and non-layout utilities only. No Studio grid, sidebar, or shell positioning rules without `.charid-editor-root` prefix.
+
+See also `docs/Studio_Shell_Rules.md` for frozen Studio shell grid/DOM (extend inside shell, do not redesign).
