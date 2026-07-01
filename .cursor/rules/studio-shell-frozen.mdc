@@ -1,0 +1,33 @@
+---
+description: Frozen CharID Studio shell — extend features inside the shell, never redesign layout
+globs: src/components/project/production/**/*,src/styles/charid-editor-layout.css,docs/CharID*.md,docs/charid_editor_layout.html,docs/Studio_Shell_Rules.md
+alwaysApply: false
+---
+
+# Studio Shell (Frozen)
+
+Read `docs/Studio_Shell_Rules.md` before any Studio change. Also read `docs/CharID_Architecture.md`, `docs/CharID_Editor_Implementation_Spec.md`, and `docs/charid_editor_layout.html`.
+
+## Frozen (no changes unless project owner explicitly requests)
+
+Four-column grid: icon rail (48–56px) · sidebar (260px) · canvas (flex) · inspector (260px).
+
+Do not change: DOM hierarchy, shell class names, grid architecture, CSS variables for shell sizing, top toolbar layout, page strip, zoom bar, measurement system.
+
+Frozen components include `CharIDEditorShell`, `EditorIconRail`, sidebar/inspector/canvas chrome, and `charid-editor-layout.css` shell rules.
+
+## Allowed
+
+Implement features **inside** the shell: bubble/caption/SFX libraries, draw tools, upload library, AI Generate, Properties panel fields, crop, layers, keyboard shortcuts, tablet responsiveness without altering desktop shell structure.
+
+Bug fixes that do not restructure layout.
+
+## Never
+
+Redesign shell, merge sidebar/inspector, move canvas, rename CSS architecture, replace grid or measurement system.
+
+## Regression
+
+Preserve working behavior. Extend components; do not replace working layouts. If shell modification seems required, stop and explain why before proceeding.
+
+CharID is an AI Production Studio, not a generic design editor. Extend functionality; do not redesign architecture.
